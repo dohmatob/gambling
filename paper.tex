@@ -110,7 +110,10 @@ finding the best response strategy $x^* \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})$
 where $\Delta_{m}^0$ is the singleton $\{y_0\}$ if $y_0$ is known, otherwise it is the $m-$dimensional probability simplex $\Delta_{m} := \{x \in \mathbb{R}_{+}^m \text{ s.t }\textbf{1}^Tx = 1\}$.\\\\
 Noting that $i_{E^{-1}(\{e\})}(x) = \underset{\eta \in \mathbb{R}^r}{max}\text{ }\eta^T(e - Ex)$, one can re-write (1) as:
 \begin{equation}
-  \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m, \eta \in \mathbb{R}^r}{max}\text{ }[y,\eta]^T\left[ \begin{array}{@{}cc@{}}
+  \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m, \eta \in \mathbb{R}^r}{max}\text{ }\left[ \begin{array}{@{}cc@{}}
+    y \\
+    \eta
+    \end{array} \right]^T\left[ \begin{array}{@{}cc@{}}
     A \\
     -E
     \end{array} \right]x + G(x) - F^*(y, \eta)
