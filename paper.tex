@@ -38,7 +38,7 @@
 
 \begin{document}
 %\onecolumn
-\title{Primal-dual algorithm for computing best response against the unplanned mixed strategies of an opponent in two-person zero-sum sequential games}
+\title{A fast algorithm for computing the best response against the unplanned mixed strategies of an opponent in two-person zero-sum sequential games}
 
 
 \author{\IEEEauthorblockN{Elvis D. DOHMATOB}}
@@ -52,16 +52,17 @@
 % While medical imaging typically provides massive amounts of
 % data, the extraction of relevant information in a given
 % applicative context remains a difficult challenge.
-
 % XXX : don't call it SPM but just "predictive regions or predictive
 % maps"
 In this manuscript, we consider the problem of computing the best response against the  unplanned mixed strategies of an opponent
-in two-player zero-sum sequential games. An unplanned mixed strategy is simply a strategy chosen from a probability simplex.
+in two-player zero-sum sequential games. The problem considered here encompasses the problem of computing the best response against an opponent's fixed strategy.
+The problem considered here encompasses the problem of computing the best response against an opponent's fixed strategy.
+An unplanned mixed strategy is simply a strategy chosen from a probability simplex.
 The proposed technique employs the primal-dual scheme of A. Chambolle and T. Pock to solve the corresponding saddle-point problem.
-The resulting algorithm is simple (all resolvent operators can be effectively computed quasi closed-form, using only elementary algebraic operations)
- and is orders of magnitude more efficient than state-of-the-art algorithms like those based on Linear Programming, Interior-Point methods,
-and more recently, the Nesterov Excessive Gap Technique. The problem considered here encompasses the problem of computing the best response against an opponent's fixed strategy.
-We conclude by exhibiting results on Texas Hold'em Poker.
+The resulting algorithm is simple: all resolvent operators can be effectively computed quasi closed-form, using only elementary algebraic operations.
+%%  and is orders of magnitude more efficient than state-of-the-art algorithms like those based on Linear Programming, Interior-Point methods,
+%% and more recently, the Nesterov Excessive Gap Technique.
+By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
 \end{abstract}
 
 
@@ -71,34 +72,19 @@ We conclude by exhibiting results on Texas Hold'em Poker.
 
 \section{Introduction: Statement of the problem}
 \label{sec:intro}
-%% Let $A \in \mathbb{R}^{m,n}$ be the payoff matrix; let $E \in \mathbb{R}^{r,n}$ and $e \in \mathbb{R}^r$ be a matrix so that player 1 wishes only to use those strategies  $x \in \mathbb{R}_{+}^n$ for which $Ex = e$, i.e $x \in \mathbb{R}_{+}^n$
-%%  %% from player \textbf{row} perspective, so that player \textbf{row} gains $A_{i,j}$ and player \textbf{column} forfeits $A_{i,j}$ euros if the former plays the $i$th row and the former players the $j$th column.
 
-%% We denote by $\mathbf{y} \in \mathbb{R}^{n}$ the targets to
-%% be predicted, and $\mathbf{X}\in\mathbb{R}^{n \times p}$ the
-%% brain images related to the presentation of different
-%% stimuli. $p$ is the number of voxels and $n$ the number of
-%% samples (images). Typically, $p \sim 10^3-10^5$ (for a whole volume),
-%% while $n \sim 10-10^3$.  Let $\Omega \subset \mathbb{R}^3$ be
-%% the 3D image domain, discretized on a finite grid. The coefficients
-%% $\mathbf{w}$ define a spatial map in $\mathbb{R}^p$. Its gradient at a
-%% voxel $j \in \Omega $ reads\footnote{Where it is understood that the feature vector $w$ is ``unmasked''
-%% into a full 3D volume before the spatial operators are applied.}:
-%% \begin{eqnarray}
-%%   \mathbf{\nabla} w(j) := [\nabla_{x} w(j),
-%%     \nabla_{y} w(j), \nabla_{z} w(j)] \in
-%%   \mathbb{R}^3,
-%% \end{eqnarray}
-%% where $\nabla_{u}$ is the spatial difference operator along
-%% the $u$-axis. Thus $\mathbf{\nabla}$
-%% is a linear operator $\in \mathbb{R}^{3p \times
-%%   p}$ with adjoint $\mathbf{\nabla} ^T = -\dive \in \mathbb{R}^{p
-%%   \times 3p}$. Let $\tilde{\nabla} := [(1 - \rho)\nabla^T, \rho I]^T$ be the identity-augmented spatial gradient operator. Finally, let us recall the definition of the $(q, 1)$ mixed-norm\footnote{Where $q$ itself is allowed to be a mixed-norm.}:
-%% \begin{equation}
-%% \|v\|_{q, 1} := \sum_{j}{\|v_{j}\|_{q}}
-%% \end{equation}
-
-Consider a two-person zero-sum sequential game with payoff matrix $A \in \mathbb{R}^{m,n}$. Consider the problem of
+To begin, let us introduce some technical vocabulary we will be using in this paper. The reader should lookup any standard textbook
+on convex optimization for a tutorial introduction to these notions. Viz,\\
+$\mathbb{R}_+$: \quad \textit{the nonnegative part of the real-line $\mathbb{R}$}\\
+$(x)_+$: \quad \textit{the component-wise maximum of the vector $x$ and 0}\\
+$\Delta_{m}$: \quad \textit{the $m-$dimensional probability simplex
+%$\{x \in \mathbb{R}_{+}^m\text{ }| \text{ }\textbf{1}^Tx = 1\}$
+}\\
+$\Pi_C$: \quad \textit{the euclidean projector onto the convex set $C$}\\
+$\|K\|$: \quad \textit{the operator norm of a matrix $K$}\\
+$F^*$: \quad \textit{the Fenchel transform of a convex l.s.c\footnote{lower semi-contnuous} function $F$}\\
+$E^{-1}(U)$: \quad \textit{the pre-image of $U \subset \mathbb{R}^n$ under a matrix $E \in \mathbb{R}^{r,n}$, namely the set $\{x \in \mathbb{R}^n\text{ }| \text{ }Ex \in U\}$}\\\\
+Now, consider a two-person zero-sum sequential game with payoff matrix $A \in \mathbb{R}^{m,n}$. We are interested in the problem of
 finding the best response strategy $x^* \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})$ for player 1, given a fixed
 (possibly mixed) strategy $y_0$ for player 2, where $E \in \{-1, 0, +1\}^{r,n}$ and $e \in \mathbb{R}^r$ encode player
 1's game plan, consistent with the rules of the game. In the language of convex-optimization, one can readily give the following saddle-point formulation for this problem. Viz,
@@ -107,43 +93,54 @@ finding the best response strategy $x^* \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})$
   \underset{x \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})}{min}\text{ }\underset{y \in \Delta_{m}^0}{max}\text{ }y^TAx
 \end{equation}
 
-where $\Delta_{m}^0$ is the singleton $\{y_0\}$ if $y_0$ is known, otherwise it is the $m-$dimensional probability simplex $\Delta_{m} := \{x \in \mathbb{R}_{+}^m \text{ s.t }\textbf{1}^Tx = 1\}$.\\\\
-Noting that $i_{E^{-1}(\{e\})}(x) = \underset{\eta \in \mathbb{R}^r}{max}\text{ }\eta^T(e - Ex)$, one can re-write (1) as:
+where $\Delta_{m}^0$ is $\Delta_{m}$ if $y_0$ is known, otherwise it is the singleton
+%% \footnote{Note that the origin $\textbf{0} \in \mathbb{R}^m$ can be seen a degenerate simplex with radius $0^+$,
+%% whilst a singleton  $\{y_0\}$ can be seen as a $y_0-$translation of this simplex.}
+$\{y_0\}$.\\\\
+
+In section II, we give a brief overview of existing methods for solving (1). We elaborate our proposed primal-dual algorithm in section III.
+
+\section{Related work}
+pending...
+
+\section{The algorithm}
+Noting that $i_{E^{-1}(\{e\})}(x) = \underset{\theta \in \mathbb{R}^r}{max}\text{ }\theta^T(e - Ex)$, one can re-write (1) as:
 \begin{equation}
-  \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m, \eta \in \mathbb{R}^r}{max}\text{ }\left[ \begin{array}{@{}cc@{}}
-    y \\
-    \eta
-    \end{array} \right]^T\left[ \begin{array}{@{}cc@{}}
-    A \\
-    -E
-    \end{array} \right]x + G(x) - F^*(y, \eta)
+  \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m, \theta \in \mathbb{R}^r}{max}\text{ }
+  \left[\begin{array}{@{}cc@{}}y\\\theta\end{array}\right]^TKx + G(x) - F^*(y, \theta)
 \end{equation}
 where:
 \begin{equation}
+  \left.
   \begin{aligned}
+    K := \left[\begin{array}{@{}cc@{}}A\\-E\end{array}\right]\\
     G:=i_{\mathbb{R}_{+}^n}\\
-    F^*: (y, \eta) \mapsto (i_{\Delta_{m}^0}(y) - e^T\eta)
+    F^*: (y, \theta) \mapsto (i_{\Delta_{m}^0}(y) - e^T\theta)
   \end{aligned}
+  \right\}
 \end{equation}
-with resolvent operators given by
+
+Furthermore, $F^*$ and $G$ have resolvent (a.k.a \textit{proximity}) operators given by the simple formulae:
 \begin{equation}
+  \left.
   \begin{aligned}
     (1 + \tau \partial G)^{-1}: x \mapsto \Pi_{\mathbb{R}_{+}^n}(x) = (x)_+\\
-    (1 + \sigma \partial F^*)^{-1}: (y, \eta) \mapsto (\Pi_{\Delta_{m}^0}(y), \eta + \sigma e)% (z, \eta) \mapsto \bigl(y, \frac{\eta}{1 + \sigma}\bigr)
+    (1 + \sigma \partial F^*)^{-1}: (y, \theta) \mapsto (\Pi_{\Delta_{m}^0}(y), \theta + \sigma e)% (z, \theta) \mapsto \bigl(y, \frac{\theta}{1 + \sigma}\bigr)
   \end{aligned}
+  \right\}
 \end{equation}
-This way, we obtain following algorithm which solves (2).
+This way, we obtain following primal-dual algorithm for solving (2).
 
 \begin{algorithm}[htb]
 \caption{Primal-dual algorithm for computing best response against unplained mixed strategies of opponent}%%  \textbf{Let}
-\textbf{Initialize} $\tilde{x}^{(0)} = x^{(0)} \in \mathbb{R}^n$; $y^{(0)} \in \mathbb{R}^{m}$; $\eta^{(0)} \in \mathbb{R}^{m}$;
-$\tau, \sigma > 0 \text{ s.t. }\tau\sigma (\|A\|^2 + \|E\|^2) \le 1$; $k = 0$.\\
+\textbf{Initialize} $\tilde{x}^{(0)} = x^{(0)} \in \mathbb{R}^n$; $y^{(0)} \in \mathbb{R}^{m}$; $\theta^{(0)} \in \mathbb{R}^{r}$;
+$\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 \le 1$; $k = 0$.\\
 \Repeat{
   convergence}{
   \begin{eqnarray*}
     y^{(k+1)} &\leftarrow& \Pi_{\Delta_{m}^0}\bigl(y^{(k)} + \sigma A \tilde{x}^{(k)}\bigr)\\
-    \eta^{(k+1)} &\leftarrow& \eta^{(k)} - \sigma E \tilde{x}^{(k)} + \sigma e\\
-    x^{(k+1)} &\leftarrow& (x^{(k)} - \tau A^Ty^{(k+1)} + E^T\eta^{(k+1)})_+\\
+    \theta^{(k+1)} &\leftarrow& \theta^{(k)} - \sigma E \tilde{x}^{(k)} + \sigma e\\
+    x^{(k+1)} &\leftarrow& \bigl(x^{(k)} - \tau A^Ty^{(k+1)} + E^T\theta^{(k+1)}\bigr)_+\\
     \tilde{x}^{(k+1)} &\leftarrow& 2x^{(k+1)} - x^{(k)}\\
     k &\leftarrow& k + 1
   \end{eqnarray*}
