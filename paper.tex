@@ -100,7 +100,7 @@ We conclude by exhibiting results on Texas Hold'em Poker.
 
 Consider a two-person zero-sum sequential game with payoff matrix $A \in \mathbb{R}^{m,n}$. Consider the problem of
 finding the best response strategy $x^* \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})$ for player 1, given a fixed
-(possibly mixed) strategy $y_0$ for player 2, where $E \in \{-1, 0, +1\}^{r,n}$ and $(1, 0, 0, ..., 0) =: e \in \mathbb{R}^r$ encode player
+(possibly mixed) strategy $y_0$ for player 2, where $E \in \{-1, 0, +1\}^{r,n}$ and $e \in \mathbb{R}^r$ encode player
 1's game plan, consistent with the rules of the game. In the language of convex-optimization, one can readily give the following saddle-point formulation for this problem. Viz,
 
 \begin{equation}
@@ -119,27 +119,27 @@ where:
 \begin{equation}
   \begin{aligned}
     G:=i_{\mathbb{R}_{+}^n}\\
-    F^*: (y, \eta) \mapsto (i_{\Delta_{m}^0}(y) + e^T\eta)
+    F^*: (y, \eta) \mapsto (i_{\Delta_{m}^0}(y) - e^T\eta)
   \end{aligned}
 \end{equation}
 with resolvent operators given by
 \begin{equation}
   \begin{aligned}
     (1 + \tau \partial G)^{-1}: x \mapsto \Pi_{\mathbb{R}_{+}^n}(x) = (x)_+\\
-    (1 + \sigma \partial F^*)^{-1}: (y, \eta) \mapsto (\Pi_{\Delta_{m}^0}(y), \eta - \sigma e)% (z, \eta) \mapsto \bigl(y, \frac{\eta}{1 + \sigma}\bigr)
+    (1 + \sigma \partial F^*)^{-1}: (y, \eta) \mapsto (\Pi_{\Delta_{m}^0}(y), \eta + \sigma e)% (z, \eta) \mapsto \bigl(y, \frac{\eta}{1 + \sigma}\bigr)
   \end{aligned}
 \end{equation}
 This way, we obtain following algorithm which solves (2).
 
 \begin{algorithm}[htb]
-\caption{Primal-dual algorithm for computing best response against on plained mixed strategies of opponent}%%  \textbf{Let}
+\caption{Primal-dual algorithm for computing best response against unplained mixed strategies of opponent}%%  \textbf{Let}
 \textbf{Initialize} $\tilde{x}^{(0)} = x^{(0)} \in \mathbb{R}^n$; $y^{(0)} \in \mathbb{R}^{m}$; $\eta^{(0)} \in \mathbb{R}^{m}$;
 $\tau, \sigma > 0 \text{ s.t. }\tau\sigma (\|A\|^2 + \|E\|^2) \le 1$; $k = 0$.\\
 \Repeat{
   convergence}{
   \begin{eqnarray*}
     y^{(k+1)} &\leftarrow& \Pi_{\Delta_{m}^0}\bigl(y^{(k)} + \sigma A \tilde{x}^{(k)}\bigr)\\
-    \eta^{(k+1)} &\leftarrow& \eta^{(k)} - \sigma E \tilde{x}^{(k)} - \sigma e\\
+    \eta^{(k+1)} &\leftarrow& \eta^{(k)} - \sigma E \tilde{x}^{(k)} + \sigma e\\
     x^{(k+1)} &\leftarrow& (x^{(k)} - \tau A^Ty^{(k+1)} + E^T\eta^{(k+1)})_+\\
     \tilde{x}^{(k+1)} &\leftarrow& 2x^{(k+1)} - x^{(k)}\\
     k &\leftarrow& k + 1
