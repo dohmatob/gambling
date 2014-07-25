@@ -71,7 +71,7 @@ By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
 \label{sec:intro}
 \subsection{Notation and Terminology}
 To begin, let us introduce some technical notation and terminology we will be using in this paper. The reader should lookup any standard textbook
-(for example \cite{sboyd}) on convex optimization for a tutorial introduction to these notions. Viz,\\
+(for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions. Viz,\\
 \textit{l.s.c}: \quad \textit{acronyme for ``lower semi-continuous''}\\
 $\mathbb{R}_+$: \quad \textit{nonnegative part of the real-line $\mathbb{R}$}\\
 $i_C$: \quad \textit{indicator function of the convex set $C$}\\
@@ -92,15 +92,17 @@ one can readily give the following saddle-point formulation for this problem. Vi
 
 \begin{equation}
   \underset{x \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})}{min}\text{ }-y_0^TAx
+  \label{eq:opt_pb}
 \end{equation}
 
-In section II, we give a brief overview of existing methods for solving (1). We elaborate our proposed algorithm in section III.
+In section II, we give a brief overview of existing methods for solving \eqref{eq:opt_pb}. We elaborate our proposed algorithm in section III.
 
 \section{Related work}
 Pending...
 
 \section{The proposed algorithm}
-In this section we present the algorithm which is the purpose of this paper, namely an algorithm for solving (1).
+\label{sec:algo}
+In this section we present the algorithm which is the purpose of this paper, namely an algorithm for solving \eqref{eq:opt_pb}. Our algorithm (Alg.\ref{Tab:pseudocode_pb}) is a use-case of the generic primal-dual algorithm of A. Chambolle and T. Pock, namely Algorithmic 1 of \cite{chambolle2010}.
 
 \subsection{Derivation of the algorithm}
 First observe that (1) can be re-written in the form:
@@ -126,6 +128,7 @@ Now, let's observe that $i_{E^{-1}(\{e\})}(x) = \underset{\zeta \in \mathbb{R}^q
 \begin{equation}
   \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m, \zeta \in \mathbb{R}^p}{max}\text{ }
   \begin{bmatrix}y\\\zeta\end{bmatrix}^TKx + G(x) - F^*(y, \zeta)
+  \label{eq:pd_opt}
 \end{equation}
 where:
 \begin{equation}
@@ -147,7 +150,9 @@ Furthermore, $F^*$ and $G$ have resolvent (a.k.a \textit{proximity}) operators g
   \end{aligned}
   \right\}
 \end{equation}
-This way, we obtain following primal-dual algorithm for solving (2).
+
+Using these ingredients, we obtain the primal-dual algorithm given in Alg.\ref{Tab:pseudocode_pb}, 
+for solving \eqref{eq:pd_opt}, and thus \eqref{eq:opt_pb}.
 
 \begin{algorithm}[htb]
 \caption{Primal-dual algorithm for computing best response against opponent's realization plan $y$}%%  \textbf{Let}
@@ -163,478 +168,21 @@ $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 < 1$; $k = 0$.\\
     k &\leftarrow& k + 1
   \end{eqnarray*}
 } \Return $x^{(k)}$, $-y_0^TAx^{(k)}$
-\label{Tab:pseudocode_lbfgs}
+\label{Tab:pseudocode_pb}
 \end{algorithm}
 
 \subsection{Primal-dual gap stopping-criterion and convergence of the algorithm}
 Pending...
 
-%\begin{remark}
-%% Due to the independence of $(1 + \sigma \partial F^*)^{-1}$ on $\sigma$, we can always choose the pair
-%% $(\tau, \sigma)$ , such that $\tau\sigma \|\tilde{\nabla}\|^2 \le 1$ and $\tau \rho(X^TX) \le \alpha$.
-% \end{remark}
-%% We note that if the pair $(\tau, \sigma)$ is chosen such that $\tau \rho(X^TX) < \alpha$,
-%% then (6) can be approximated by
-%% \begin{equation}
-%% (1 + \tau \partial G)^{-1}(w) \approx (1 - \frac{\tau}{\alpha}X^TX)(w - \frac{\tau}{\alpha} X^Ty)
-%% \end{equation}
+\medskip \noindent
+\textbf{Acknowledgments:}
+This work was supported by the  Human Brain Project.
 
-%% Prediction of external variates from brain images has seen an
-%% explosion of interest in the past decade, in cognitive neurosciences
-%% to predict cognitive content from functional imaging data such as fMRI
-%% \cite{haxby2001,kamitani2005,haynes2006} or for medical diagnosis
-%% purposes \cite{fan2008}. Given that brain images are
-%% high-dimensional objects --composed of many voxels-- and the
-%% number of samples is limited by the cost of acquisition, the
-%% estimation of a multivariate predictive model is ill-posed and calls
-%% for regularization. This regularization is central as it encodes the
-%% practicioner's priors on the spatial maps. For brain mapping, it has
-%% been shown that regularization schemes based on sparsity (Lasso or
-%% $\ell_1$ family of models) \cite{carroll2009} or Total Variation (TV),
-%% that promotes spatial contiguity \cite{michel2011}, perform well for
-%% prediction. The combination of these, hereafter dubbed
-%% ``TV$-\ell_{1}$'', extracts spatially-informed %% --and thus, more
-%% %% interpretable-- 
-%% brain maps that are more stable \cite{baldassarre2012}
-%% and recover better the predictive regions
-%% \cite{gramfort-etal:2013a}. In addition, this prior leads to
-%% state-of-the-art methods for extraction of brain atlases
-%% \cite{abraham2013}.
-
-%% However, the corresponding optimization problem is
-%% intrinsically hard to solve. The reason for this is two-fold. First and
-%% foremost, in fMRI studies, the design matrix $\mathbf{X}$ is ``fat''
-%% ($n \ll p$), dense, ill-conditioned with little algebraic structure to be
-%% exploited, making the optimization problem ill-conditioned. Second, the
-%% penalty is not smooth, and while the $\ell_{1}$ term is \emph{proximable}
-%% (via \emph{soft-thresholding}), the TV term does not admit a closed-form proximal
-%% operator. Thus neither gradient-based methods (like Newton, BFGS, etc.) nor proximal methods (like
-%% ISTA~\cite{daubechies2004}, FISTA~\cite{beck2009a}) can be used in the
-%% traditional way.
-
-%% While the quality of the optimization may sound as a minor
-%% technical problem to the practitioner, the sharpening effect of TV and the
-%% sparsity-inducing effect of $\ell_1$ come into play only for
-%% well-optimized solutions. As a result, the brain maps extracted vary
-%% significantly as a function of the tolerance on the solver (see
-%% Fig.\,\ref{fig:maps_tolerance}).
-
-%% \begin{figure*}
-%% \includegraphics[width=.32\linewidth]{maps/face_vs_house_tol_0_1.pdf}%
-%% \llap{\color{white}\raisebox{.17\linewidth}{\rlap{\sffamily Stopping:
-%%       $\Delta E < 10^{-1}$}}\hspace*{.315\linewidth}}\hfill%
-%% \includegraphics[width=.32\linewidth]{maps/face_vs_house_tol_0_001.pdf}%
-%% \llap{\color{white}\raisebox{.17\linewidth}{\rlap{\sffamily Stopping:
-%%       $\Delta E < 10^{-3}$}}\hspace*{.315\linewidth}}\hfill%
-%% \includegraphics[width=.32\linewidth]{maps/face_vs_house_tol_1e-05.pdf}%
-%% \llap{\color{white}\raisebox{.17\linewidth}{\rlap{\sffamily Stopping:
-%%       $\Delta E < 10^{-5}$}}\hspace*{.315\linewidth}}%
-
-%% \caption{TV$-\ell_1$ maps for the face-house discrimination task on
-%%   the visual recognition dataset, with regularization parameters chosen by
-%%   cross-validation, for different stopping criteria.
-%%   Note that
-%%   the stopping criterion is defined as a threshold on the energy
-%%   decrease per one iteration of the algorithm, and thus differs from
-%%   the tolerance displayed in figure \ref{Fig:MSEtimes}.  This figure shows
-%%   the importance of convergence for problem \eqref{eq:opt_pb}, and motivates
-%%   the need for a fast solver.}%
-%% \label{fig:maps_tolerance}
-%% \end{figure*}
-
-%% In this contribution, we compare a comprehensive list of
-%% solvers, all implemented with great care, for solving TV$-\ell_1$
-%% regression with a focus on convergence time. First we state the formal
-%% problem solved.
-%% In section \ref{sec:algos}
-%% we present the various algorithms. Experiments done and the results obtained are presented in secions
-%%  \ref{sec:experiments} and \ref{sec:results}
-%% respectively. Section \ref{sec:discusion} concludes the paper with
-%% general recommendations.
-
-
-%% \section{Formal problem statement and notations}
-
-%% \label{sec:problem_statement}
-
-%% We denote by $\mathbf{y} \in \mathbb{R}^{n}$ the targets to
-%% be predicted, and $\mathbf{X}\in\mathbb{R}^{n \times p}$ the
-%% brain images related to the presentation of different
-%% stimuli. $p$ is the number of voxels and $n$ the number of
-%% samples (images). Typically, $p \sim 10^3-10^5$ (for a whole volume),
-%% while $n \sim 10-10^3$.  Let $\Omega \subset \mathbb{R}^3$ be
-%% the 3D image domain, discretized on a finite grid. The coefficients
-%% $\mathbf{w}$ define a spatial map in $\mathbb{R}^p$. Its gradient at a
-%% voxel $\omega \in \Omega $ reads:
-%% \begin{eqnarray}
-%%   \mathbf{\nabla} \mathbf{w}(\omega) := [\nabla_{x} \mathbf{w}(\omega),
-%%     \nabla_{y} \mathbf{w}(\omega), \nabla_{z} \mathbf{w}(\omega)] \in
-%%   \mathbb{R}^3,
-%% \end{eqnarray}
-%% where $\nabla_{u}$ is the spatial difference operator along
-%% the $u$-axis. Thus $\mathbf{\nabla}$
-%% is a linear operator $\in \mathbb{R}^{3p \times
-%%   p}$ with adjoint $\mathbf{\nabla} ^T = -\dive \in \mathbb{R}^{p
-%%   \times 3p}$. $\Delta := \nabla ^T \nabla \in
-%% \mathbb{R}^{p \times p}$ is the Laplace operator. 
-
-%% TV$-\ell_1$ regression leads to the following non-smooth convex
-%% optimization problem \cite{gramfort-etal:2013a}:
-%% \begin{eqnarray}
-%%   \mathbf{\hat{w}} := \argmin_{\mathbf{w}}\;\{E(\mathbf{w}) :=
-%%   \mathcal{L}(\mathbf{y}, \mathbf{X}, \mathbf{w}) + \alpha
-%%   J(\mathbf{w})\},
-%%   \label{eq:opt_pb}
-%% \end{eqnarray}
-%% where $J(\mathbf{w}) := \zeta\|\mathbf{w}\|_{\ell_{1}} + (1 -
-%% \zeta)\|\mathbf{w}\|_{TV}$ is the regularization and $\alpha \ge 0$
-%% controls the amount of regularization. The
-%% parameter $\zeta \in [0, 1]$, also known as the $\ell_{1}$ \textit{ratio}, is the trade-off between the
-%% sparsity-inducing penalty $\ell_{1}$ (Lasso) and TV (isotropic Total
-%% Variation):
-%% % also known as the $\ell_{1}$\emph{-ratio},
-%% % XXX = $\ell_{1}$\emph{-ratio} is sklearn jargon
-%% \begin{eqnarray}
-%% \|\mathbf{w}\|_{\ell_{1}} := \sum_{\omega \in
-%%   \Omega}|\mathbf{w}(\omega)|;\;\;\textbf{ }\|\mathbf{w}\|_{TV} :=
-%% \sum_{\omega \in \Omega} \|\nabla \mathbf{w}(\omega)\|_{2} \enspace .
-%% %% \\
-%% %% &=& \sum_{\omega \in
-%% %% \Omega}
-%% %% \sqrt{\nabla_{x} \mathbf{w}(\omega)^2 + \nabla_{y} \mathbf{w}(\omega)^2 +
-%% %%   \nabla_{z}\mathbf{w}(\omega)^2}\\
-%% \end{eqnarray}
-%% $\mathcal{L}(\mathbf{y}, \mathbf{X}, \mathbf{w})$
-%% is the loss function. Here, we focus on the squared loss
-%% and the logistic loss, defined \emph{e.g.} in \cite{michel2011}. The
-%% squared loss is natural for regression settings, where $\mathbf{y}$ is a
-%% continuous variable, but it may also be used for classification
-%% \cite{suykens2002}. The logistic loss is harder to optimize, but
-%% more natural for classification settings.
-
-
-%% \section{Algorithms}
-%% \label{sec:algos}
-
-%% In this section, we present the algorithms we benchmarked for solving
-%% problem \eqref{eq:opt_pb}.
-
-%% \paragraph{ISTA/FISTA}
-%% ISTA~\cite{daubechies2004}, and its accelerated variant
-%% FISTA~\cite{beck2009a}, are proximal gradient approaches: the go-to
-%% methods for non-smooth optimization. In their seminal introduction of TV
-%% for fMRI, Michel \emph{et al.} \cite{michel2011} relied on ISTA.
-%% The challenge of these methods for TV is that the proximal operator
-%% %% \footnote{The proximal operator (or prox for short) can be seen as a generalization of projection unto convex set.}
-%%   of TV
-%% cannot be computed exactly; we approximate it in an inner FISTA loop
-%% \cite{beck2009b,michel2011}.
-%% % , \cite{gramfort-etal:2013a}.
-%% %%  and must itself be solved by a
-%% %% FISTA\footnote{Note that solving TV and TV$-\ell_1$ are formally very
-%% %% close \cite{gramfort-etal:2013a}.
-%% % }
-%% % \cite{beck2009b,michel2011}. 
-%% Here, for all FISTA implementations we use
-%% the faster monotonous FISTA variant \cite{beck2009b}. We control the
-%% optimality of the TV proximal via its dual gap \cite{michel2011} and
-%% use a line-search strategy in the monotonous FISTA to decrease the
-%% tolerance as the algorithm progresses, ensuring convergence of the
-%% TV-$\ell_1$ regression with good accuracy.
-
-%% \paragraph{ISTA/FISTA with backtracking}
-%% A key ingredient in FISTA's convergence is the Lipschitz
-%% constant $L(\mathcal{L})$, of the derivative of smooth part of the objective function
-%% . The tighter the upper bound used for this constant,
-%% the faster the resulting FISTA algorithm. In FISTA, the main use of 
-%% $L(\mathcal{L})$ is the fact that: for any
-%% stepsize $0 < t \le 1/L(\mathcal{L})$ and for any point $\mathbf{z}$,
-%% \begin{equation}%
-%%   \begin{gathered}
-%%     \mathcal{L}(\mathbf{p}_{t}(\mathbf{z})) \le
-%%     \mathcal{L}(\mathbf{z}) + \mathbf{r}_{t}^T\nabla
-%%     \mathcal{L}(\mathbf{z}) + \frac{1}{2t} \|\mathbf{r}_{t}\|_{2}^2,
-%%     \text{  where} \quad\\
-%%     \mathbf{p}_{t}(\mathbf{z}) := \textrm{prox}_{\alpha t J}(\mathbf{z} - t
-%%     \nabla \mathcal{L}(\mathbf{z})) \,\text{  and  }\,
-%%     \mathbf{r}_{t} :=
-%%     \mathbf{p}_{t}(\mathbf{z}) - \mathbf{z} \quad
-%%   \end{gathered}
-%%   \label{eq:fista_ineq}
-%% \end{equation}
-%% In least-squares regression, $L(\mathcal{L})$ is precisely the largest
-%% singular value of the design matrix $\mathbf{X}$.
-%% For logistic
-%% regression however, the tightest known upper bound for
-%% $L(\mathcal{L})$ is $\|\mathbf{X}\|\|\mathbf{X}^T\|$ (for example see Appendix A of
-%% \cite{yuan2012}), which performs
-%% very poorly locally (i.e, stepsizes $\sim 1 / L(\mathcal{L})$ are
-%% sub-optimal locally). A way to circumvent this difficulty is
-%% \emph{backtracking line search} \cite{beck2009a}, where one tunes the
-%% stepsize $t$ to satisfy inequality \eqref{eq:fista_ineq} locally at
-%% point $\mathbf{z}$. 
-
-
-%% \paragraph{ADMM: Alternating Direction Method of Multipliers}
-%% ADMM is a Bregman Operator Splitting primal-dual method for
-%% solving convex-optimization problems by splitting the
-%% objective function in two convex terms which are functions of linearly-related auxiliary variables
-%% \cite{boyd2010}.  ADMM is particularly appealing for problems such as TV
-%% regression: using the variable split $\mathbf{z}
-%% \leftarrow \nabla \mathbf{w}$, the regularization is a simple $\ell_{1}/\ell_2$
-%% norm on $\mathbf{z}$ for which the proximal is exact and computationally
-%% cheap. However, in our settings, limitations of ADMM are:
-%% \begin{itemize}
-%% \item the $\mathbf{w}$-update involves the inversion of a large ($p \times p$)
-%%   ill-conditioned linear operator (precisely a weighted sum of
-%%   $\mathbf{X}^T\mathbf{X}$, the laplacian $\Delta$, and the identity
-%%   operator).
-%% \item the $\rho$ parameter for penalizing the split
-%%   residual $\mathbf{z} - \nabla \mathbf{w}$ is hard to set (this is still an
-%%   open problem), and though under mild conditions ADMM
-%%   converges for any value of $\rho$, the convergence rate depends
-%%   on $\rho$.
-%% \end{itemize}
-
-%% \paragraph{Primal-Dual algorithm of Chambolle and Pock \cite{chambolle2010}}
-%% this scheme is another method based on operator splitting.
-%% Used for fMRI TV regression by \cite{gramfort-etal:2013a},
-%% it does not require setting a hyperparameter.  % XXX : this is wrong you have the tau / sigma
-%% However it is a first-order single-step method and is thus more impacted by the
-%% conditioning of the problem. Note that here we explore this primal-dual
-%% method only in the squared loss setting, in which the algorithm can be accelerated by
-%% precomputing the SVD of $\mathbf{X}$ \cite{gramfort-etal:2013a}
-%% .
-
-%% \paragraph{HANSO \cite{lewis2008}}
-%% a modified LBFGS scheme based on gradient 
-%% sampling methods \cite{burke2005} and inexact
-%% line-search. For non-smooth problems as in our case, the algorithm relies on
-%% random initialization, to avoid singularities with high probability. 
-%% Here, we used the original authors' implementation.
-
-%% \paragraph{Uniform approximation by smooth convex surrogates}
-%% $\ell_{1}$ (resp. TV) is differentiable almost everywhere,
-%% with gradient $\bigl(\textbf{w}(\omega)/|\textbf{w}(\omega|))_{\omega
-%%   \in \Omega}$ (resp. $-\dive (\nabla \mathbf{w}/\|\nabla
-%% \mathbf{w}\|_2)$), except at voxels $\omega$ of the weights map where
-%% \textbf{w}$(\omega) = 0$ (resp. $\|\nabla \mathbf{w}(\omega)\|_{2} =
-%% 0$), corresponding to black spots (resp. edges).  A convenient
-%% approach (see for example \cite{NESTA, nesterov2005a, nesterov2005b,
-%%   beck2012}) for dealing with such singularities is to uniformly
-%% approximate the offending function with smooth surrogates that
-%% preserve its convexity. Given  % I removed "and other important properties"
-%% a smoothing parameter $\mu > 0$, we define \emph{smoothed} versions
-%% of $\ell_1$ and TV:
-%% %
-%% \begin{eqnarray}
-%%   \left.
-%%   \begin{aligned}
-%%     \|\mathbf{w}\|_{\ell_{1},\mu} &:= \sum_{\omega \in \Omega}
-%%     \sqrt{\mathbf{w}(\omega)^2 + \mu^2} \quad\\
-%%     \|\mathbf{w}\|_{TV, \mu} &:=
-%%     \sum_{\omega \in \Omega} \sqrt{\|\nabla \mathbf{w}(\omega)\|_{2}^2 +
-%%     \mu^2} \quad
-%%     \end{aligned}
-%%     \right\}
-%% \end{eqnarray}
-%% These surrogate upper-bounds are convex and everywhere-differentiable
-%% with gradients that are Lipschitz-continuous with constants $1/\mu$ and
-%% $\|\nabla\|^2(1/\mu) = 12 / \mu$ respectively.
-%% %
-%% They lead to smoothed versions of problem \eqref{eq:opt_pb}:
-%% \begin{align}
-%%   \mathbf{\hat{w}}_{\mu} := \argmin_{\mathbf{w}}\;
-%%   \{E_{\mu}(\mathbf{w}) := \mathcal{L}(\mathbf{y}, \mathbf{X}, \mathbf{w}) + \alpha
-%%     J_{\mu}(\mathbf{w})\},
-%%   \label{eq:sopt_pb}
-%% \\
-%%     \text{where} \quad
-%%     J_{\mu}(\mathbf{w}) :=\zeta \|\mathbf{w}\|_{\ell_{1},\mu} +
-%%     (1 - \zeta)\|\mathbf{w}\|_{TV, \mu} \quad
-%% \end{align}
-
-%% To solve \eqref{eq:opt_pb}, we consider problems of the form
-%% \eqref{eq:sopt_pb} with $\mu \rightarrow 0^+$: we start with a coarse
-%% $\mu$ ($= 10^{-2}$, \emph{e.g}) and cheaply solve the $\mu$-smoothed problem
-%% \eqref{eq:sopt_pb} to a precision $\sim \mu$ using a fast
-%% iterative oracle like the LBFGS \cite{ciyou1994}; we
-%% obtain a better estimate for the solution; then we decrease $\mu$ by a fixed factor,
-%% and restart the solver on problem \eqref{eq:sopt_pb} with this solution; and so on, in a 
-%% \emph{continuation} process~\cite{NESTA} detailed in Alg.
-%% \ref{Tab:pseudocode_lbfgs}.
-
-%% \begin{algorithm}[htb]
-%% \caption{LBFGS algorithm with continuation} \textbf{Let}
-%% $\epsilon > 0$ be the desired precision, $\beta$ ($0 < \beta <
-%% 1$) be the rate of decay of the smoothing parameter $\mu$, and $\gamma > 0$ be a constant.  Finally,
-%% let LBFGS: $(E_\mu, \mathbf{w}^{(0)}, \epsilon) \mapsto \mathbf{w}$ be
-%% an oracle which when warm-started with an initial guess
-%% $\mathbf{w}^{(0)}$, returns an $\epsilon$-optimal
-%% solution (i.e $E_\mu(\mathbf{w}) - E_\mu^{*} < \epsilon$) for problem \eqref{eq:sopt_pb}.\\
-%% \textbf{Initialize} $ 0 < \mu^{(0)}$ ($= 10^{-2}$, \emph{e.g}),
-%% $\mathbf{w}^{(0)}\in \mathbb{R}^p$, and $k = 0$.\\
-%% \Repeat{$\gamma\mu^{(k)}
-%%   < \epsilon$}{
-%%   \begin{eqnarray*}
-%%     \mathbf{w}^{(k + 1)} &\leftarrow& \mbox{LBFGS}(E_{\mu^{(k)}},
-%%     \mathbf{w}^{(k)}, \gamma\mu^{(k)})\\
-%%     \mu^{(k + 1)} &\leftarrow& \beta \mu^{(k)} \\
-%%     k &\leftarrow& k + 1
-%%   \end{eqnarray*}
-%% } \Return $\mathbf{w}^{(k)}$
-%% \label{Tab:pseudocode_lbfgs}
-%% \end{algorithm}
-
-%% This algorithm is not faster than
-%% $\mathcal{O}(1/\epsilon)$: indeed a good optimization algorithm
-%% for the sub-problem \eqref{eq:sopt_pb} is $\mathcal{O}(\sqrt{L_{\mu}/\epsilon})$
-%% \cite{nesterov1983}, and $L_{\mu} \sim 1 / \mu \sim 1 / \epsilon$. We
-%% believe that this bound is tight but a detailed analysis is
-%% beyond the scope of this paper.
-  
-%% \section{Experiments on fMRI datasets}
-%% \label{sec:experiments}
-%% We now detail experiments done on publicly available
-%% data. All experiments were run full-brain without spatial smoothing.
-
-%% \paragraph{Visual recognition}
-%% \label{subsec:haxby}
-%% Our first benchmark dataset is a popular block-design fMRI dataset from a study on face and
-%% object representation in human ventral temporal cortex  \cite{haxby2001}.
-%% It consists of
-%% 6 subjects with 12 runs per subject. In each run, the subjects
-%% passively viewed images of eight object categories, grouped
-%% in 24-second blocks separated by intermittent rest periods. This
-%% experiment is a classification task: predicting the object category. We use a
-%% two-class prediction target: $\mathbf{y}$ encodes faces versus houses.
-%% The design matrix $\mathbf{X}$ is made of
-%% time-series from the full-brain mask of $p = 23\,707$ voxels over $n =
-%% 216$ TRs, of a single subject (subj1).
-
-%% \paragraph{Mixed Gambles}
-%% Our second benchmark dataset is a study in which
-%% subjects were presented with mixed (gain/loss) gambles, and decided
-%% whether they would accept each gamble \cite{mixedgambles2007}.  No outcomes of these gambles
-%% were presented during scanning, but after the scan three gambles were
-%% selected at random and played for real money. The prediction task here is
-%% to predict the magnitude of the gain and thus a regression on a
-%% continuous variable \cite{jimura2012}. The data is pooled across
-%% subjects, resulting in 768 samples, each an image of 33\,177 voxels.
-
-%% % We validate our algorithms on both simulated and real data.
-%% \smallskip
-
-%% We study the convergence of the algorithms for parameters close to the
-%% optimal parameters set by 10-fold cross-validation to maximize prediction
-%% accuracy.
-
-%% \begin{figure*}
-%% % generate with: ipython ../wip/tv_l1_solver/plot_parallel_plots.py bench/haxby_lr_11th.json .9 --pdb
-%% \hspace*{-.01\linewidth}%
-%% \includegraphics[width=.6\linewidth]{bench/haxby_lr_energy.pdf}
-%% \hspace*{-.09\linewidth}%
-%% \includegraphics[width=.6\linewidth]{bench/haxby_lr.pdf}%
-%% % \vspace{-2ex}
-%% \caption{TV$-\ell_1$ penalized Logistic Regression on the visual
-%% recognition face-house
-%%   discrimination task. \textbf{Left}: excess energy $E(\mathbf{w}_t) -
-%% E(\mathbf{w}_{t})_{t \rightarrow \infty}$ as a function 
-%% of time.
-%% \textbf{Right}: convergence time of the various solvers for different
-%% choice of regularization parameters.
-%% Broken lines correspond to a tolerance of $10^{0}$,
-%%   whilst full-lines correspond to $10^{-2}$.  The thick vertical line
-%% indicates the best model selected by cross-validation.}
-%% \label{Fig:HaxbyLR}
-%% \end{figure*}
-
-%% %% \paragraph{Haxby 2001: TV$-\ell_{1}$ penalized Least-Squares Regression}
-%% %% See figure \ref{Fig:HaxbyMSE}
-%% \begin{figure*}
-%% % generate with: ipython ../wip/tv_l1_solver/plot_parallel_plots.py bench/haxby_mse_10th.json 1e-2 --pdb
-%% \includegraphics[width=.6\linewidth]{bench/haxby_mse.pdf}%
-%% \hspace{-.09\linewidth}%
-%% % generate with: ipython ../wip/tv_l1_solver/plot_parallel_plots.py bench/poldrack_mse_12th.json 2e1 --pdb
-%% \includegraphics[width=.6\linewidth]{bench/poldrack_mse.pdf}
-%% % \vspace{-2ex}
-%% \caption{TV$-\ell_1$ penalized Least-Squares Regression. \textbf{Left}:
-%%   on the visual recognition  face-house discrimination task; \textbf{Right}: on the
-%%   Mixed gambles dataset. Broken lines correspond to a tolerance of $10^{0}$,
-%%   whilst full-lines correspond to $10^{-2}$. The thick vertical line
-%% indicates the best model selected by cross-validation.}
-%% \label{Fig:MSEtimes}
-%% \end{figure*}
-
-%% \section{Results: convergence times}
-%% \label{sec:results}
-%% Here, we present benchmark results for our experiments. Figure
-%% \ref{Fig:HaxbyLR} gives results for the logistic regression run on the
-%% visual recognition dataset: convergence plots of energy as a function of
-%% time show that all methods are asymptotically decreasing. Figure
-%% \ref{Fig:HaxbyLR} left, shows the time required to give a convergence
-%% threshold, defined as a given excess energy compared to the lowest energy
-%% achieved by all methods, for different choices of regularization
-%% parameters. Similarly, figure \ref{Fig:MSEtimes} shows convergence times
-%% for squared loss on both datasets. For these figures,
-%% each solver was run for a maximum of 1 hour per problem. Solvers that do
-%% not appear on a plot did not converge for the corresponding
-%% tolerance and time budget.
-
-%% For logistic loss, the most serious contender is
-%% algorithm \ref{Tab:pseudocode_lbfgs}, LBFGS applied on a smooth
-%% surrogate, followed by ADMM, however ADMM performance
-%% varies markedly depending on the choice of $\rho$. For the squared loss
-%% FISTA and algorithm \ref{Tab:pseudocode_lbfgs} are the best performers,
-%% with FISTA achieving a clear lead for the larger mixed-gambles dataset.
-%% Note that in the case of strong regularization the problem is better
-%% conditioned, and first-order methods such as the
-%% primal-dual approach can perform well.
-
-%% %% \paragraph{Haxby: TV$-\ell_{1}$ penalized Logistic Regression}
-%% %% TV$-\ell_{1}$ penalized Logistic Regression...See figure \ref{Fig:HaxbyLR}
-
-
-%% \section{Conclusions: approaches to prefer}
-%% \label{sec:discusion}
-
-%% TV$-\ell_{1}$ penalized regression for brain imaging leads to
-%% very high-dimensional, non-smooth and very ill-conditioned optimization
-%% problems. We have presented a comprehensive comparison of state-of-the-art
-%% solvers in these setting. Solvers were implemented with all known
-%% algorithmic improvements and implementation were carefully profiled and
-%% optimized.
-
-%% Our results outline best strategies: monotonous FISTA with a adaptive
-%% control of the tolerance of the TV proximal operator, in the case of
-%% squared loss; smoothed quasi-newton based on surrogate upper-bounds of
-%% the non-smooth norms for logistic loss. While these algorithms are
-%% variants of existing approaches, we present here novel additions useful
-%% for the TV or TV$-\ell_1$ settings. The fact that the smooth approaches emerge
-%% as fast solvers on these non-smooth problems is not unexpected as
-%% \emph{i)} the amount of regularization is small \emph{ii)} the prevailing
-%% term is smooth and very ill conditioned, thus calling for second-order
-%% methods such as Newton or quasi-Newton.
-
-%% For neuroimaging applications, our study has highlighted the need to
-%% converge to a good tolerance and the corresponding difficulties. Lack of
-%% good solver and explicit control of tolerance can lead to brain maps and
-%% conclusions that reflect properties of the solver more than of the
-%% TV$-\ell_1$ solution.
-
-%% %\section{Acknowledgements}
-%% %% \label{subsec:acknowledgements}
-%% %This work was supported by the  Human Brain Project.
-
-%% \medskip \noindent
-%% \textbf{Acknowledgments:}
-%% This work was supported by the  Human Brain Project.
-
-%% % ==========
-%% % = biblio =
-%% % ==========
-%% % {\small
-%% \bibliographystyle{IEEEtran} \bibliography{IEEEabrv,bib_tv}
+% ==========
+% = biblio =
+% ==========
+% {\small
+\bibliographystyle{IEEEtran} \bibliography{IEEEabrv,bib_tv}
 \end{document}
 
 

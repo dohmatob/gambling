@@ -2,7 +2,7 @@ import numpy as np
 from scipy import linalg
 
 
-def best_response(A, E, e, y0, max_iter=1000, tol=1e-4):
+def best_response(A, E, e, y0, max_iter=1000, tol=1e-6):
     """Computes best response to an opponent's realization plan in a two-person
     sequential game.
 
@@ -62,5 +62,6 @@ if __name__ == "__main__":
     E = np.array([[1, 0, 0, 0, 0], [-1, 1, 1, 0, 0], [-1, 0, 0, 1, 1]])
     e = np.eye(E.shape[0])[0]
     y0 = np.array([1, .66, .33])
-    xstar = best_response(A, E, e, y0, tol=1e-4)
+    xstar = best_response(A, E, e, y0)
     print "x* =", xstar
+    print E.dot(xstar) - e
