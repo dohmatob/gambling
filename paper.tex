@@ -38,7 +38,7 @@
 
 \begin{document}
 %\onecolumn
-\title{A fast algorithm for computing the best response against the unplanned mixed strategies of an opponent in two-person zero-sum sequential games}
+\title{A fast algorithm for computing best response behaviour strategies in two-person sequential games}
 
 
 \author{\IEEEauthorblockN{Elvis D. DOHMATOB}}
@@ -54,12 +54,9 @@
 % applicative context remains a difficult challenge.
 % XXX : don't call it SPM but just "predictive regions or predictive
 % maps"
-In this manuscript, we consider the problem of computing the best response against the  unplanned mixed strategies of an opponent
-in two-player zero-sum sequential games. The problem considered here encompasses the problem of computing the best response against an opponent's fixed strategy.
-The problem considered here encompasses the problem of computing the best response against an opponent's fixed strategy.
-An unplanned mixed strategy is simply a strategy chosen from a probability simplex.
-The proposed technique employs the primal-dual scheme of A. Chambolle and T. Pock to solve the corresponding saddle-point problem.
-The resulting algorithm is simple: all resolvent operators can be effectively computed quasi closed-form, using only elementary algebraic operations.
+In this manuscript, we consider the problem of computing the best response against an opponent's realization plan in two-person sequential games.
+The proposed technique employs the primal-dual scheme of A. Chambolle and T. Pock to solve the corresponding contrained convex-optimization problem.
+The resulting algorithm is simple: all resolvent operators can be effectively computed in closed-form, using only elementary algebraic operations.
 %%  and is orders of magnitude more efficient than state-of-the-art algorithms like those based on Linear Programming, Interior-Point methods,
 %% and more recently, the Nesterov Excessive Gap Technique.
 By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
@@ -67,55 +64,76 @@ By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
 
 
 \begin{IEEEkeywords}
-  game theory; two-person zero-sum sequential game; best response; mixed strategy; simplex; convex-optimization; saddle-point problem; primal-dual scheme
+  game theory; two-person sequential game; best response; convex-optimization; contraint; primal-dual scheme
 \end{IEEEkeywords}
 
-\section{Introduction: Statement of the problem}
+\section{Introduction}
 \label{sec:intro}
+\subsection{Notation and Terminology}
+To begin, let us introduce some technical notation and terminology we will be using in this paper. The reader should lookup any standard textbook
+(for example \cite{sboyd}) on convex optimization for a tutorial introduction to these notions. Viz,\\
+\textit{l.s.c}: \quad \textit{acronyme for ``lower semi-continuous''}\\
+$\mathbb{R}_+$: \quad \textit{nonnegative part of the real-line $\mathbb{R}$}\\
+$i_C$: \quad \textit{indicator function of the convex set $C$}\\
+$\Pi_C$: \quad \textit{euclidean projector onto the convex set $C$}\\
+$(x)_+$: \quad \textit{component-wise maximum of the vector $x$ and 0}\\
+$\|K\|$: \quad \textit{operator norm of the matrix $K$}\\
+$F^*$: \quad \textit{Fenchel transform of the convex l.s.c function $F$}\\
+$E^{-1}(U)$: \quad \textit{pre-image of $U \subset \mathbb{R}^n$ under a matrix $E \in \mathbb{R}^{p,n}$,
+namely the set $\{x \in \mathbb{R}^n\text{ }| \text{ }Ex \in U\}$}
 
-To begin, let us introduce some technical vocabulary we will be using in this paper. The reader should lookup any standard textbook
-on convex optimization for a tutorial introduction to these notions. Viz,\\
-$\mathbb{R}_+$: \quad \textit{the nonnegative part of the real-line $\mathbb{R}$}\\
-$(x)_+$: \quad \textit{the component-wise maximum of the vector $x$ and 0}\\
-$\Delta_{m}$: \quad \textit{the $m-$dimensional probability simplex
-%$\{x \in \mathbb{R}_{+}^m\text{ }| \text{ }\textbf{1}^Tx = 1\}$
-}\\
-$\Pi_C$: \quad \textit{the euclidean projector onto the convex set $C$}\\
-$\|K\|$: \quad \textit{the operator norm of a matrix $K$}\\
-$F^*$: \quad \textit{the Fenchel transform of a convex l.s.c\footnote{lower semi-contnuous} function $F$}\\
-$E^{-1}(U)$: \quad \textit{the pre-image of $U \subset \mathbb{R}^n$ under a matrix $E \in \mathbb{R}^{r,n}$, namely the set $\{x \in \mathbb{R}^n\text{ }| \text{ }Ex \in U\}$}\\\\
-Now, consider a two-person zero-sum sequential game with payoff matrix $A \in \mathbb{R}^{m,n}$. We are interested in the problem of
-finding the best response strategy $x^* \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})$ for player 1, given a fixed
-(possibly mixed) strategy $y_0$ for player 2, where $E \in \{-1, 0, +1\}^{r,n}$ and $e \in \mathbb{R}^r$ encode player
-1's game plan, consistent with the rules of the game. In the language of convex-optimization, one can readily give the following saddle-point formulation for this problem. Viz,
+\subsection{Statement of the problem}
+Consider a two-person zero-sum sequential game with payoff matrix $A \in \mathbb{R}^{m,n}$. We are interested in the problem of
+finding the best response strategy $x^* \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})$ for player 2, given a fixed
+(possibly mixed) strategy $y_0$ for player 1, where $E \in \{-1, 0, +1\}^{p,n}$ and $(1, 0, 0, ..., 0) =: e \in \mathbb{R}^p$.
+Recall that $E$ and $e$ encode linear constraints on player 1's ``admissible'' realization plans $x$, in the sequential form representation
+of the game (See \cite{bernhard-1996, benhard-agt} for theory on \textit{sequential-form representation}). In the language of convex-optimization,
+one can readily give the following saddle-point formulation for this problem. Viz,
 
 \begin{equation}
-  \underset{x \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})}{min}\text{ }\underset{y \in \Delta_{m}^0}{max}\text{ }y^TAx
+  \underset{x \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})}{min}\text{ }-y_0^TAx
 \end{equation}
 
-where $\Delta_{m}^0$ is $\Delta_{m}$ if $y_0$ is known, otherwise it is the singleton
-%% \footnote{Note that the origin $\textbf{0} \in \mathbb{R}^m$ can be seen a degenerate simplex with radius $0^+$,
-%% whilst a singleton  $\{y_0\}$ can be seen as a $y_0-$translation of this simplex.}
-$\{y_0\}$.\\\\
-
-In section II, we give a brief overview of existing methods for solving (1). We elaborate our proposed primal-dual algorithm in section III.
+In section II, we give a brief overview of existing methods for solving (1). We elaborate our proposed algorithm in section III.
 
 \section{Related work}
-pending...
+Pending...
 
-\section{The algorithm}
-Noting that $i_{E^{-1}(\{e\})}(x) = \underset{\theta \in \mathbb{R}^r}{max}\text{ }\theta^T(e - Ex)$, one can re-write (1) as:
+\section{The proposed algorithm}
+In this section we present the algorithm which is the purpose of this paper, namely an algorithm for solving (1).
+
+\subsection{Derivation of the algorithm}
+First observe that (1) can be re-written in the form:
 \begin{equation}
-  \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m, \theta \in \mathbb{R}^r}{max}\text{ }
-  \left[\begin{array}{@{}cc@{}}y\\\theta\end{array}\right]^TKx + G(x) - F^*(y, \theta)
+  \underset{x \in \mathbb{R}^n}{min}\text{ }{f(-Ax) + g(x)}
+\end{equation}
+where:\\
+\begin{equation}
+  \left.
+  \begin{aligned}
+    g := i_{E^{-1}(\{b\})} + i_{\mathbb{R}_{+}^m}\\
+    f: z \mapsto y_0^Tz
+    \end{aligned}
+  \right\}
+\end{equation}
+
+Finally, the primal-dual formulation of this problem is:
+\begin{equation}
+  \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m}{max}\text{ }{y^T(-A)x_0 + g(x) - f^*(y))}
+\end{equation}
+
+Now, let's observe that $i_{E^{-1}(\{e\})}(x) = \underset{\zeta \in \mathbb{R}^q}{max}\text{ }\zeta^T(e - Ex)$, and so one can re-write (2) as:
+\begin{equation}
+  \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m, \zeta \in \mathbb{R}^p}{max}\text{ }
+  \begin{bmatrix}y\\\zeta\end{bmatrix}^TKx + G(x) - F^*(y, \zeta)
 \end{equation}
 where:
 \begin{equation}
   \left.
   \begin{aligned}
-    K := \left[\begin{array}{@{}cc@{}}A\\-E\end{array}\right]\\
-    G:=i_{\mathbb{R}_{+}^n}\\
-    F^*: (y, \theta) \mapsto (i_{\Delta_{m}^0}(y) - e^T\theta)
+    K := -\begin{bmatrix}A\\E\end{bmatrix}\\
+    G := i_{\mathbb{R}_{+}^n}\\
+    F^*: (y, \zeta) \mapsto (i_{\{y_0\}} - \zeta^Te)
   \end{aligned}
   \right\}
 \end{equation}
@@ -124,29 +142,32 @@ Furthermore, $F^*$ and $G$ have resolvent (a.k.a \textit{proximity}) operators g
 \begin{equation}
   \left.
   \begin{aligned}
-    (1 + \tau \partial G)^{-1}: x \mapsto \Pi_{\mathbb{R}_{+}^n}(x) = (x)_+\\
-    (1 + \sigma \partial F^*)^{-1}: (y, \theta) \mapsto (\Pi_{\Delta_{m}^0}(y), \theta + \sigma e)% (z, \theta) \mapsto \bigl(y, \frac{\theta}{1 + \sigma}\bigr)
+    (1 + \tau \partial G)^{-1} = \Pi_{\mathbb{R}_+^n}: x \mapsto (x)_+\\
+    (1 + \sigma \partial F^*)^{-1}: (y, \zeta) \mapsto (y_0, \zeta + \sigma e)
   \end{aligned}
   \right\}
 \end{equation}
 This way, we obtain following primal-dual algorithm for solving (2).
 
 \begin{algorithm}[htb]
-\caption{Primal-dual algorithm for computing best response against unplained mixed strategies of opponent}%%  \textbf{Let}
-\textbf{Initialize} $\tilde{x}^{(0)} = x^{(0)} \in \mathbb{R}^n$; $y^{(0)} \in \mathbb{R}^{m}$; $\theta^{(0)} \in \mathbb{R}^{r}$;
-$\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 \le 1$; $k = 0$.\\
+\caption{Primal-dual algorithm for computing best response against opponent's realization plan $y$}%%  \textbf{Let}
+\textbf{Initialize} $\tilde{x^{(0)}} = x^{(0)} \in \mathbb{R}^n$; $\zeta^{(0)} \in \mathbb{R}^{q}$;
+$\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 < 1$; $k = 0$.\\
+\textbf{Precompute} $\eta_0 \leftarrow \tau A^Ty_0$\\
 \Repeat{
   convergence}{
   \begin{eqnarray*}
-    y^{(k+1)} &\leftarrow& \Pi_{\Delta_{m}^0}\bigl(y^{(k)} + \sigma A \tilde{x}^{(k)}\bigr)\\
-    \theta^{(k+1)} &\leftarrow& \theta^{(k)} - \sigma E \tilde{x}^{(k)} + \sigma e\\
-    x^{(k+1)} &\leftarrow& \bigl(x^{(k)} - \tau A^Ty^{(k+1)} + E^T\theta^{(k+1)}\bigr)_+\\
+    \zeta^{(k+1)} &\leftarrow& \zeta^{(k)} - \sigma (e - E\tilde{x}^{(k)})\\
+    x^{(k+1)} &\leftarrow& \bigl(x^{(k)} + \eta_0 + E^T\zeta^{(k+1)}\bigr)_+\\
     \tilde{x}^{(k+1)} &\leftarrow& 2x^{(k+1)} - x^{(k)}\\
     k &\leftarrow& k + 1
   \end{eqnarray*}
-} \Return $x^{(k)}$
+} \Return $x^{(k)}$, $-y_0^TAx^{(k)}$
 \label{Tab:pseudocode_lbfgs}
 \end{algorithm}
+
+\subsection{Primal-dual gap stopping-criterion and convergence of the algorithm}
+Pending...
 
 %\begin{remark}
 %% Due to the independence of $(1 + \sigma \partial F^*)^{-1}$ on $\sigma$, we can always choose the pair
@@ -265,10 +286,10 @@ $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 \le 1$; $k = 0$.\\
 %%   J(\mathbf{w})\},
 %%   \label{eq:opt_pb}
 %% \end{eqnarray}
-%% where $J(\mathbf{w}) := \theta\|\mathbf{w}\|_{\ell_{1}} + (1 -
-%% \theta)\|\mathbf{w}\|_{TV}$ is the regularization and $\alpha \ge 0$
+%% where $J(\mathbf{w}) := \zeta\|\mathbf{w}\|_{\ell_{1}} + (1 -
+%% \zeta)\|\mathbf{w}\|_{TV}$ is the regularization and $\alpha \ge 0$
 %% controls the amount of regularization. The
-%% parameter $\theta \in [0, 1]$, also known as the $\ell_{1}$ \textit{ratio}, is the trade-off between the
+%% parameter $\zeta \in [0, 1]$, also known as the $\ell_{1}$ \textit{ratio}, is the trade-off between the
 %% sparsity-inducing penalty $\ell_{1}$ (Lasso) and TV (isotropic Total
 %% Variation):
 %% % also known as the $\ell_{1}$\emph{-ratio},
@@ -429,8 +450,8 @@ $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 \le 1$; $k = 0$.\\
 %%   \label{eq:sopt_pb}
 %% \\
 %%     \text{where} \quad
-%%     J_{\mu}(\mathbf{w}) :=\theta \|\mathbf{w}\|_{\ell_{1},\mu} +
-%%     (1 - \theta)\|\mathbf{w}\|_{TV, \mu} \quad
+%%     J_{\mu}(\mathbf{w}) :=\zeta \|\mathbf{w}\|_{\ell_{1},\mu} +
+%%     (1 - \zeta)\|\mathbf{w}\|_{TV, \mu} \quad
 %% \end{align}
 
 %% To solve \eqref{eq:opt_pb}, we consider problems of the form
