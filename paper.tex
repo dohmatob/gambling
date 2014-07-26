@@ -169,13 +169,20 @@ Furthermore, one easily checks that $F^*$ and $G$ are \textit{proper} convex l.s
   \right\}
 \end{equation}
 
+Using these ingredients, we derive the primal-dual algorithm given in Alg.\ref{Tab:pseudocode_pb}, 
+for solving \eqref{eq:pd_opt}, and thus \eqref{eq:opt_pb}.
+
 \begin{remark}
 Equation \eqref{eq:pd_opt} is in the form of equation (2) in \cite{chambolle2010} if we take $X := \mathbb{R}^n$ and
 $Y := \mathbb{R}^m \times \mathbb{R}^p$.
 \end{remark}
 
-Using these ingredients, we derive the primal-dual algorithm given in Alg.\ref{Tab:pseudocode_pb}, 
-for solving \eqref{eq:pd_opt}, and thus \eqref{eq:opt_pb}.
+\begin{remark}
+The derivation above reveals that in equation \eqref{eq:opt_pb} above, if the constraint ``$x \ge 0$'' is replaced by
+a constraint ``$x \in C$'' (thus obtaining a new problem) where $C$ is a convex set onto which euclidean projections
+can be easily computed (for example, a probability simplex), then we simply need to replace the operator ``$(.)_+$''
+with ``$\Pi_C$'' in the equations to obtain a corresponding algorithm.
+\end{remark}
 
 \begin{algorithm}[htb]
 \caption{Primal-dual algorithm for computing best response against opponent's realization plan $y_0$}
