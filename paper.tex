@@ -30,7 +30,7 @@
 \pagenumbering{gobble}
 
 \begin{document}
-\onecolumn
+%\onecolumn
 \title{A fast algorithm for computing best response strategies in two-person sequential games}
 
 
@@ -93,7 +93,9 @@ one can readily give the following saddle-point formulation for this problem. Vi
   \label{eq:opt_pb}
 \end{equation}
 
+\begin{definition}
 A solution $x^*$ to problem \eqref{eq:opt_pb} is called a \textit{best response} strategy against the opponent's fixed strategy $y_0$.
+\end{definition}
 
 \begin{remark}
 Of course $y_0$ is not necessarily an optimal strategy for the opponent. In case it is, the pair $(x^*, y_0)$ is a Nash equilibrium for the game.
