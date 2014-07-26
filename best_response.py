@@ -35,6 +35,7 @@ def best_response(A, E, e, y0, max_iter=1000, tol=1e-6):
     const = tau * A.T.dot(y0)
     for k in xrange(max_iter):
         old_x = x.copy()
+        residue = e - E.dot(xbar)
         gain = -np.dot(x.T, const) / tau
         gain_delta = old_gain - gain
         old_gain = gain
@@ -44,7 +45,7 @@ def best_response(A, E, e, y0, max_iter=1000, tol=1e-6):
         if gain_delta < tol:
             print "Converged (gain delta < %g)" % tol
             break
-        zeta += sigma * (e - E.dot(xbar))
+        zeta += sigma * (residue)
         x += const + E.T.dot(zeta)
 
         x = np.maximum(x, 0.)

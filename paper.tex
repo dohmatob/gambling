@@ -1,20 +1,13 @@
-% \documentclass[a4paper,11pt]{article}
-% \documentclass[a4paper,10pt,draftcls,journal]{IEEEtran}
 \documentclass[a4paper,10pt,journal]{IEEEtran}
-% \usepackage{times}
 \usepackage{graphicx} \usepackage[cmex10]{amsmath}
 \usepackage{amssymb} \usepackage{fancybox} \usepackage{alltt}
 \usepackage{soul} \usepackage{color} \usepackage{verbatim}
 \usepackage{xcolor} \usepackage{colortbl,hhline}
-%\usepackage{algorithm2e}
-% \usepackage{algorithm}
 \usepackage[ruled,vlined]{algorithm2e} \usepackage{framed}
 \usepackage{amsthm} \usepackage{fancyref}
 \usepackage{amsmath,amsfonts,amssymb, amsthm} \usepackage{textcomp}
-\newtheorem*{remark}{Remark}
- 
-% \usepackage{natbib}
-% \bibpunct{[}{]}{;}{a}{,}{,}
+
+\newtheorem{remark}{Remark}
 
 \def \lb {{\langle}} \def \rb {{\rangle}}
 \newcommand{\fro}[1]{\|#1\|_2}
@@ -37,8 +30,8 @@
 \pagenumbering{gobble}
 
 \begin{document}
-%\onecolumn
-\title{A fast algorithm for computing best response behaviour strategies in two-person sequential games}
+\onecolumn
+\title{A fast algorithm for computing best response strategies in two-person sequential games}
 
 
 \author{\IEEEauthorblockN{Elvis D. DOHMATOB}}
@@ -54,9 +47,9 @@
 % applicative context remains a difficult challenge.
 % XXX : don't call it SPM but just "predictive regions or predictive
 % maps"
-In this manuscript, we consider the problem of computing the best response against an opponent's realization plan in two-person sequential games.
-The proposed technique employs the primal-dual scheme of A. Chambolle and T. Pock to solve the corresponding contrained convex-optimization problem.
-The resulting algorithm is simple: all resolvent operators can be effectively computed in closed-form, using only elementary algebraic operations.
+In this manuscript, we consider the problem of computing a best response against an opponent's realization plan in two-person sequential games.
+The proposed algorithm for solving the corresponding contrained convex-optimization problem, derives from the primal-dual scheme of A. Chambolle and T. Pock.
+Our algorithm is simple: all resolvent operators can be effectively computed in closed-form, using only elementary algebraic operations.
 %%  and is orders of magnitude more efficient than state-of-the-art algorithms like those based on Linear Programming, Interior-Point methods,
 %% and more recently, the Nesterov Excessive Gap Technique.
 By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
@@ -68,26 +61,31 @@ By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
 \end{IEEEkeywords}
 
 \section{Introduction}
-\label{sec:intro}
+%\label{sec:intro}
 \subsection{Notation and Terminology}
 To begin, let us introduce some technical notation and terminology we will be using in this paper. The reader should lookup any standard textbook
 (for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions. Viz,\\
 \textit{l.s.c}: \quad \textit{acronyme for ``lower semi-continuous''}\\
-$\mathbb{R}_+$: \quad \textit{nonnegative part of the real-line $\mathbb{R}$}\\
-$i_C$: \quad \textit{indicator function of the convex set $C$}\\
-$\Pi_C$: \quad \textit{euclidean projector onto the convex set $C$}\\
-$(x)_+$: \quad \textit{component-wise maximum of the vector $x$ and 0}\\
-$\|K\|$: \quad \textit{operator norm of the matrix $K$}\\
-$F^*$: \quad \textit{Fenchel transform of the convex l.s.c function $F$}\\
-$E^{-1}(U)$: \quad \textit{pre-image of $U \subset \mathbb{R}^n$ under a matrix $E \in \mathbb{R}^{p,n}$,
+$\mathbb{R}_+$: \quad \textit{the nonnegative part of the real-line $\mathbb{R}$}\\
+$i_C$: \quad \textit{the indicator function of the convex set $C$}\\
+$\Pi_C$: \quad \textit{the euclidean projector onto the convex set $C$}\\
+$(x)_+$: \quad \textit{the component-wise maximum of the vector $x$ and 0}\\
+$\|K\|_2$: \quad \textit{the matrix 2-norm of the matrix $K$}\\
+$f^*$: \quad \textit{the Fenchel transform of the convex l.s.c function $f$}\\
+$E^{-1}(U)$: \quad \textit{the pre-image of $U \subset \mathbb{R}^n$ under a matrix $E \in \mathbb{R}^{p,n}$,
 namely the set $\{x \in \mathbb{R}^n\text{ }| \text{ }Ex \in U\}$}
 
 \subsection{Statement of the problem}
-Consider a two-person zero-sum sequential game with payoff matrix $A \in \mathbb{R}^{m,n}$. We are interested in the problem of
-finding the best response strategy $x^* \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})$ for player 2, given a fixed
-(possibly mixed) strategy $y_0$ for player 1, where $E \in \{-1, 0, +1\}^{p,n}$ and $(1, 0, 0, ..., 0) =: e \in \mathbb{R}^p$.
-Recall that $E$ and $e$ encode linear constraints on player 1's ``admissible'' realization plans $x$, in the sequential form representation
-of the game (See \cite{bernhard-1996, benhard-agt} for theory on \textit{sequential-form representation}). In the language of convex-optimization,
+Consider a two-person sequential game\footnote{In a sequential game, players take turns in play, one after the other,
+as opposed to simultaneous play.} in \textit{sequential-form} (See for example, page 2 of \cite{koller-1995},
+for theory on sequential-form representation), and let $A \in \mathbb{R}^{m,n}$ be our payoff matrix.
+We will be referring to the other player as ``the opponent''. We are interested in the problem of
+finding a best response strategy $x^* \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})$, given a fixed
+(possibly mixed) strategy $y_0$ for the opponent, where $E$ is a sparse $p$-by-$n$ matrix whose entries are $-1$, $0$, or $+1$,
+and $(1, 0, 0, ..., 0) =: e \in \mathbb{R}^p$. Recall that $E$ and $e$ encode linear constraints on our ``admissible''
+realization plans\footnote{In games in sequential form, the terms ``strategy'' and ``realization plan''
+mean thesame thing.} $x$, in the sequential form representation of the game.
+In the language of convex-optimization,
 one can readily give the following saddle-point formulation for this problem. Viz,
 
 \begin{equation}
@@ -95,14 +93,28 @@ one can readily give the following saddle-point formulation for this problem. Vi
   \label{eq:opt_pb}
 \end{equation}
 
-In section II, we give a brief overview of existing methods for solving \eqref{eq:opt_pb}. We elaborate our proposed algorithm in section III.
+A solution $x^*$ to problem \eqref{eq:opt_pb} is called a \textit{best response} strategy against the opponent's fixed strategy $y_0$.
+
+\begin{remark}
+Of course $y_0$ is not necessarily an optimal strategy for the opponent. In case it is, the pair $(x^*, y_0)$ is a Nash equilibrium for the game.
+\end{remark}
+
+\begin{remark}
+  In practice, $A$ and $E$ are very sparse as a game will typically have very few leafs
+(i.e terminal states). This sparsity should be thoroughly exploited by a solver for problem \eqref{eq:opt_pb}.
+\end{remark}
+
+In section II, we give a brief overview of existing methods for solving \eqref{eq:opt_pb}.
+We elaborate our proposed algorithm in section III.
 
 \section{Related work}
 Pending...
 
 \section{The proposed algorithm}
 \label{sec:algo}
-In this section we present the algorithm which is the purpose of this paper, namely an algorithm for solving \eqref{eq:opt_pb}. Our algorithm (Alg.\ref{Tab:pseudocode_pb}) is a use-case of the generic primal-dual algorithm of A. Chambolle and T. Pock, namely Algorithm 1 of \cite{chambolle2010}.
+In this section we present the algorithm which is the purpose of this paper, namely an algorithm
+for solving \eqref{eq:opt_pb}. Our algorithm (Alg.\ref{Tab:pseudocode_pb}) is a use-case of
+the generic primal-dual algorithm of A. Chambolle and T. Pock, namely Algorithm 1 of \cite{chambolle2010}.
 
 \subsection{Derivation of the algorithm}
 First observe that (1) can be re-written in the form:
@@ -113,35 +125,36 @@ where:\\
 \begin{equation}
   \left.
   \begin{aligned}
-    g := i_{E^{-1}(\{b\})} + i_{\mathbb{R}_{+}^m}\\
+    g := i_{E^{-1}(\{e\})} + i_{\mathbb{R}_{+}^m}\\
     f: z \mapsto y_0^Tz
     \end{aligned}
   \right\}
 \end{equation}
 
-Finally, the primal-dual formulation of this problem is:
+Finally, the primal-dual formulation of this problem (which can be easily obtained using
+\textit{Fenchel-Rockafellar duality}, for example) is:
 \begin{equation}
-  \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m}{max}\text{ }{y^T(-A)x_0 + g(x) - f^*(y))}
+  \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m}{max}\text{ }{y^T(-A)x_0 + g(x) - f^*(y)}
 \end{equation}
 
-Now, let's observe that $i_{E^{-1}(\{e\})}(x) = \underset{\zeta \in \mathbb{R}^q}{max}\text{ }\zeta^T(e - Ex)$, and so one can re-write (2) as:
+Now, let's observe that $i_{E^{-1}(\{e\})}(x) = \underset{\zeta \in \mathbb{R}^p}{max}\text{ }\zeta^T(e - Ex)$, and so one can re-write (2) as:
 \begin{equation}
   \underset{x \in \mathbb{R}^n}{min}\text{ }\underset{y \in \mathbb{R}^m, \zeta \in \mathbb{R}^p}{max}\text{ }
   \begin{bmatrix}y\\\zeta\end{bmatrix}^TKx + G(x) - F^*(y, \zeta)
   \label{eq:pd_opt}
 \end{equation}
-where:
+where we've defined:
 \begin{equation}
   \left.
   \begin{aligned}
     K := -\begin{bmatrix}A\\E\end{bmatrix}\\
-    G := i_{\mathbb{R}_{+}^n}\\
-    F^*: (y, \zeta) \mapsto (i_{\{y_0\}} - \zeta^Te)
+    G := g - i_{E^{-1}(\{b\})} = i_{\mathbb{R}_{+}^n}\\
+    F^*: (y, \zeta) \mapsto (f^*(y) - \zeta^Te) = (i_{\{y_0\}}(y) - \zeta^Te)
   \end{aligned}
   \right\}
 \end{equation}
 
-Furthermore, $F^*$ and $G$ have resolvent (a.k.a \textit{proximity}) operators given by the simple formulae:
+Furthermore, $F^*$ and $G$ are convex l.s.c, with resolvent (a.k.a \textit{proximity}) operators given by the simple formulae:
 \begin{equation}
   \left.
   \begin{aligned}
@@ -151,18 +164,18 @@ Furthermore, $F^*$ and $G$ have resolvent (a.k.a \textit{proximity}) operators g
   \right\}
 \end{equation}
 
-Using these ingredients, we obtain the primal-dual algorithm given in Alg.\ref{Tab:pseudocode_pb}, 
+Using these ingredients, we derive the primal-dual algorithm given in Alg.\ref{Tab:pseudocode_pb}, 
 for solving \eqref{eq:pd_opt}, and thus \eqref{eq:opt_pb}.
 
 \begin{algorithm}[htb]
-\caption{Primal-dual algorithm for computing best response against opponent's realization plan $y$}%%  \textbf{Let}
+\caption{Primal-dual algorithm for computing best response against opponent's realization plan $y_0$}
 \textbf{Initialize} $\tilde{x^{(0)}} = x^{(0)} \in \mathbb{R}^n$; $\zeta^{(0)} \in \mathbb{R}^{q}$;
-$\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 < 1$; $k = 0$.\\
+$\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$; $k = 0$.\\
 \textbf{Precompute} $\eta_0 \leftarrow \tau A^Ty_0$\\
 \Repeat{
   convergence}{
   \begin{eqnarray*}
-    \zeta^{(k+1)} &\leftarrow& \zeta^{(k)} - \sigma (e - E\tilde{x}^{(k)})\\
+    \zeta^{(k+1)} &\leftarrow& \zeta^{(k)} - \sigma \bigl(e - E\tilde{x}^{(k)}\bigr)\\
     x^{(k+1)} &\leftarrow& \bigl(x^{(k)} + \eta_0 + E^T\zeta^{(k+1)}\bigr)_+\\
     \tilde{x}^{(k+1)} &\leftarrow& 2x^{(k+1)} - x^{(k)}\\
     k &\leftarrow& k + 1
@@ -176,7 +189,7 @@ Pending...
 
 \medskip \noindent
 \textbf{Acknowledgments:}
-This work was supported by the  Human Brain Project.
+Pending...
 
 % ==========
 % = biblio =
