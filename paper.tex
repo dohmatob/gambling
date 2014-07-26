@@ -194,7 +194,7 @@ with ``$\Pi_C$'' in the equations to obtain a corresponding algorithm. Of course
 $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$; $k = 0$.\\
 \textbf{Precompute} $\eta_0 \leftarrow \tau A^Ty_0$\\
 \Repeat{
-  $\frac{1}{k + 1}\sum_{j=0}^{k}{\|e - E\tilde{x}^{(j)}\|^2_2} < \epsilon$}{
+  $\frac{1}{k + 1}\sum_{j=0}^{k}{\Bigl(\frac{\|x^{(j+1)} - x^{(j)}\|^2_2}{\tau}} + \frac{\|\zeta^{(j+1)} - \zeta^{(j)}\|^2_2}{\sigma}\Bigr) < \epsilon$}{
   \begin{eqnarray*}
     \zeta^{(k+1)} &\leftarrow& \zeta^{(k)} - \sigma \bigl(e - E\tilde{x}^{(k)}\bigr)\\
     x^{(k+1)} &\leftarrow& \bigl(x^{(k)} + \eta_0 + E^T\zeta^{(k+1)}\bigr)_+\\
