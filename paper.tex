@@ -77,7 +77,7 @@ namely the set $\{x \in \mathbb{R}^n\text{ }| \text{ }Ex \in U\}$}
 
 \subsection{Statement of the problem}
 Consider a two-person sequential game\footnote{In a sequential game, players take turns in play, one after the other,
-as opposed to simultaneous play.} in \textit{sequential-form} (See for example, page 2 of \cite{koller-1995},
+as opposed to simultaneous play.} in \textit{sequential-form} (See for example, \cite{von1996efficient} and \cite{koller1996efficient} 
 for theory on sequential-form representation), and let $A \in \mathbb{R}^{m,n}$ be our payoff matrix.
 We will be referring to the other player as ``the opponent''. We are interested in the problem of
 finding a best response strategy $x^* \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})$, given a fixed
@@ -106,10 +106,12 @@ Of course $y_0$ is not necessarily an optimal strategy for the opponent. In case
 (i.e terminal states). This sparsity should be thoroughly exploited by a solver for problem \eqref{eq:opt_pb}.
 \end{remark}
 
-In section II, we give a brief overview of existing methods for solving \eqref{eq:opt_pb}.
-We elaborate our proposed algorithm in section III.
+In section \ref{sec:related_work}, we give a brief overview of existing methods for solving \eqref{eq:opt_pb}.
+We elaborate our proposed algorithm in section \ref{sec:algo}.
 
 \section{Related work}
+\label{sec:related_work}
+
 Pending...
 
 \section{The proposed algorithm}
@@ -186,7 +188,7 @@ $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$; $k = 0$.\\
 \label{Tab:pseudocode_pb}
 \end{algorithm}
 
-\subsection{Primal-dual gap stopping-criterion and convergence of the algorithm}
+\subsection{Convergence of the algorithm and practical stopping-criteria}
 Pending...
 
 \medskip \noindent
@@ -197,7 +199,7 @@ Pending...
 % = biblio =
 % ==========
 % {\small
-\bibliographystyle{IEEEtran} \bibliography{IEEEabrv,bib_tv}
+\bibliographystyle{IEEEtran} \bibliography{IEEEabrv,bib_tv.bib,agt.bib}
 \end{document}
 
 
