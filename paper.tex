@@ -186,17 +186,15 @@ Neither $G$ nor $F^*$ is strongly convex and so Alg.\ref{Tab:pseudocode_pb} cann
   \caption{Primal-dual algorithm for computing best response against opponent's realization plan $y_0$}
   \textbf{Given} Tolerance $\epsilon > 0$.\\
   \textbf{Initialize} $\tilde{x^{(0)}} = x^{(0)} \in \mathbb{R}^n$; $\zeta^{(0)} \in \mathbb{R}^{q}$;
-  $d^{(0)} = 0$; $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$; $k = 0$.\\
+  $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$; $k = 0$.\\
   \textbf{Precompute} $\eta_0 \leftarrow \tau A^Ty_0$\\
   \Repeat{
-    $d^{(k)} < \epsilon$}{
+    $\frac{\|x^{(k+1)} - x^{(k)}\|^2_2}{2\tau} + \frac{\|\zeta^{(k+1)} - \zeta^{(k)}\|^2_2}{2\sigma} < \epsilon$}{
     \begin{eqnarray*}
-      r^{(k)} &\leftarrow& e - E\tilde{x}^{(k)}\\ 
-    \zeta^{(k+1)} &\leftarrow& \zeta^{(k)} - \sigma r^{(k)}\\
-    x^{(k+1)} &\leftarrow& \bigl(x^{(k)} + \eta_0 + E^T\zeta^{(k+1)}\bigr)_+\\
-    \tilde{x}^{(k+1)} &\leftarrow& 2x^{(k+1)} - x^{(k)}\\
-    d^{(k+1)} &\leftarrow& max(d^{(k)}, \frac{\|x^{(k+1)} - x^{(k)}\|^2_2}{2\tau} + \frac{\|r^{(k)}\|^2_2}{2})\\
-    k &\leftarrow& k + 1
+      \zeta^{(k+1)} &\leftarrow& \zeta^{(k)} - \sigma \bigl(e - E\tilde{x}^{(k)}\bigr)\\
+      x^{(k+1)} &\leftarrow& \bigl(x^{(k)} + \eta_0 + E^T\zeta^{(k+1)}\bigr)_+\\
+      \tilde{x}^{(k+1)} &\leftarrow& 2x^{(k+1)} - x^{(k)}\\
+      k &\leftarrow& k + 1
     \end{eqnarray*}
   } \Return $x^{(k)}$, $-y_0^TAx^{(k)}$
   \label{Tab:pseudocode_pb}

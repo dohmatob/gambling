@@ -2,7 +2,7 @@ import numpy as np
 from scipy import linalg
 
 
-def best_response(A, E, e, y0, max_iter=1000, tol=1e-2):
+def best_response(A, E, e, y0, max_iter=1000, tol=1e-2, callback=None):
     """Computes best response to an opponent's realization plan in a two-person
     sequential game.
 
@@ -35,6 +35,9 @@ def best_response(A, E, e, y0, max_iter=1000, tol=1e-2):
     average_error = 0
     average_errors = []
     for k in xrange(max_iter):
+        if callback:
+            callback(locals())
+
         old_x = x.copy()
         old_zeta = zeta.copy()
 
@@ -49,8 +52,8 @@ def best_response(A, E, e, y0, max_iter=1000, tol=1e-2):
         # check primal-dual convergence
         a = x - old_x
         b = zeta - old_zeta
-        average_error = (k * average_error + .5 * (np.dot(a, a) / tau + np.dot(
-                    b, b) / sigma))  / (k + 1.)
+        average_error = .5 * (np.dot(a, a) / tau + np.dot(
+                    b, b) / sigma)
         average_errors.append(average_error)
         print ("Iteration %04i/%04i: running average .5 * (||x^(k+1) - "
                "x^(k)||^2" " / tau + ||zeta^(k+1) - zeta^(k)||^2 / sigma) "
@@ -71,11 +74,26 @@ if __name__ == "__main__":
     E = np.array([[1, 0, 0, 0, 0], [-1, 1, 1, 0, 0], [-1, 0, 0, 1, 1]])
     e = np.eye(E.shape[0])[0]
     y0 = np.array([1, .66, .33])
-    xstar, average_errors = best_response(A, E, e, y0)
+
+    import pylab as pl
+
+    def cb(env):
+        pl.scatter(env['x'][0], env['zeta'][0], marker="*")
+        pl.draw()
+
+    fig = pl.figure(figsize=(13, 13))
+    pl.grid("on")
+    pl.xlim(0., 2.)
+    pl.ylim(-1., 1.)
+    pl.xlabel("xk")
+    pl.ylabel("yk")
+    pl.ion()
+
+    xstar, average_errors = best_response(A, E, e, y0, callback=cb, tol=1e-4)
     print "x* =", xstar
     print E.dot(xstar) - e
 
-    import pylab as pl
+    pl.figure()
     pl.semilogx(average_errors, linewidth=3)
     pl.ylabel("running average .5 * (||x^(k+1) - x^(k)||^2 / tau + "
               "||zeta^(k+1) - zeta^(k)||^2 / sigma)")
