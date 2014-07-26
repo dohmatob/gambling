@@ -158,7 +158,8 @@ where we've defined:
   \right\}
 \end{equation}
 
-Furthermore, $F^*$ and $G$ are convex l.s.c, with resolvent (a.k.a \textit{proximity}) operators given by the simple formulae:
+Furthermore, one easily checks that $F^*$ and $G$ are \textit{proper} convex l.s.c, with resolvent
+(a.k.a \textit{proximity}) operators given by the simple formulae:
 \begin{equation}
   \left.
   \begin{aligned}
@@ -167,6 +168,11 @@ Furthermore, $F^*$ and $G$ are convex l.s.c, with resolvent (a.k.a \textit{proxi
   \end{aligned}
   \right\}
 \end{equation}
+
+\begin{remark}
+Equation \eqref{eq:pd_opt} is the form of equation (2) in \cite{chambolle2010} if we take $X := \mathbb{R}^n$ and
+$Y := \mathbb{R}^m \times \mathbb{R}^p$.
+\end{remark}
 
 Using these ingredients, we derive the primal-dual algorithm given in Alg.\ref{Tab:pseudocode_pb}, 
 for solving \eqref{eq:pd_opt}, and thus \eqref{eq:opt_pb}.
