@@ -31,7 +31,7 @@
 
 \begin{document}
 %\onecolumn
-\title{A fast algorithm for computing best response strategies in two-person sequential games}
+\title{A fast primal-dual algorithm for computing best response strategies in two-person sequential games}
 
 
 \author{\IEEEauthorblockN{Elvis D. DOHMATOB}}
@@ -65,7 +65,7 @@ By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
 \subsection{Notation and Terminology}
 To begin, let us introduce some technical notation and terminology we will be using in this paper. The reader should lookup any standard textbook
 (for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions. Viz,\\\\
-$a^Tb$: \quad \textit{the dot product of two vectors $a$ and $b$}\\
+$u^Tv$: \quad \textit{the dot product of two vectors $u$ and $v$}\\
 $\mathbb{R}_+$: \quad \textit{the nonnegative part of the real-line $\mathbb{R}$}\\
 $(x)_+$: \quad \textit{the component-wise maximum of the vector $x$ and 0}\\
 $i_C$: \quad \textit{the indicator function of the convex set $C$}\\
@@ -179,6 +179,33 @@ $Y := \mathbb{R}^m \times \mathbb{R}^p$.
 \end{remark}
 
 \begin{remark}
+Neither $G$ nor $F^*$ is strongly convex and so Alg.\ref{Tab:pseudocode_pb} cannot be accelerated in the sense of algorithm 39 of \cite{chambolle2010}.
+\end{remark}
+
+\begin{algorithm}[htb]
+  \caption{Primal-dual algorithm for computing best response against opponent's realization plan $y_0$}
+  \textbf{Given} Tolerance $\epsilon > 0$.\\
+  \textbf{Initialize} $\tilde{x^{(0)}} = x^{(0)} \in \mathbb{R}^n$; $\zeta^{(0)} \in \mathbb{R}^{q}$;
+  $d^{(0)} = 0$; $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$; $k = 0$.\\
+  \textbf{Precompute} $\eta_0 \leftarrow \tau A^Ty_0$\\
+  \Repeat{
+    $d^{(k)} < \epsilon$}{
+    \begin{eqnarray*}
+      r^{(k)} &\leftarrow& e - E\tilde{x}^{(k)}\\ 
+    \zeta^{(k+1)} &\leftarrow& \zeta^{(k)} - \sigma r^{(k)}\\
+    x^{(k+1)} &\leftarrow& \bigl(x^{(k)} + \eta_0 + E^T\zeta^{(k+1)}\bigr)_+\\
+    \tilde{x}^{(k+1)} &\leftarrow& 2x^{(k+1)} - x^{(k)}\\
+    d^{(k+1)} &\leftarrow& max(d^{(k)}, \frac{\|x^{(k+1)} - x^{(k)}\|^2_2}{2\tau} + \frac{\|r^{(k)}\|^2_2}{2})\\
+    k &\leftarrow& k + 1
+    \end{eqnarray*}
+  } \Return $x^{(k)}$, $-y_0^TAx^{(k)}$
+  \label{Tab:pseudocode_pb}
+\end{algorithm}
+
+\subsection{Convergence analysis of the algorithm}
+Pending...
+
+\begin{remark}
 The derivation above reveals that in equation \eqref{eq:opt_pb} above, if the constraint ``$x \ge 0$'' is replaced by
 a constraint ``$x \in C$'' (thus obtaining a new problem) where $C$ is a convex set
 %% onto which euclidean projections
@@ -186,27 +213,6 @@ a constraint ``$x \in C$'' (thus obtaining a new problem) where $C$ is a convex 
 , then we simply need to replace the operator ``$(.)_+$''
 with ``$\Pi_C$'' in the equations to obtain a corresponding algorithm. Of course, this is because $i_C^* = \Pi_C$.
 \end{remark}
-
-\begin{algorithm}[htb]
-\caption{Primal-dual algorithm for computing best response against opponent's realization plan $y_0$}
-\textbf{Let} $\epsilon > 0$ be a given tolerance.\\
-\textbf{Initialize} $\tilde{x^{(0)}} = x^{(0)} \in \mathbb{R}^n$; $\zeta^{(0)} \in \mathbb{R}^{q}$;
-$\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$; $k = 0$.\\
-\textbf{Precompute} $\eta_0 \leftarrow \tau A^Ty_0$\\
-\Repeat{
-  $\frac{1}{k + 1}\sum_{j=0}^{k}{\Bigl(\frac{\|x^{(j+1)} - x^{(j)}\|^2_2}{\tau}} + \frac{\|\zeta^{(j+1)} - \zeta^{(j)}\|^2_2}{\sigma}\Bigr) < \epsilon$}{
-  \begin{eqnarray*}
-    \zeta^{(k+1)} &\leftarrow& \zeta^{(k)} - \sigma \bigl(e - E\tilde{x}^{(k)}\bigr)\\
-    x^{(k+1)} &\leftarrow& \bigl(x^{(k)} + \eta_0 + E^T\zeta^{(k+1)}\bigr)_+\\
-    \tilde{x}^{(k+1)} &\leftarrow& 2x^{(k+1)} - x^{(k)}\\
-    k &\leftarrow& k + 1
-  \end{eqnarray*}
-} \Return $x^{(k)}$, $-y_0^TAx^{(k)}$
-\label{Tab:pseudocode_pb}
-\end{algorithm}
-
-\subsection{Convergence analysis of the algorithm}
-Pending...
 
 \medskip \noindent
 \textbf{Acknowledgments:}

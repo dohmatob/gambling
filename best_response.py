@@ -37,23 +37,27 @@ def best_response(A, E, e, y0, max_iter=1000, tol=1e-2):
     for k in xrange(max_iter):
         old_x = x.copy()
         old_zeta = zeta.copy()
+
+        # dual update
         zeta += sigma * (e - E.dot(xbar))
         x += const + E.T.dot(zeta)
 
+        # primal update
         x = np.maximum(x, 0.)
         xbar = 2 * x - old_x
 
+        # check primal-dual convergence
         a = x - old_x
         b = zeta - old_zeta
         average_error = (k * average_error + .5 * (np.dot(a, a) / tau + np.dot(
                     b, b) / sigma))  / (k + 1.)
         average_errors.append(average_error)
-        print ("Iteration %04i/%04i: .5 * (||x^(k+1) - "
+        print ("Iteration %04i/%04i: running average .5 * (||x^(k+1) - "
                "x^(k)||^2" " / tau + ||zeta^(k+1) - zeta^(k)||^2 / sigma) "
                "= %.3e" % (k + 1, max_iter, average_error))
         if average_error < tol:
-            print ("Converged (.5 * (||x^(k+1) - x^(k)||^2 / tau + "
-                   "||zeta^(k+1) - zeta^(k)||^2 / sigma) < %g)" % tol)
+            print ("Converged (running average .5 * (||x^(k+1) - x^(k)||^2"
+                   " / tau + ||zeta^(k+1) - zeta^(k)||^2 / sigma) < %g)" % tol)
             break
 
     return x, average_errors
@@ -72,10 +76,8 @@ if __name__ == "__main__":
     print E.dot(xstar) - e
 
     import pylab as pl
-    average_errors = np.array(average_errors)
-    average_errors -= average_errors.min()
-    pl.loglog(average_errors)
-    pl.ylabel("(excess) running average .5 * (||x^(k+1) - x^(k)||^2 / tau + "
+    pl.semilogx(average_errors, linewidth=3)
+    pl.ylabel("running average .5 * (||x^(k+1) - x^(k)||^2 / tau + "
               "||zeta^(k+1) - zeta^(k)||^2 / sigma)")
     pl.xlabel("k")
     pl.show()
