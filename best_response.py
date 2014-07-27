@@ -34,8 +34,8 @@ def best_response(A, E, e, y0, max_iter=1000, tol=1e-2, theta=1.,
     tau = sigma = .99 / L
     assert tau * sigma * L * L < 1.
     const = tau * A.T.dot(y0)
-    average_error = 0
-    average_errors = []
+    error = 0
+    errors = []
     for k in xrange(max_iter):
         old_x = x.copy()
         old_zeta = zeta.copy()
