@@ -64,17 +64,22 @@ By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
 %\label{sec:intro}
 \subsection{Notation and Terminology}
 To begin, let us introduce some technical notation and terminology we will be using in this paper. The reader should lookup any standard textbook
-(for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions. Viz,\\\\
-$u^Tv$: \quad \textit{the dot product of two vectors $u$ and $v$}\\
-$\mathbb{R}_+$: \quad \textit{the nonnegative part of the real-line $\mathbb{R}$}\\
-$(x)_+$: \quad \textit{the component-wise maximum of the vector $x$ and 0}\\
-$i_C$: \quad \textit{the indicator function of the convex set $C$}\\
-$\Pi_C$: \quad \textit{the euclidean projector onto the convex set $C$}\\
-$\|K\|_2$: \quad \textit{the matrix 2-norm of the matrix $K$}\\
-$f^*$: \quad \textit{the Fenchel transform of the convex l.s.c function $f$}\\
-\textit{l.s.c}: \quad \textit{acronyme for ``lower semi-continuous''}\\
-$E^{-1}(U)$: \quad \textit{the pre-image of $U \subset \mathbb{R}^n$ under a matrix $E \in \mathbb{R}^{p,n}$,
-namely the set $\{x \in \mathbb{R}^n\text{ }| \text{ }Ex \in U\}$}
+(for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions. Viz,
+\begin{itemize}
+\item $A^T$: \quad transpose of the matrix $A$;
+\item $\begin{bmatrix}A\\B\end{bmatrix}$: vertical stacking of the matrices $A$ and $B$;
+\item $v_j$: \quad $j$th component of the vector $v$;
+\item $u^Tv$: \quad the dot product of two vectors $u$ and $v$;
+\item $\mathbb{R}_+$: \quad the nonnegative part of the real-line $\mathbb{R}$;
+\item $(x)_+$: \quad the component-wise maximum of the vector $x$ and 0;
+\item $i_C$: \quad the indicator function of the convex set $C$;
+\item $\Pi_C$: \quad the euclidean projector onto the convex set $C$;
+\item $\|K\|_2$: \quad the matrix 2-norm of the matrix $K$;
+\item $f^*$: \quad the Fenchel transform of the convex l.s.c function $f$;
+\item \textit{l.s.c}: \quad acronyme for ``lower semi-continuous'';
+\item $E^{-1}(U)$: \quad the pre-image of $U \subset \mathbb{R}^n$ under a matrix $E \in \mathbb{R}^{p,n}$,
+namely the set $\{x \in \mathbb{R}^n\text{ }| \text{ }Ex \in U\}$
+\end{itemize}
 
 \subsection{Statement of the problem}
 Consider a two-person sequential game\footnote{In a sequential game, players take turns in play, one after the other,
@@ -118,7 +123,7 @@ Pending...
 \section{The proposed algorithm}
 \label{sec:algo}
 In this section we present the algorithm which is the purpose of this paper, namely an algorithm
-for solving \eqref{eq:opt_pb}. Our algorithm (Alg.\ref{Tab:pseudocode_pb}) is a use-case of
+for solving \eqref{eq:opt_pb}. Our algorithm (Alg.\ref{Tab:algo}) is a use-case of
 the generic primal-dual algorithm of A. Chambolle and T. Pock, namely Algorithm 1 of \cite{chambolle2010}.
 
 \subsection{Derivation of the algorithm}
@@ -170,7 +175,7 @@ Furthermore, one easily checks that $F^*$ and $G$ are \textit{proper} convex l.s
   \right\}
 \end{equation}
 
-Using these ingredients, we derive the primal-dual algorithm given in Alg.\ref{Tab:pseudocode_pb}, 
+Using these ingredients, we derive the primal-dual algorithm given in Alg.\ref{Tab:algo}, 
 for solving \eqref{eq:pd_opt}, and thus \eqref{eq:opt_pb}.
 
 \begin{remark}
@@ -179,7 +184,7 @@ $Y := \mathbb{R}^m \times \mathbb{R}^p$.
 \end{remark}
 
 \begin{remark}
-Neither $G$ nor $F^*$ is strongly convex and so Alg.\ref{Tab:pseudocode_pb} cannot be accelerated in the sense of algorithm 39 of \cite{chambolle2010}.
+Neither $G$ nor $F^*$ is strongly convex and so Alg.\ref{Tab:algo} cannot be accelerated in the sense of algorithm 39 of \cite{chambolle2010}.
 \end{remark}
 
 \begin{algorithm}[htb]
@@ -197,7 +202,7 @@ Neither $G$ nor $F^*$ is strongly convex and so Alg.\ref{Tab:pseudocode_pb} cann
       k &\leftarrow& k + 1
     \end{eqnarray*}
   } \Return $x^{(k)}$, $-y_0^TAx^{(k)}$
-  \label{Tab:pseudocode_pb}
+  \label{Tab:algo}
 \end{algorithm}
 
 \subsection{Convergence analysis of the algorithm}
