@@ -19,7 +19,7 @@ class Game(object):
 
     def can_fold(self, *unused):
         """Check that given player can "fold" in given state."""
-        return True
+        return True  # since player can always fold
 
     def can_move(self, state, player, move):
         """Check where given player can make given move in given state."""
@@ -54,9 +54,10 @@ class Game(object):
             move = move.upper()
         return move[0]
 
-    def go(self, state, p, move):
+    def react(self, state, p, move):
+        """Let a player react to the others action."""
         stop = not self.do_move(state, move)
-        print state['padding'][:-1] + "+-%s: state=%s" % (
+        print state['padding'][:-1] + "+-%s %s" % (
             self.move_id(p, move), dict((k, state[k])
                                         for k in ["rnd", "bet", "pot"]))
         state["padding"] += " "
@@ -71,7 +72,7 @@ class Game(object):
                     state_["padding"] += " "
                 else:
                     state_["padding"] += "|"
-                self.go(state_, q, m)
+                self.react(state_, q, m)
         else:
             # entre second round
             if move != "fold":
@@ -85,8 +86,7 @@ class Game(object):
                 return False
 
     def play_rnd(self, state):
-        if state["rnd"] >= 2:
-            return False
+        """Play a new round."""
         state["bet"] = 1
         moves = [m for m in ['check', "fold", "call", "raise"]
                  if self.can_move(state.copy(), state["norminal"], m)]
@@ -97,15 +97,15 @@ class Game(object):
                 state_["padding"] += " "
             else:
                 state_["padding"] += "|"
-            self.go(state_, state['norminal'], move)
+            self.react(state_, state['norminal'], move)
 
         state['rnd'] += 1
         return True
 
     def play_game(self):
+        """Player a new game."""
         state = dict(bet=1, pot=0, norminal=0, rnd=0, padding="")
-        print ".: state=%s" % (dict((k, state[k])
-                                    for k in ["bet", "pot", "rnd"]))
+        print "^ %s" % (dict((k, state[k]) for k in ["bet", "pot", "rnd"]))
         self.play_rnd(state)
 
-Game(limit=5.).play_game()
+Game(limit=500).play_game()
