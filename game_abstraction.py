@@ -1,6 +1,7 @@
 from nose.tools import assert_true, assert_false, assert_equal
 
 MOVES = ['fold', 'check', 'call', 'raise']
+TREE = {}
 
 
 def init_state(**kwargs):
@@ -15,14 +16,32 @@ def init_state(**kwargs):
     state["stage_ended"] = kwargs.get('stage_ended', False)
     state["game_ended"] = kwargs.get('game_ended', False)
     state["stage"] = kwargs.get('stage', 0)
+    state["max_stages"] = kwargs.get('max_stages', 1)
     state["padding"] = kwargs.get('padding', "")
+    state["move"] = kwargs.get('move', ".")
     return state
+
+
+def can_start_stage(state):
+    """Determines whether a new stage maybe started at the given state."""
+    if not state['stage_ended']:
+        return False
+    return state['stage'] + 1 < state['max_stages'] and not state['game_ended']
+
+
+def start_stage(state):
+    """Invoked to start a new stage.
+
+    Notes
+    -----
+    Public signals can only be revealed inside this function.
+    """
+    state['stage'] += 1
 
 
 def end_stage(state):
     """Ends current stage of game and increment stage counter."""
     state['stage_ended'] = True
-    state['stage'] += 1
 
 
 def end_game(state):
@@ -53,14 +72,12 @@ def handle_move(state, move):
 
 def can_check(state):
     """Checks whether current player can "check" in given state."""
-    if state['stage'] == 1:
-        # can only "check" in first round
-        return False
-    elif state['stage'] == 0:
+    if state["stage"] < state["max_stages"]:
         # can't "check" in the middle of a round
-        return not state['middle']
+        return not state["middle"]
     else:
-        assert 0
+        # can't check in last round
+        return False
 
 
 def can_fold(state):
@@ -110,7 +127,6 @@ def test_check_ends_stage():
         state = init_state(stage=stage)
         handle_move(state, "check")
         assert_true(state['stage_ended'])
-        assert_equal(state['stage'], stage + 1)
 
 
 def test_call_ends_stage_if_started():
@@ -120,7 +136,6 @@ def test_call_ends_stage_if_started():
             handle_move(state, "call")
             if middle:
                 assert_true(state['stage_ended'])
-                assert_equal(state['stage'], stage + 1)
             else:
                 assert_false(state['stage_ended'])
                 assert_equal(state['stage'], stage)
@@ -132,7 +147,6 @@ def test_fold_ends_stage_and_game():
         handle_move(state, "fold")
         assert_true(state['game_ended'])
         assert_true(state['stage_ended'])
-        assert_equal(state['stage'], stage + 1)
 
 
 def test_raise_never_ends_game():
@@ -148,7 +162,6 @@ def test_end_game_ends_stage():
         state = init_state(stage=stage)
         end_game(state)
         assert_true(state['stage_ended'])
-        assert_equal(state['stage'], stage + 1)
 
 
 def test_can_check():
@@ -224,15 +237,26 @@ def test_get_move_id():
 
 
 def test_fight():
-    state = init_state(limit=2)
-    fight(state)
+    for max_stages in [1, 2]:
+        state = init_state(limit=2, max_stages=max_stages)
+        fight(state)
+        TREE.clear()
+
+
+def test_can_start_stage():
+    assert_false(can_start_stage(init_state(stage_ended=False)))
+    assert_false(can_start_stage(init_state(game_ended=True)))
+    assert_true(can_start_stage(init_state(stage_ended=True, max_stages=2,
+                                           stage=0)))
 
 
 def fight(state):
     """Players take turns playing current round until it ends."""
-    if not state['middle']:
-        print " .(bet=%g$,pot=%g$, limit=$%g)" % (
+    if state["stage"] == 0. and not state['middle']:
+        print " .(bet=%g$,pot=%g$,limit=$%g)" % (
             state['bet'], state['pot'], state['limit'])
+        key = (state['padding'], None)
+        TREE[key] = state
     moves = get_moves(state)
     state['padding'] += " "
     for cnt, move in enumerate(moves):
@@ -242,14 +266,27 @@ def fight(state):
             state_['padding'] += " "
         else:
             state_['padding'] += "|"
+        mid = get_move_id(state_, move)
+        key = (state_['padding'], mid, state["stage"])
+        assert key not in TREE
+        TREE[key] = state_
         handle_move(state_, move)
         assert state_['limit'] == state['limit']
-        print state_['padding'][:-1] + "+-" + "%s(bet=%g$,pot=%g$)%s" % (
-            get_move_id(state_, move), state_['bet'], state_['pot'],
-            "/" if state_["stage_ended"] else "")
-        if not state_['stage_ended']:
+        print state_['padding'][:-1] + (
+            "+-" + "%s(stage=%i,bet=%g$,pot=%g$)%s" % (
+                mid, state_["stage"], state_['bet'], state_['pot'],
+                "/" if state_["game_ended"] else ""))
+        # continue ?
+        if state_['stage_ended']:
+            if can_start_stage(state_):
+                start_stage(state_)
+                fight(state_)
+        else:
             fight(state_)
 
 
 if __name__ == '__main__':
-    fight(init_state(limit=3))
+    TREE.clear()
+    state = init_state(limit=2, max_stages=2)
+    if can_start_stage(state) or 1:
+        fight(state)
