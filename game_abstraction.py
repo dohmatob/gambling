@@ -1,3 +1,5 @@
+# Author: DOHMATOB Elvis Dopgima
+
 from nose.tools import assert_true, assert_false, assert_equal
 
 MOVES = ['fold', 'check', 'call', 'raise']
@@ -7,7 +9,6 @@ TREE = {}
 def init_state(**kwargs):
     """Creates game state, overriding defaults with kwargs."""
     state = {}
-    state = state.copy()
     state["player"] = kwargs.get('player', 0)
     state["bet"] = kwargs.get('bet', 1)
     state["pot"] = kwargs.get('pot', 0)
@@ -51,7 +52,7 @@ def end_game(state):
 
 
 def handle_move(state, move):
-    """Updates game state by effectiving the given move."""
+    """Updates game state by effecting the given move."""
     if move == "check":
         end_stage(state)
     elif move == "call":
@@ -287,6 +288,6 @@ def fight(state):
 
 if __name__ == '__main__':
     TREE.clear()
-    state = init_state(limit=2, max_stages=2)
+    state = init_state(limit=2, max_stages=10)
     if can_start_stage(state) or 1:
         fight(state)
