@@ -1,144 +1,255 @@
+from nose.tools import assert_true, assert_false, assert_equal
+
 MOVES = ['fold', 'check', 'call', 'raise']
 
 
-class Game(object):
-    def __init__(self, limit=10, verbose=2):
-        self.limit = limit
-        self.verbose = verbose
+def init_state(**kwargs):
+    """Creates game state, overriding defaults with kwargs."""
+    state = {}
+    state = state.copy()
+    state["player"] = kwargs.get('player', 0)
+    state["bet"] = kwargs.get('bet', 1)
+    state["pot"] = kwargs.get('pot', 0)
+    state["limit"] = kwargs.get('limit', 4)
+    state["middle"] = kwargs.get('middle', False)
+    state["stage_ended"] = kwargs.get('stage_ended', False)
+    state["game_ended"] = kwargs.get('game_ended', False)
+    state["stage"] = kwargs.get('stage', 0)
+    state["padding"] = kwargs.get('padding', "")
+    return state
 
-    def can_check(self, state, player):
-        """Check that given player can "check" in given state."""
-        return player == state["norminal"] and state["rnd"] < 1.
 
-    def can_call(self, state, _):
-        """Check that given player can "call" in given state."""
-        return state["pot"] + state["bet"] <= self.limit
+def end_stage(state):
+    """Ends current stage of game and increment stage counter."""
+    state['stage_ended'] = True
+    state['stage'] += 1
 
-    def can_raise(self, state, _):
-        """Check that given player can "raise" in given state."""
-        return state["pot"] + state["bet"] + 1 <= self.limit
 
-    def can_fold(self, *unused):
-        """Check that given player can "fold" in given state."""
-        return True  # since player can always fold
+def end_game(state):
+    """Ends current game."""
+    end_stage(state)
+    state['game_ended'] = True
 
-    def can_move(self, state, player, move):
-        """Check where given player can make given move in given state."""
-        assert move in MOVES, move
-        if move == "call":
-            return self.can_call(state, player)
-        elif move == "raise":
-            return self.can_raise(state, player)
-        elif move == "fold":
-            return self.can_fold(state, player)
-        elif move == "check":
-            return self.can_check(state, player)
-        else:
-            RuntimeError("Shouldn't be here!")
 
-    def do_move(self, state, p, move):
-        if p > 0:
-            if move in ["check", "fold"]:
-                return False
-            elif move in ['raise', 'call']:
-                if move == "raise":
-                    state['bet'] += 1
-                state["pot"] += state['bet']
-                assert state["pot"] <= self.limit
-                if move == "raise":
-                    return True
+def handle_move(state, move):
+    """Updates game state by effectiving the given move."""
+    if move == "check":
+        end_stage(state)
+    elif move == "call":
+        state['pot'] += state['bet']
+        if state["middle"]:
+            end_stage(state)
+    elif move == "fold":
+        end_game(state)
+    elif move == "raise":
+        state['bet'] += 1
+        state['pot'] += state['bet']
+    else:
+        assert 0
+
+    state['middle'] = True
+    state['player'] = 1 - state['player']
+
+
+def can_check(state):
+    """Checks whether current player can "check" in given state."""
+    if state['stage'] == 1:
+        # can only "check" in first round
+        return False
+    elif state['stage'] == 0:
+        # can't "check" in the middle of a round
+        return not state['middle']
+    else:
+        assert 0
+
+
+def can_fold(state):
+    """Checks whether current player can "fold" in given state."""
+    # can always fold
+    return True
+
+
+def can_raise(state):
+    """Checks whether current player can "raise" in given state."""
+    # can raise if and only if new bet would not exceed limit
+    return state["bet"] + 1 <= state['limit']
+
+
+def can_call(state):
+    """Checks whether current player can "call" in given state."""
+    assert state['bet'] <= state['limit']  # ensure game is not garbage
+    # can always call
+    return True
+
+
+def can(state, move):
+    """Checks whether current player can make given move in given state."""
+    return eval("can_%s(state)" % move)
+
+
+def get_moves(state):
+    """Returns the possible moves of current player in current state."""
+    return [move for move in MOVES if can(state, move)]
+
+
+def get_move_id(state, move):
+    """Returns the player-wise identifier for the given move."""
+    if move == "call":
+        move = "kall"
+    if state['player'] == 1:  # XXX swapped with 0
+        move = move.upper()
+    elif state['player'] == 0:
+        move = move.lower()
+    else:
+        assert 0
+    return move[0]
+
+
+def test_check_ends_stage():
+    for stage in [0, 1]:
+        state = init_state(stage=stage)
+        handle_move(state, "check")
+        assert_true(state['stage_ended'])
+        assert_equal(state['stage'], stage + 1)
+
+
+def test_call_ends_stage_if_started():
+    for stage in [0, 1]:
+        for middle in [True, False]:
+            state = init_state(stage=stage, middle=middle)
+            handle_move(state, "call")
+            if middle:
+                assert_true(state['stage_ended'])
+                assert_equal(state['stage'], stage + 1)
+            else:
+                assert_false(state['stage_ended'])
+                assert_equal(state['stage'], stage)
+
+
+def test_fold_ends_stage_and_game():
+    for stage in [0, 1]:
+        state = init_state(stage=stage)
+        handle_move(state, "fold")
+        assert_true(state['game_ended'])
+        assert_true(state['stage_ended'])
+        assert_equal(state['stage'], stage + 1)
+
+
+def test_raise_never_ends_game():
+    for stage in [0, 1]:
+        for middle in [True, False]:
+            state = init_state(stage=stage, middle=middle, bet=1, pot=0)
+            handle_move(state, "raise")
+            assert_false(state['game_ended'])
+
+
+def test_end_game_ends_stage():
+    for stage in [0, 1]:
+        state = init_state(stage=stage)
+        end_game(state)
+        assert_true(state['stage_ended'])
+        assert_equal(state['stage'], stage + 1)
+
+
+def test_can_check():
+    for stage in [0, 1]:
+        for middle in [True, False]:
+            state = init_state(stage=stage, middle=middle)
+            cc = can_check(state)
+            if stage > 0:
+                assert_false(cc)
+            else:
+                if middle:
+                    assert_false(cc)
                 else:
-                    return p == state['norminal']
+                    assert_true(cc)
+
+
+def test_can_fold_always():
+    for stage in [0, 1]:
+        for middle in [True, False]:
+            state = init_state(stage=stage, middle=middle)
+            assert_true(can_fold(state))
+
+
+def test_can_call_always():
+    for stage in [0, 1]:
+        for middle in [True, False]:
+            state = init_state(stage=stage, middle=middle)
+            assert_true(can_call(state))
+
+
+def test_can_raise():
+    for stage in [0, 1]:
+        for middle in [True, False]:
+            for bet in xrange(1, 5):
+                for limit in xrange(bet, bet + 5):
+                    state = init_state(stage=stage, middle=middle, bet=bet,
+                                       limit=limit)
+                    cr = can_raise(state)
+                    if bet + 1 <= limit:
+                        assert_true(cr)
+                    else:
+                        assert_false(cr)
+
+
+def test_get_moves():
+    for stage in [0, 1]:
+        for middle in [True, False]:
+            for bet in xrange(1, 5):
+                for limit in xrange(bet, bet + 5):
+                    state = init_state(stage=stage, middle=middle, bet=bet,
+                                       limit=limit)
+                    moves = get_moves(state)
+                    assert_true('call' in moves)
+                    assert_true('fold' in moves)
+                    if stage > 0:
+                        assert_false('check' in moves)
+                    else:
+                        if middle:
+                            assert_false('check' in moves)
+                        else:
+                            assert_true('check' in moves)
+                    if bet + 1 <= limit:
+                        assert_true('raise' in moves)
+
+
+def test_get_move_id():
+    for player in [0, 1]:
+        state = init_state(player=player)
+        for move in MOVES:
+            mid = get_move_id(state, move)
+            ul = [mid.lower(), mid.upper()]
+            assert_equal(mid, ul[player == 1])
+
+
+def test_fight():
+    state = init_state(limit=2)
+    fight(state)
+
+
+def fight(state):
+    """Players take turns playing current round until it ends."""
+    if not state['middle']:
+        print " .(bet=%g$,pot=%g$, limit=$%g)" % (
+            state['bet'], state['pot'], state['limit'])
+    moves = get_moves(state)
+    state['padding'] += " "
+    for cnt, move in enumerate(moves):
+        print state['padding'] + "|"
+        state_ = init_state(**state)
+        if cnt == len(moves) - 1:
+            state_['padding'] += " "
         else:
-            return True
-            # RuntimeError("Shouldn't be here!")
+            state_['padding'] += "|"
+        handle_move(state_, move)
+        assert state_['limit'] == state['limit']
+        print state_['padding'][:-1] + "+-" + "%s(bet=%g$,pot=%g$)%s" % (
+            get_move_id(state_, move), state_['bet'], state_['pot'],
+            "/" if state_["stage_ended"] else "")
+        if not state_['stage_ended']:
+            fight(state_)
 
-    def move_id(self, state, p, move):
-        if p == 0:
-            return state["chance_move"]
-        else:
-            if move.lower() == "call":
-                move = "kall"
-            if p == 1:
-                move = move.upper()
-            else:
-                move = move.lower()
-            return move[0]
 
-    def label(self, state, p, move):
-        i = str(self.move_id(state, p, move))
-        if self.verbose > 1:
-            i += " " + str(dict((k, state[k]) for k in ["rnd", "bet", "pot"]))
-        return i
-
-    def react(self, state, p, move):
-        """Let a player react to the others action."""
-        stop = not self.do_move(state, p, move)
-        if self.verbose:
-            print state['padding'][:-1] + "+-" + self.label(state, p, move)
-
-        state["padding"] += " "
-        if not stop:
-            if p > 0:
-                q = 3 - p
-            else:
-                q = 1
-            moves = self.get_moves(state, q)
-            for cnt, m in enumerate(moves):
-                state_ = state.copy()
-                if self.verbose:
-                    print state["padding"] + "|"
-                if cnt == len(moves) - 1:
-                    state_["padding"] += " "
-                else:
-                    state_["padding"] += "|"
-                self.react(state_, q, m)
-        else:
-            # enter second round
-            if move != "fold":
-                state['rnd'] += 1
-                state['norminal'] = 3 - state["norminal"]
-                if state['rnd'] < 2:
-                    return self.play_rnd(state)
-                return False
-
-    def get_moves(self, state, p):
-        if p > 0.:
-            return [move for move in ['check', "fold", "call", "raise"]
-                    if self.can_move(state, p, move)]
-        else:  # chance (player 0)
-            if state["rnd"] == 0:
-                return [(x, y) for x in 'JQ' for y in 'JQ']
-            elif state["rnd"] == 1:
-                return [x for x in 'JQ' if
-                        state['chance_move'].count(x) < 2]
-            else:
-                assert 0
-
-    def play_rnd(self, state):
-        """Play a new round."""
-        state["bet"] = 1
-        moves = self.get_moves(state, 0)
-        for cnt, move in enumerate(moves):
-            state_ = state.copy()
-            state_["chance_move"] = move
-            if self.verbose:
-                print state["padding"] + "|"
-            if cnt == len(moves) - 1:
-                state_["padding"] += " "
-            else:
-                state_["padding"] += "|"
-            self.react(state_, 0, move)
-
-        state['rnd'] += 1
-        return True
-
-    def play_game(self):
-        """Player a new game."""
-        state = dict(bet=1, pot=0, norminal=1, rnd=0, padding="")
-        if self.verbose:
-            print "^%s" % ("" if self.verbose < 2 else
-                           dict((k, state[k]) for k in ["bet", "pot", "rnd"]))
-        self.play_rnd(state)
-
-Game(limit=10, verbose=1).play_game()
+if __name__ == '__main__':
+    fight(init_state(limit=3))
