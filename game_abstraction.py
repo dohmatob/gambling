@@ -153,6 +153,14 @@ class PokerTree:
         self.fight(self.init_state())
 
 
+class KuhnPokerTree(PokerTree):
+    def can_fold(self, state):
+        if not state['middle']:
+            return False
+        if state['move'] != 'raise':
+            return False
+        
+
 def test_check_ends_round():
     pt = PokerTree()
     for rnd in [0, 1]:
@@ -293,5 +301,5 @@ def test_can_start_round():
 
 
 if __name__ == '__main__':
-    pt = PokerTree(limit=2, max_rounds=1)
+    pt = KuhnPokerTree(limit=2, max_rounds=1)
     pt()
