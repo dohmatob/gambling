@@ -1,4 +1,4 @@
-\documentclass[a4paper,10pt,journal]{IEEEtran}
+\documentclass[a4paper,9pt,journal]{IEEEtran}
 \usepackage{graphicx} \usepackage[cmex10]{amsmath}
 \usepackage{amssymb} \usepackage{fancybox} \usepackage{alltt}
 \usepackage{soul} \usepackage{color} \usepackage{verbatim}
@@ -31,7 +31,7 @@
 
 \begin{document}
 %\onecolumn
-\title{A fast primal-dual algorithm for computing best response strategies in two-person sequential games}
+\title{A fast primal-dual algorithm for computing Nash equilibria and best response strategies in two-person zero-sum sequential games}
 
 
 \author{\IEEEauthorblockN{Elvis D. DOHMATOB}}
@@ -52,12 +52,12 @@ The proposed algorithm for solving the corresponding contrained convex-optimizat
 Our algorithm is simple: all resolvent operators can be effectively computed in closed-form, using only elementary algebraic operations.
 %%  and is orders of magnitude more efficient than state-of-the-art algorithms like those based on Linear Programming, Interior-Point methods,
 %% and more recently, the Nesterov Excessive Gap Technique.
-By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
+% By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
 \end{abstract}
 
 
 \begin{IEEEkeywords}
-  game theory; two-person sequential game; best response; convex-optimization; contraint; primal-dual scheme
+  game theory; two-person sequential game; Nash equilibria; best response; convex-optimization; contraint; primal-dual scheme
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -66,33 +66,35 @@ By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
 To begin, let us introduce some technical notation and terminology we will be using in this paper. The reader should lookup any standard textbook
 (for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions. Viz,
 \begin{itemize}
-\item $\mathbb{R}^{m, n}$ \quad the space of all $m$-by-$p$ real matrices;
-\item $E^{-1}(U)$: \quad the pre-image of $U \subset \mathbb{R}^n$ under the matrix $E \in \mathbb{R}^{p,n}$,
+\item $\mathbb{R}^{m, n}$ \quad space of all $m$-by-$p$ real matrices;
+\item $E^{-1}(U)$: \quad pre-image of $U \subset \mathbb{R}^n$ under a matrix $E \in \mathbb{R}^{p,n}$,
 namely the set $\{x \in \mathbb{R}^n\text{ }| \text{ }Ex \in U\}$
-\item $A^T$: \quad the transpose of the matrix $A$;
-\item $\begin{bmatrix}A\\B\end{bmatrix}$: \quad the vertical stacking of the matrices $A$ and $B$;
-\item $v_j$: \quad the $j$th component of the vector $v$;
-\item $u^Tv$: \quad the dot product of two vectors $u$ and $v$;
-\item $\mathbb{R}_+$: \quad the nonnegative part of the real-line $\mathbb{R}$;
-\item $(x)_+$: \quad the component-wise maximum of the vector $x$ and 0;
-\item $i_C$: \quad the indicator function of the convex set $C$;
-\item $\Pi_C$: \quad the euclidean projector onto the convex set $C$;
-\item $\|K\|_2$: \quad the matrix 2-norm of the matrix $K$;
-\item \textit{l.s.c}: \quad acronym for \textit{lower semi-continuous};
-\item $f^*$: \quad the Fenchel transform of the convex l.s.c function $f$;
+\item $A^T$: \quad transpose of a matrix $A$;
+\item $\begin{bmatrix}A\\B\end{bmatrix}$: \quad vertical stacking of two matrices $A$ and $B$;
+\item $v_j$: \quad $j$th component of  a vector $v$;
+\item $u^Tv$: \quad dot product of two vectors $u$ and $v$;
+\item $\mathbb{R}^n_+$: \quad the $n$-dimensional nonnegative orthant;
+\item $(x)_+$: \quad component-wise maximum of a vector $x$ and 0;
+\item $i_C$: \quad indicator function of a convex set $C$;
+\item $\Pi_C$: \quad euclidean projector onto a convex set $C$;
+\item $\|K\|_2$: \quad matrix 2-norm of a matrix $K$;
+\item \textit{p.c.l.s.c}: \quad acronym for \textit{proper convex lower semi-continuous};
+\item $f^*$: \quad Fenchel transform (a.k.a convex conjugate) of a \textit{p.c.l.s.c} function $f$;
+\item $(1 + \sigma \partial f)^{-1}$: resolvent (a.k.a proximal) operator of a \textit{p.c.l.s.c} function $f$, for a given stepsize $\sigma > 0$
 \end{itemize}
 
 \subsection{Statement of the problem}
 Consider a two-person sequential game\footnote{In a sequential game, players take turns in play, one after the other,
-as opposed to simultaneous play.} in \textit{sequential-form} (See for example, \cite{von1996efficient} and \cite{koller1996efficient} 
+as opposed to simultaneous play.} in \textit{sequential-form} (See for example, \cite{von1996efficient}
+and \cite{koller1996efficient} 
 for theory on sequential-form representation), and let $A \in \mathbb{R}^{m,n}$ be our payoff matrix.
 We will be referring to the other player as ``the opponent''. We are interested in the problem of
 finding a best response strategy $x^* \in \mathbb{R}_{+}^n \cap E^{-1}(\{e\})$, given a fixed
-(possibly mixed) strategy $y_0$ for the opponent, where $E$ is a sparse $p$-by-$n$ matrix whose entries are $-1$, $0$, or $+1$,
-and $(1, 0, 0, ..., 0) =: e \in \mathbb{R}^p$. Recall that $E$ and $e$ encode linear constraints on our ``admissible''
-realization plans\footnote{In games in sequential form, the terms ``strategy'' and ``realization plan''
-mean thesame thing.} $x$, in the sequential form representation of the game.
-In the language of convex-optimization,
+behavioral strategy $y_0$ for the opponent, where $E$ is a sparse $p$-by-$n$ matrix whose
+entries are $-1$, $0$, or $+1$, and $(1, 0, 0, ..., 0) =: e \in \mathbb{R}^p$. Recall that $E$
+and $e$ encode linear constraints on our ``admissible'' realization plans\footnote{In games
+in sequential form, the terms ``strategy'' and ``realization plan'' mean thesame thing.} $x$,
+in the sequential form representation of the game. In the language of convex-optimization,
 one can readily give the following saddle-point formulation for this problem. Viz,
 
 \begin{equation}
@@ -101,16 +103,24 @@ one can readily give the following saddle-point formulation for this problem. Vi
 \end{equation}
 
 \begin{definition}
-A solution $x^*$ to problem \eqref{eq:opt_pb} is called a \textit{best response} strategy against the opponent's fixed strategy $y_0$.
+A solution $x^*$ to problem \eqref{eq:opt_pb} is called a \textit{best response} strategy against
+the opponent's fixed strategy $y_0$.
 \end{definition}
 
 \begin{remark}
-Of course $y_0$ is not necessarily an optimal strategy for the opponent. In case it is, the pair $(x^*, y_0)$ is a Nash equilibrium for the game.
+Of course $y_0$ is not necessarily an optimal strategy for the opponent. In case it is, the pair $(x^*, y_0)$
+is a Nash equilibrium for the game.
 \end{remark}
 
 \begin{remark}
-  In practice, $A$ and $E$ are very sparse as a game will typically have very few leafs
-(i.e terminal states). This sparsity should be thoroughly exploited by a solver for problem \eqref{eq:opt_pb}.
+  In practice, $A$, $E$, and $F$ are very sparse: $A$ will be sparse because a concrete sequential game will
+typically have very few\footnote{Few, relative to the size of the game tree.} leafs, and only a few
+combinations of sequences of moves of the players, will actually lead to a leaf (i.e. end the game);
+$E$ and $F$ will be sparse because the kinks of possible sequences of moves of each player will
+zig-zag between only a limited number of the player's information sets so that a move at an information set will
+rarely\footnote{Relative to the number of information sets for the player.}  extend another information set.
+This sparsity should be thoroughly exploited\footnote{For example when
+multiplying vectors with these matrices.} by a solver for problem \eqref{eq:opt_pb}.
 \end{remark}
 
 In section \ref{sec:related_work}, we give a brief overview of existing methods for solving \eqref{eq:opt_pb}.
@@ -122,7 +132,7 @@ We elaborate our proposed algorithm in section \ref{sec:algo}.
 Pending...
 
 \section{The proposed algorithm}
-\label{sec:algo}
+0\label{sec:algo}
 In this section we present the algorithm which is the purpose of this paper, namely an algorithm
 for solving \eqref{eq:opt_pb}. Our algorithm (Alg.\ref{Tab:algo}) is a use-case of
 the generic primal-dual algorithm of A. Chambolle and T. Pock, namely Algorithm 1 of \cite{chambolle2010}.
@@ -165,7 +175,7 @@ where we've defined:
   \right\}
 \end{equation}
 
-Furthermore, one easily checks that $F^*$ and $G$ are \textit{proper} convex l.s.c, with resolvent
+Furthermore, one easily checks that $F^*$ and $G$ are \textit{p.c.l.s.c} with resolvent
 (a.k.a \textit{proximity}) operators given by the simple formulae:
 \begin{equation}
   \left.
@@ -189,7 +199,7 @@ Neither $G$ nor $F^*$ is strongly convex and so Alg.\ref{Tab:algo} cannot be acc
 \end{remark}
 
 \begin{algorithm}[htb]
-  \caption{Primal-dual algorithm for computing best response against opponent's realization plan $y_0$}
+  \caption{Primal-dual algorithm for computing best response against opponent's fixed realization plan $y_0$}
   \textbf{Given} Tolerance $\epsilon > 0$.\\
   \textbf{Initialize} $\tilde{x^{(0)}} = x^{(0)} \in \mathbb{R}^n$; $\zeta^{(0)} \in \mathbb{R}^{q}$;
   $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$; $k = 0$.\\
