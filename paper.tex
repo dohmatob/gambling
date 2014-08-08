@@ -66,7 +66,7 @@ Our algorithm is simple: all resolvent operators can be effectively computed in 
 To begin, let us introduce some technical notation and terminology we will be using in this paper. The reader should lookup any standard textbook
 (for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions. Viz,
 \begin{itemize}
-\item $\mathbb{R}^{m, n}$ \quad space of all $m$-by-$p$ real matrices;
+\item $\mathbb{R}^{m \times n}$: \quad space of all $m$-by-$p$ real matrices;
 \item $E^{-1}(U)$: \quad pre-image of $U \subset \mathbb{R}^n$ under a matrix $E \in \mathbb{R}^{p,n}$,
 namely the set $\{x \in \mathbb{R}^n\text{ }| \text{ }Ex \in U\}$
 \item $A^T$: \quad transpose of a matrix $A$;
@@ -78,9 +78,9 @@ namely the set $\{x \in \mathbb{R}^n\text{ }| \text{ }Ex \in U\}$
 \item $i_C$: \quad indicator function of a convex set $C$;
 \item $\Pi_C$: \quad euclidean projector onto a convex set $C$;
 \item $\|K\|_2$: \quad matrix 2-norm of a matrix $K$;
-\item \textit{p.c.l.s.c}: \quad acronym for \textit{proper convex lower semi-continuous};
-\item $f^*$: \quad Fenchel transform (a.k.a convex conjugate) of a \textit{p.c.l.s.c} function $f$;
-\item $(1 + \sigma \partial f)^{-1}$: resolvent (a.k.a proximal) operator of a \textit{p.c.l.s.c} function $f$, for a given stepsize $\sigma > 0$
+\item \textit{l.s.c.p.c}: \quad acronym for adjective \textit{lower semi-continuous proper convex};
+\item $f^*$: \quad Fenchel transform (a.k.a convex conjugate) of a \textit{l.s.c.p.c} function $f$;
+\item $(1 + \sigma \partial f)^{-1}$: resolvent (a.k.a proximal) operator of a \textit{l.s.c.p.c} function $f$, for a given stepsize $\sigma > 0$
 \end{itemize}
 
 \subsection{Statement of the problem}
@@ -175,7 +175,7 @@ where we've defined:
   \right\}
 \end{equation}
 
-Furthermore, one easily checks that $F^*$ and $G$ are \textit{p.c.l.s.c} with resolvent
+Furthermore, one easily checks that $F^*$ and $G$ are \textit{l.s.c.p.c} with resolvent
 (a.k.a \textit{proximity}) operators given by the simple formulae:
 \begin{equation}
   \left.

@@ -3,6 +3,52 @@ import numpy as np
 from scipy import linalg
 
 
+def best(A, E, e, y0, max_iter=1000, tol=1e-2, callback=None, **kwargs):
+    c = -A.T.dot(y0)
+    m, n = E.shape
+    alpha = 1.
+    tau = np.reciprocal([(np.abs(col) ** (2. - alpha)).sum() for col in E.T])
+    sigma = np.reciprocal([(np.abs(row) ** alpha).sum() for row in E])
+    x = np.zeros(n)
+    zeta = np.zeros(m)
+    old_value = np.inf
+    values = []
+    for k in xrange(max_iter):
+        old_x = x.copy()
+        old_zeta = zeta.copy()
+        x -= tau * (E.T.dot(zeta) + c)
+        x = np.maximum(x, 0.)
+        value = c.T.dot(x)
+        values.append(value)
+        change = old_value - value
+        old_value = value
+        zeta += sigma * (E.dot(2. * x - old_x) - e)
+        if callback:
+            callback(locals())
+
+        print "Iteration %03i/%03i: value=%5.2e, change=%5.2e" % (
+            k + 1, max_iter, value, change)
+        change = abs(change)
+        if change < tol:
+            print "Converged (|change| < %5.2e)." % tol
+            break
+
+    import pylab as pl
+    values = -np.array(values)
+    value *= -1.
+    pl.plot(values)
+    pl.axhline(value, linestyle="--", c="r",
+               label="value of game (= %g)" % value)
+    pl.ylabel("primal objective at kth iteration")
+    pl.xlabel("k")
+    pl.legend(loc="best")
+    pl.title(
+        ("Computing best response strategy in sequence-form game using "
+         "diagonally preconditioned primal-dual algorithm of Chambolle-Pock"))
+    pl.show()
+    return x, zeta, None
+
+
 def best_response(A, E, e, y0, max_iter=1000, tol=1e-2, theta=1.,
                   callback=None):
     """Computes best response to an opponent's realization plan in a two-person
@@ -36,6 +82,7 @@ def best_response(A, E, e, y0, max_iter=1000, tol=1e-2, theta=1.,
     const = tau * A.T.dot(y0)
     error = 0
     errors = []
+    values = []
     for k in xrange(max_iter):
         old_x = x.copy()
         old_zeta = zeta.copy()
@@ -48,6 +95,8 @@ def best_response(A, E, e, y0, max_iter=1000, tol=1e-2, theta=1.,
         x = np.maximum(x, 0.)
         xbar = x + theta * (x - old_x)
 
+        value = -const.T.dot(x)
+        values.append(value)
         if callback:
             callback(locals())
 
@@ -64,6 +113,19 @@ def best_response(A, E, e, y0, max_iter=1000, tol=1e-2, theta=1.,
             print ("Converged (.5 * (||x^(k+1) - x^(k)||^2 / tau + "
                    "||zeta^(k+1) - zeta^(k)||^2 / sigma) < %.3e)" % tol)
             break
+
+    import pylab as pl
+    pl.plot(values)
+    pl.axhline(value, linestyle="--", c="r",
+               label="value of game (= %g)" % value)
+    pl.ylabel("primal objective at kth iteration")
+    pl.xlabel("k")
+    pl.legend(loc="best")
+    pl.title(
+        ("Computing best response strategy in sequence-form game using "
+         "diagonally preconditioned primal-dual algorithm of Chambolle-Pock"))
+    pl.show()
+    return x, zeta, None
 
     return x, zeta, errors
 
@@ -83,7 +145,7 @@ if __name__ == "__main__":
     xstar = [1., 0., 1., 0., 1.]
     zetastar = [0., 0., 0.]
 
-    pl.figure(figsize=(13, 7))
+    # pl.figure(figsize=(13, 7))
     thetas = [0., .5, 1.]
     for i, theta in enumerate(thetas):
         mind = []
@@ -102,25 +164,27 @@ if __name__ == "__main__":
 
             pl.draw()
 
-        ax = pl.subplot("3%i%i" % (len(thetas), i + 1))
-        ax.set_title("theta=%g" % theta)
-        pl.xlim(0., 2.)
-        pl.ylim(-1., 1.)
-        pl.xlabel("xk")
-        if i == 0.:
-            pl.ylabel("yk")
-        pl.ion()
+        # ax = pl.subplot("3%i%i" % (len(thetas), i + 1))
+        # ax.set_title("theta=%g" % theta)
+        # pl.xlim(0., 2.)
+        # pl.ylim(-1., 1.)
+        # pl.xlabel("xk")
+        # if i == 0.:
+        #     pl.ylabel("yk")
+        # pl.ion()
 
-        # draw center
-        pl.scatter(xstar[0], zetastar[0], marker="*")
-        pl.draw()
+        # # draw center
+        # pl.scatter(xstar[0], zetastar[0], marker="*")
+        # pl.draw()
 
-        xstar, zetastar, errors = best_response(A, E, e, y0, theta=theta,
-                                                callback=cb, tol=1e-8,
-                                                max_iter=200)
+        xstar, zetastar, errors = best(A, E, e, y0, theta=theta,
+                                       callback=None, tol=1e-8,
+                                       max_iter=200)
         print "x* =", xstar
         print "zeta* =", zetastar
         print "e - Ex* =", E.dot(xstar) - e
+        print xstar.dot(A.T.dot(y0))
+        break
 
         ax = pl.subplot("3%i%i" % (len(thetas), len(thetas) + i + 1))
         pl.loglog(errors)
