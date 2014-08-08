@@ -3,7 +3,7 @@ import numpy as np
 from scipy import linalg
 
 
-def best(A, E, e, y0, max_iter=1000, tol=1e-2, callback=None, **kwargs):
+def best(A, E, e, y0, max_iter=1000, tol=1e-4, callback=None, **kwargs):
     c = -A.T.dot(y0)
     m, n = E.shape
     alpha = 1.
@@ -13,6 +13,7 @@ def best(A, E, e, y0, max_iter=1000, tol=1e-2, callback=None, **kwargs):
     zeta = np.zeros(m)
     old_value = np.inf
     values = []
+
     for k in xrange(max_iter):
         old_x = x.copy()
         old_zeta = zeta.copy()
@@ -34,19 +35,47 @@ def best(A, E, e, y0, max_iter=1000, tol=1e-2, callback=None, **kwargs):
             break
 
     import pylab as pl
-    values = -np.array(values)
-    value *= -1.
-    pl.plot(values)
-    pl.axhline(value, linestyle="--", c="r",
-               label="value of game (= %g)" % value)
-    pl.ylabel("primal objective at kth iteration")
-    pl.xlabel("k")
-    pl.legend(loc="best")
-    pl.title(
+    pl.figure()
+    pl.suptitle(
         ("Computing best response strategy in sequence-form game using "
          "diagonally preconditioned primal-dual algorithm of Chambolle-Pock"))
+    ax1 = pl.subplot(222)
+    theta = np.linspace(0., 2 * np.pi, num=100)
+    ax1.plot(tau[0] * np.cos(theta), tau[1] * np.sin(theta))
+    ax1.axvline(0, linestyle="--")
+    ax1.axhline(0, linestyle="--")
+    ax1.set_title("\\tau")
+
+    ax2 = pl.subplot(224)
+    theta = np.linspace(0., 2 * np.pi, num=100)
+    ax2.plot(sigma[0] * np.cos(theta), sigma[1] * np.sin(theta))
+    ax2.axvline(0, linestyle="--")
+    ax2.axhline(0, linestyle="--")
+    ax2.set_title("\sigma")
+
+    ax3 = pl.subplot(121)
+    values = -np.array(values)
+    value *= -1.
+    ax3.plot(values)
+    ax3.axhline(value, linestyle="--", c="r",
+               label="value of game (= %g)" % value)
+    ax3.set_ylabel("primal objective at kth iteration")
+    ax3.set_xlabel("k")
+    pl.legend(loc="best")
     pl.show()
     return x, zeta, None
+
+
+# y0 = np.array([-1., -1.])
+# A = -np.eye(2)
+# E = np.array([[-20. / 3, 1.], [20., -1.]])
+# e = np.array([20. / 3, 20.])
+# xstar, _, _ = best(A, E, e, y0, tol=1e-8)
+# print xstar
+# print y0.dot(A.dot(xstar))
+# print E.dot(xstar) - e
+
+# assert 0
 
 
 def best_response(A, E, e, y0, max_iter=1000, tol=1e-2, theta=1.,
