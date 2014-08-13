@@ -113,12 +113,13 @@ is a Nash equilibrium for the game.
 \end{remark}
 
 \begin{remark}
-  In practice, $A$, $E$, and $F$ are very sparse: $A$ will be sparse because a concrete sequential game will
-typically have very few\footnote{Few, relative to the size of the game tree.} leafs, and only a few
-combinations of sequences of moves of the players, will actually lead to a leaf (i.e. end the game);
-$E$ and $F$ will be sparse because the kinks of possible sequences of moves of each player will
-zig-zag between only a limited number of the player's information sets so that a move at an information set will
-rarely\footnote{Relative to the number of information sets for the player.}  extend another information set.
+  In practice, $A$, $E$, and $F$ are very sparse.
+%% : $A$ will be sparse because a concrete sequential game will
+%% typically have very few\footnote{Few, relative to the size of the game tree.} leafs, and only a few
+%% combinations of sequences of moves of the players, will actually lead to a leaf (i.e. end the game);
+%% $E$ and $F$ will be sparse because the kinks of possible sequences of moves of each player will
+%% zig-zag between only a limited number of the player's information sets so that a move at an information set will
+%% rarely\footnote{Relative to the number of information sets for the player.}  extend another information set.
 This sparsity should be thoroughly exploited\footnote{For example when
 multiplying vectors with these matrices.} by a solver for problem \eqref{eq:opt_pb}.
 \end{remark}
@@ -132,7 +133,7 @@ We elaborate our proposed algorithm in section \ref{sec:algo}.
 Pending...
 
 \section{The proposed algorithm}
-0\label{sec:algo}
+\label{sec:algo}
 In this section we present the algorithm which is the purpose of this paper, namely an algorithm
 for solving \eqref{eq:opt_pb}. Our algorithm (Alg.\ref{Tab:algo}) is a use-case of
 the generic primal-dual algorithm of A. Chambolle and T. Pock, namely Algorithm 1 of \cite{chambolle2010}.

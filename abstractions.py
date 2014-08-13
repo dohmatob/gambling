@@ -1,3 +1,9 @@
+"""
+References
+----------
+[1] Bernhard von Stengel, "Efficient Computation of Behavior Strategies"
+
+"""
 # Author: DOHMATOB Elvis Dopgima
 
 import re
@@ -6,19 +12,10 @@ import numpy as np
 from nose.tools import assert_equal, assert_true, assert_false
 
 
-class Kuhn3112(object):
-    """
-    Proof-of-Concept for sequence-form representation (@ la BvS) poker.
-
-    References
-    ----------
-    [1] Bernhard von Stengel, "Efficient Computation of Behavior Strategies"
-
-    """
+class Game(object):
+    player_choices = None
 
     def __init__(self):
-        self.player_choices = {0: ['12', '13', '21', '23', '31', '32'],
-                               1: list('CFKR'), 2: list('cfkr')}
         self.tree = nx.DiGraph()
         self.edge_labels = {}
         self.infosets = {}
@@ -31,58 +28,16 @@ class Kuhn3112(object):
         self.build_strategy_constraints()
         self.build_payoff_matrix()
 
-    def add_labelled_edge(self, x, y, move, **kwargs):
+    def build_tree(self):
+        raise NotImplementedError
+
+    def add_labelled_edge(self, x, choice, **kwargs):
         """Adds a labelled edge to the tree."""
+        y = ".".join([x, choice])
         self.tree.add_node(y, **kwargs)
         self.tree.add_edge(x, y)
-        self.edge_labels[(x, y)] = move
-
-    def cmp_cards(self, a, b):
-        return cmp(int(a), int(b))
-
-    def build_tree(self):
-        """Builds the tree (nx.DiGraph object)."""
-        for perm, proba in zip(['12', '13', '21', '23', '31', '32'],
-                               [1. / 6] * 6):
-            self.add_labelled_edge('/', '/.%s' % ''.join(perm), proba,
-                                   player=0, proba=eval("1. * %s" % proba))
-            for a in 'CR':
-                self.add_labelled_edge('/.%s' % ''.join(perm), '/.%s.%s' % (
-                        ''.join(perm), a), a, player=1)
-                if a == 'C':  # check
-                    for b in 'cr':
-                        dst = '/.%s.%s.%s' % (''.join(perm), a, b)
-                        self.add_labelled_edge('/.%s.%s' % (''.join(perm), a),
-                                           dst, b, player=2)
-                        if b == "c":
-                            self.tree.add_node(dst, player=2, proba=proba,
-                                               payoff=self.cmp_cards(*perm))
-                        else:  # raise
-                            for x in 'FK':
-                                dst = '/.%s.%s.%s.%s' % (
-                                    ''.join(perm), a, b, x)
-                                self.add_labelled_edge(
-                                    '/.%s.%s.%s' % (''.join(perm), a, b),
-                                    dst, x, player=1)
-                                if x == "F":  # fold
-                                    self.tree.add_node(dst, player=1,
-                                                       payoff=-1, proba=proba)
-                                else:  # call
-                                    self.tree.add_node(
-                                        dst, player=1, proba=proba,
-                                        payoff=2 * self.cmp_cards(*perm))
-                else:  # raise
-                    for b in "fk":
-                        dst = '/.%s.%s.%s' % (''.join(perm), a, b)
-                        self.add_labelled_edge('/.%s.%s' % (''.join(perm), a),
-                                           dst, b, player=2)
-                        if b == "f":  # fold
-                            self.tree.add_node(
-                                dst, player=2, payoff=1., proba=proba)
-                        else:  # call
-                            self.tree.add_node(
-                                dst, player=2, proba=proba,
-                                payoff=2 * self.cmp_cards(*perm))
+        self.edge_labels[(x, y)] = choice
+        return y
 
     def is_leaf(self, node):
         """Checks whether given node is leaf / terminal."""
@@ -193,8 +148,11 @@ class Kuhn3112(object):
     def node2seq(self, node):
         """Returns sequence of information-set-relabelled moves made
         by previous player along this path."""
-        return [(self.info_at_node('.'.join(item[:-1])), item[-1])
-                for item in self.chop(node)]
+        if node is None:
+            return []
+        else:
+            return [(self.info_at_node('.'.join(item[:-1])), item[-1])
+                    for item in self.chop(node)]
 
     def last_node(self, node, player):
         """Last node played by given player, before this point."""
@@ -290,6 +248,76 @@ class Kuhn3112(object):
                                      edge_labels=self.edge_labels)
 
 
+class Kuhn3112(Game):
+    """
+    Proof-of-Concept for sequence-form representation (@ la BvS) poker.
+    """
+
+    player_choices = {0: ['12', '13', '21', '23', '31', '32'],
+                      1: list('CFKR'), 2: list('cfkr')}
+
+    def cmp_cards(self, a, b):
+        return cmp(int(a), int(b))
+
+    def build_tree(self):
+        """Builds the tree (nx.DiGraph object)."""
+        for perm, proba in zip(['12', '13', '21', '23', '31', '32'],
+                               [1. / 6] * 6):
+            self.add_labelled_edge('/', ''.join(perm),
+                                   player=0)
+            for a in 'CR':
+                self.add_labelled_edge('/.%s' % ''.join(perm), a, player=1)
+                if a == 'C':  # check
+                    for b in 'cr':
+                        child = self.add_labelled_edge(
+                            '/.%s.%s' % (''.join(perm), a), b, player=2)
+                        if b == "c":
+                            self.tree.add_node(child, player=2, proba=proba,
+                                               payoff=self.cmp_cards(*perm))
+                        else:  # raise
+                            for x in 'FK':
+                                child = self.add_labelled_edge(
+                                    '/.%s.%s.%s' % (''.join(perm), a, b),
+                                    x, player=1)
+                                if x == "F":  # fold
+                                    self.tree.add_node(child, player=1,
+                                                       payoff=-1, proba=proba)
+                                else:  # call
+                                    self.tree.add_node(
+                                        child, player=1, proba=proba,
+                                        payoff=2 * self.cmp_cards(*perm))
+                else:  # raise
+                    for b in "fk":
+                        child = self.add_labelled_edge(
+                            '/.%s.%s' % (''.join(perm), a), b, player=2)
+                        if b == "f":  # fold
+                            self.tree.add_node(child, player=2, payoff=1.,
+                                               proba=proba)
+                        else:  # call
+                            self.tree.add_node(
+                                child, player=2, proba=proba,
+                                payoff=2 * self.cmp_cards(*perm))
+
+
+class BvSFig21(Game):
+    '''Example in Reference 1, fig 2.1.'''
+    player_choices = {0: ['1', '2'], 1: list('lr'), 2: list('cd')}
+
+    def build_tree(self):
+        a = self.add_labelled_edge("/", '1', proba=1. / 3)
+        proba = 1. / 3
+        self.add_labelled_edge(a, "l", payoff=0., proba=proba)
+        b = self.add_labelled_edge(a, "r")
+        self.add_labelled_edge(b, 'c', payoff=3., proba=proba)
+        self.add_labelled_edge(b, "d", payoff=-3., proba=proba)
+        a = self.add_labelled_edge("/", '2')
+        proba = 2. / 3
+        b = self.add_labelled_edge(a, "l")
+        self.add_labelled_edge(b, 'c', payoff=-3., proba=proba)
+        self.add_labelled_edge(b, "d", payoff=6., proba=proba)
+        self.add_labelled_edge(a, "r", payoff=3. / 2, proba=proba)
+
+
 def test_build_tree():
     g = Kuhn3112()
     assert_equal(len(g.tree), 55)
@@ -361,10 +389,13 @@ def test_leafs_iter():
 if __name__ == "__main__":
     import pylab as pl
     from sequential_games import compute_ne
-    kuhn = Kuhn3112()
-    E, e = kuhn.constraints[1]
-    F, f = kuhn.constraints[2]
-    A = kuhn.payoff_matrix
+    if 1:
+        game = Kuhn3112()
+    else:
+        game = BvSFig21()
+    E, e = game.constraints[1]
+    F, f = game.constraints[2]
+    A = game.payoff_matrix
     x, y, values = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
     print
     print "Nash Equilibrium:"
@@ -377,5 +408,6 @@ if __name__ == "__main__":
     pl.xlabel("k")
     pl.ylabel("value of game after k iterations")
     pl.legend(loc="best")
-    pl.title("NE computation in sequence-form Kuhn3112 poker")
+    pl.title("NE computation in sequence-form (game = %s)" % (
+            game.__class__.__name__))
     pl.show()
