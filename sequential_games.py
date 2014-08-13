@@ -239,27 +239,25 @@ def compute_ne(A, E, F, e, f, norm_A=None, norm_E=None, norm_F=None,
         x += sigma * A.dot(ybar)
         if verbose > 1:
             print "\tDual projection"
-        x = evil(E, e, x, verbose=(verbose > 1),
-                 tol=eps, L_norm=norm_E)
+        x = evil(E, e, x, verbose=(verbose > 1), tol=eps, L_norm=norm_E)
         y -= tau * A.T.dot(x)
         if verbose > 1:
             print "\tPrimal projection"
-        y = evil(F, f, y, verbose=(verbose > 1),
-                 tol=eps, L_norm=norm_F)
+        y = evil(F, f, y, verbose=(verbose > 1), tol=eps, L_norm=norm_F)
         eps = max(1e-5, eps * .1)  # decrease eps (but not too much)
         ybar = 2. * y - old_y
 
         # check convergence
         value = np.dot(x, A.dot(y))
         values.append(value)
-        dE = old_value - value
+        change = old_value - value
         old_value = value
         if callback:
             callback(locals())
         if verbose:
-            print "Iteration: %03i/%03i: value=%5.2e" % (
-                k + 1, max_iter, value)
-        if abs(dE) < tol:
+            print "Primal-Dual iter %03i/%03i: value=%5.2e, change=%5.2e" % (
+                k + 1, max_iter, value, change)
+        if abs(change) < tol:
             if verbose:
                 print "Converged after %i iterations." % (k + 1)
             break

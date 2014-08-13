@@ -181,14 +181,6 @@ class Kuhn3112(object):
                 self.infosets[player][info].append(node)
         return self.infosets
 
-    def project_onto_player_advanced(self, node, player):
-        if isinstance(node, str):
-            node = node.split(".")
-        train = [node[:i + 1] for i in xrange(len(node)) if
-                 node[i] in self.player_choices[player]]
-        return [(self.info_at_node(".".join(x[:-1])), x[-1])
-                for x in train]
-
     def chop(self, node):
         """Return list of all nodes played along this path,
         by previous player."""
@@ -205,7 +197,7 @@ class Kuhn3112(object):
                 for item in self.chop(node)]
 
     def last_node(self, node, player):
-        """Last node played given player, before this point."""
+        """Last node played by given player, before this point."""
         if self.is_root(node):
             return None
         if self.previous_player(node) == player:
@@ -234,6 +226,13 @@ class Kuhn3112(object):
         return self.sequences
 
     def build_strategy_constraints(self):
+        """Generates matrices for the equality constraints on each player's
+        admissible realization plans.
+
+        The constraints for player i are a pair_i, e_i), representing,
+        read as "E_ix=e_i". E_i has as many columns as player i has sequences,
+        and as many rows as there information sets for player i, plus 1.
+        """
         self.constraints.clear()
         for player in xrange(1, 3):
             row = np.zeros(len(self.sequences[player]))
@@ -258,6 +257,11 @@ class Kuhn3112(object):
         return self.constraints
 
     def build_payoff_matrix(self):
+        """Builds payoff matrix from player 1's perspective.
+
+        The rows (resp. columns) are labelled with player 1's (resp. 2's)
+        sequences.
+        """
         self.payoff_matrix = np.zeros((len(self.sequences[1]),
                                        len(self.sequences[2])))
         for leaf, data in self.leafs_iter(data=True):
