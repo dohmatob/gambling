@@ -1,12 +1,21 @@
+# Author: DOHMATOB Elvis Dopgima
+
 import re
 import networkx as nx
 import numpy as np
 from nose.tools import assert_equal, assert_true, assert_false
 
-CARD_RANDKINS = {'3': 1, '2': 2, '1': 3}
 
+class Kuhn3112(object):
+    """
+    Proof-of-Concept for sequence-form representation (@ la BvS) poker.
 
-class Poker(object):
+    References
+    ----------
+    [1] Bernhard von Stengel, "Efficient Computation of Behavior Strategies"
+
+    """
+
     def __init__(self):
         self.player_choices = {0: ['12', '13', '21', '23', '31', '32'],
                                1: list('CFKR'), 2: list('cfkr')}
@@ -22,28 +31,28 @@ class Poker(object):
         self.build_strategy_constraints()
         self.build_payoff_matrix()
 
-    def _add_labelled_edge(self, x, y, move, **kwargs):
+    def add_labelled_edge(self, x, y, move, **kwargs):
         """Adds a labelled edge to the tree."""
         self.tree.add_node(y, **kwargs)
         self.tree.add_edge(x, y)
         self.edge_labels[(x, y)] = move
 
     def cmp_cards(self, a, b):
-        return cmp(CARD_RANDKINS[b], CARD_RANDKINS[a])
+        return cmp(int(a), int(b))
 
     def build_tree(self):
         """Builds the tree (nx.DiGraph object)."""
-        for perm, proba in zip(self.player_choices[0],
+        for perm, proba in zip(['12', '13', '21', '23', '31', '32'],
                                [1. / 6] * 6):
-            self._add_labelled_edge('/', '/.%s' % ''.join(perm), proba,
-                                    player=0, proba=eval("1. * %s" % proba))
+            self.add_labelled_edge('/', '/.%s' % ''.join(perm), proba,
+                                   player=0, proba=eval("1. * %s" % proba))
             for a in 'CR':
-                self._add_labelled_edge('/.%s' % ''.join(perm), '/.%s.%s' % (
+                self.add_labelled_edge('/.%s' % ''.join(perm), '/.%s.%s' % (
                         ''.join(perm), a), a, player=1)
                 if a == 'C':  # check
                     for b in 'cr':
                         dst = '/.%s.%s.%s' % (''.join(perm), a, b)
-                        self._add_labelled_edge('/.%s.%s' % (''.join(perm), a),
+                        self.add_labelled_edge('/.%s.%s' % (''.join(perm), a),
                                            dst, b, player=2)
                         if b == "c":
                             self.tree.add_node(dst, player=2, proba=proba,
@@ -52,7 +61,7 @@ class Poker(object):
                             for x in 'FK':
                                 dst = '/.%s.%s.%s.%s' % (
                                     ''.join(perm), a, b, x)
-                                self._add_labelled_edge(
+                                self.add_labelled_edge(
                                     '/.%s.%s.%s' % (''.join(perm), a, b),
                                     dst, x, player=1)
                                 if x == "F":  # fold
@@ -65,7 +74,7 @@ class Poker(object):
                 else:  # raise
                     for b in "fk":
                         dst = '/.%s.%s.%s' % (''.join(perm), a, b)
-                        self._add_labelled_edge('/.%s.%s' % (''.join(perm), a),
+                        self.add_labelled_edge('/.%s.%s' % (''.join(perm), a),
                                            dst, b, player=2)
                         if b == "f":  # fold
                             self.tree.add_node(
@@ -181,6 +190,8 @@ class Poker(object):
                 for x in train]
 
     def chop(self, node):
+        """Return list of all nodes played along this path,
+        by previous player."""
         if isinstance(node, str):
             node = node.split('.')
         prev = self.previous_player(".".join(node))
@@ -188,6 +199,8 @@ class Poker(object):
                 if self.previous_player(".".join(node[:j])) == prev]
 
     def node2seq(self, node):
+        """Returns sequence of information-set-relabelled moves made
+        by previous player along this path."""
         return [(self.info_at_node('.'.join(item[:-1])), item[-1])
                 for item in self.chop(node)]
 
@@ -215,8 +228,9 @@ class Poker(object):
             seq = self.node2seq(node)
             if seq not in self.sequences[prev]:
                 self.sequences[prev].append(seq)
-        # for s in self.sequences.values():
-        #     s.sort()
+        for s in self.sequences.values():
+            s = sorted(s, cmp=lambda a, b: len(a) - len(b)
+                       if len(a) != len(b) else cmp(a, b))
         return self.sequences
 
     def build_strategy_constraints(self):
@@ -273,30 +287,30 @@ class Poker(object):
 
 
 def test_build_tree():
-    g = Poker()
+    g = Kuhn3112()
     assert_equal(len(g.tree), 55)
 
 
 def test_is_leaf():
-    g = Poker()
+    g = Kuhn3112()
     assert_true(g.is_leaf("/.32.R.f"))
     assert_true(g.is_leaf("/.32.C.r.K"))
     assert_false(g.is_leaf("/.32.R"))
 
 
 def test_project_onto_player():
-    g = Poker()
+    g = Kuhn3112()
     assert_equal(g.project_onto_player("/.23.C.r", 1), ['C'])
     assert_equal(g.project_onto_player("/.23.C.r", 2), ['r'])
 
 
 def test_current_player():
-    g = Poker()
+    g = Kuhn3112()
     assert_equal(g.current_player("/.31"), 1)
 
 
 def test_info_at_node():
-    g = Poker()
+    g = Kuhn3112()
     card, sigma, choices = g.info_at_node("/.12.C.r.K")
     assert_equal(card, '2')
     assert_equal(sigma, ('r',))
@@ -304,14 +318,14 @@ def test_info_at_node():
 
 
 def test_level_first_traversal():
-    g = Poker()
+    g = Kuhn3112()
     nodes = list(g.level_first_traversal())
     assert_equal(nodes[0], "/")
     assert_equal(nodes[-1], "/.32.C.r.K")
 
 
 def test_build_infosets():
-    g = Poker()
+    g = Kuhn3112()
     g.build_infosets()
     assert_equal(len(g.infosets[0]), 1)
     assert_equal(len(g.infosets[1]), 6)
@@ -323,28 +337,41 @@ def test_build_infosets():
 
 
 def test_build_sequences():
-    g = Poker()
+    g = Kuhn3112()
     g.build_sequences()
     assert_equal(len(g.sequences[0]), 7)
     for player in xrange(1, 3):
         assert_equal(len(g.sequences[player]), 13, msg=len(g.sequences[1]))
 
+
+def test_build_payoff_matrix():
+    k = Kuhn3112()
+    k.build_payoff_matrix()
+    assert_equal((k.payoff_matrix != 0.).sum(), 30.)
+
+
+def test_leafs_iter():
+    k = Kuhn3112()
+    assert_equal(len(list(k.leafs_iter())), 30)
+
 if __name__ == "__main__":
     import pylab as pl
     from sequential_games import compute_ne
-    kuhn = Poker()
+    kuhn = Kuhn3112()
     E, e = kuhn.constraints[1]
     F, f = kuhn.constraints[2]
     A = kuhn.payoff_matrix
-    x, y, values, _ = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
+    x, y, values = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
     print
     print "Nash Equilibrium:"
     print "x* = ", x
     print "y* =", y
     pl.semilogx(values)
-    pl.axhline(values[-1], linestyle="--", label="value of game")
+    value = values[-1]
+    pl.axhline(value, linestyle="--",
+               label="value of the game: %5.2e" % value)
     pl.xlabel("k")
     pl.ylabel("value of game after k iterations")
     pl.legend(loc="best")
-    pl.title("NE computation in sequence-form Kuhn poker")
+    pl.title("NE computation in sequence-form Kuhn3112 poker")
     pl.show()

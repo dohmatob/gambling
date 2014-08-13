@@ -1,6 +1,5 @@
 # Author: DOHMATOB Elvis <gmdopp@gmail.com>
 
-import time
 from math import sqrt
 import numpy as np
 from scipy import linalg
@@ -193,105 +192,79 @@ def evil(L, r, z, proj_C=lambda v: np.maximum(v, 0.), L_norm=None,
     return x
 
 
-def compute_ne(A, P, Q, a, b, norm_A=None, norm_P=None, norm_Q=None,
-               max_iter=1000, callback=None, tol=1e-4, verbose=1,
-               method="chambolle-pock"):
+def compute_ne(A, E, F, e, f, norm_A=None, norm_E=None, norm_F=None,
+               max_iter=1000, callback=None, tol=1e-4, verbose=1):
     """Compute Nash Equilibrium point (x*, y*) in a two-person zero-sum
-    sequential game in sequential form (in the sense of Bernhard
-    von Stengel and co-workers).
+    sequential-form game (in the sense of Bernhard von Stengel et al.).
 
-    The hyperplanes {x: Px=a} and {y: Qy=b} encode the linear constraints
-    on the realization plans x and y of players 1 and 2 respectively.
-    A is the value matrix.
+    The optimization problem is:
 
-    Method is Chambolle-Pock's saddle-point technique.
+        maximize minimize < x, Ay >
+        x in Q1  y in Q2
+
+    or equivalently,
+
+        minimize maximize < x, Ay >
+        y in Q2  x in Q1
+
+    The complexes Q1 = {x: Ex=e, x>=0} and Q2 = {y: Fy=f, y>=0} encode the
+    linear constraints on the realization plans x and y of players 1 and 2
+    respectively. A is the payoff matrix from player 1's perspective.
     """
-
-    tic = time.time()
-    method = method.upper()
-    assert method in ['CONDAT', 'CHAMBOLLE-POCK']
 
     # vars
     m, n = A.shape
-    assert P.shape[1] == n
-    assert Q.shape[1] == m
+    assert E.shape[1] == m
+    assert F.shape[1] == n
     if norm_A is None:
         norm_A = linalg.svdvals(A)[0]
-    if norm_P is None:
-        norm_P = linalg.svdvals(P)[0]
-    if norm_Q is None:
-        norm_Q = linalg.svdvals(Q)[0]
+    if norm_E is None:
+        norm_E = linalg.svdvals(E)[0]
+    if norm_F is None:
+        norm_F = linalg.svdvals(F)[0]
     sigma = tau = .99 / norm_A
     assert sigma * tau * norm_A * norm_A < 1.
-    x = np.zeros(n)
-    xbar = x.copy()
-    y = np.zeros(m)
+    x = np.zeros(m)
+    y = np.zeros(n)
+    ybar = y.copy()
     eps = 1e-1
 
     # main loop
     values = []
-    times = []
     old_value = np.inf
     for k in xrange(max_iter):
         # misc
-        old_x = x.copy()
         old_y = y.copy()
 
-        if method == "CHAMBOLLE-POCK":
-            # Chambolle-Pock's primal-dual iteration
-            y += sigma * A.dot(xbar)
-            if verbose > 1:
-                print "\tDual projection"
-
-            y = evil(Q, b, y, verbose=(verbose > 1),
-                     tol=eps, L_norm=norm_Q)
-            # y = devil(Q, b, y, norm_L=norm_Q, tol=eps, method=method,
-            #           verbose=(verbose > 1))
-            x -= tau * A.T.dot(y)
-            if verbose > 1:
-                print "\tPrimal projection"
-            x = evil(P, a, x, verbose=(verbose > 1),
-                     tol=eps, L_norm=norm_P)
-            # x = devil(P, a, x, norm_L=norm_P, verbose=(verbose > 1),
-            #           tol=eps, method=method)
-            eps = max(1e-5, eps * .1)  # decrease eps (but not too much)
-            xbar = 2 * x - old_x
-        else:
-            # L. Condat's primal-dual iteration
-            # eps = 1.e-2 * 1. / (k + 1.) ** 4.
-            eps = max(1e-5, eps * .5)
-            rho = .9  # note that \sum_{k}{\rho_k \epsilon_k} < \infty
-            xbar = evil(P, a, x - tau * A.T.dot(y), verbose=(verbose > 1),
-                        tol=eps, gamma=1.9 / norm_P ** 2)
-            # xbar = devil(P, a, x - tau * A.T.dot(y), verbose=(verbose > 1),
-            #              tol=eps, method=method)
-            ybar = evil(Q, b, y + sigma * A.dot(2 * xbar - x),
-                        verbose=(verbose > 1), tol=eps,
-                        gamma=1.9 / norm_Q ** 2)
-            # ybar = devil(Q, b, y + sigma * A.dot(2 * xbar - x),
-            #              verbose=(verbose > 1), tol=eps, method=method)
-            x = rho * xbar + (1. - rho) * old_x
-            y = rho * ybar + (1. - rho) * old_y
+        x += sigma * A.dot(ybar)
+        if verbose > 1:
+            print "\tDual projection"
+        x = evil(E, e, x, verbose=(verbose > 1),
+                 tol=eps, L_norm=norm_E)
+        y -= tau * A.T.dot(x)
+        if verbose > 1:
+            print "\tPrimal projection"
+        y = evil(F, f, y, verbose=(verbose > 1),
+                 tol=eps, L_norm=norm_F)
+        eps = max(1e-5, eps * .1)  # decrease eps (but not too much)
+        ybar = 2. * y - old_y
 
         # check convergence
-        # error = sqrt((((x - old_x) ** 2).sum() / tau + (
-        #             (y - old_y) ** 2).sum() / sigma))
-        value = np.dot(y, A.dot(x))
-        times.append(time.time() - tic)
+        value = np.dot(x, A.dot(y))
         values.append(value)
         dE = old_value - value
         old_value = value
         if callback:
             callback(locals())
         if verbose:
-            print "%s iteration: %03i/%03i: value=%5.2e" % (
-                method, k + 1, max_iter, value)
+            print "Iteration: %03i/%03i: value=%5.2e" % (
+                k + 1, max_iter, value)
         if abs(dE) < tol:
             if verbose:
                 print "Converged after %i iterations." % (k + 1)
             break
 
-    return x, y, values, times
+    return x, y, values
 
 if __name__ == "__main__":
     """
@@ -309,7 +282,6 @@ if __name__ == "__main__":
     A = np.zeros((5, 3))
     A[2:4, 1:] = [[1, -1], [-2, 4]]
     A[-1, 0] = 1
-    A = A.T
     P = np.array([[1, 0, 0, 0, 0], [-1, 1, 1, 0, 0], [-1, 0, 0, 1, 1]])
     a = np.eye(P.shape[0])[0]
     Q = np.array([[1., 0., 0.], [-1., 1., 1.]])
@@ -334,26 +306,17 @@ if __name__ == "__main__":
         pl.draw()
 
     ### Run primal-dual algo to compute NE ####################################
-    times = {}
-    values = {}
-    for method in ["condat", "chambolle-pock"][1:]:
-        x, y, values[method], times[method] = compute_ne(
-            A, P, Q, a, b, method=method, callback=cb,
-            verbose=2, tol=1e-10)
-
-        # pl.axvline(x[i], linestyle='--')
-        # pl.axhline(y[i], linestyle='--')
-
-        print
-        print "Nash Equilibrium:"
-        print "x* = ", x
-        print "y* =", y
+    x, y, values = compute_ne(
+        A, P, Q, a, b, callback=cb, verbose=2, tol=1e-10)
+    print
+    print "Nash Equilibrium:"
+    print "x* = ", x
+    print "y* =", y
 
     pl.figure()
-    for method in times.keys():
-        pl.plot(times[method], values[method], 's-', label=method)
-    pl.axhline(np.min([v[-1] for v in values.values()]), linestyle="--",
-               label="equilibrium value")
+    pl.plot(values, 's-')
+    value = values[-1]
+    pl.axhline(value, linestyle="--", label="equilibrium value" % value)
     pl.ylabel("value")
     pl.xlabel("time (s)")
     pl.legend(loc="best")
