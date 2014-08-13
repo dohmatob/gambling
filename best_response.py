@@ -7,7 +7,8 @@ def best(A, E, e, y0, max_iter=1000, tol=1e-4, callback=None, **kwargs):
     c = -A.T.dot(y0)
     m, n = E.shape
     alpha = 1.
-    tau = np.reciprocal([(np.abs(col) ** (2. - alpha)).sum() for col in E.T])
+    tau = np.reciprocal([((np.abs(col) + 1e-1) ** (2. - alpha)).sum()
+                         for col in E.T])
     sigma = np.reciprocal([(np.abs(row) ** alpha).sum() for row in E])
     x = np.zeros(n)
     zeta = np.zeros(m)
@@ -16,7 +17,6 @@ def best(A, E, e, y0, max_iter=1000, tol=1e-4, callback=None, **kwargs):
 
     for k in xrange(max_iter):
         old_x = x.copy()
-        old_zeta = zeta.copy()
         x -= tau * (E.T.dot(zeta) + c)
         x = np.maximum(x, 0.)
         value = c.T.dot(x)
@@ -41,14 +41,14 @@ def best(A, E, e, y0, max_iter=1000, tol=1e-4, callback=None, **kwargs):
          "diagonally preconditioned primal-dual algorithm of Chambolle-Pock"))
     ax1 = pl.subplot(222)
     theta = np.linspace(0., 2 * np.pi, num=100)
-    ax1.plot(tau[0] * np.cos(theta), tau[1] * np.sin(theta))
+    ax1.plot(np.cos(theta) / sqrt(tau[0]), np.sin(theta) / sqrt(tau[1]))
     ax1.axvline(0, linestyle="--")
     ax1.axhline(0, linestyle="--")
     ax1.set_title("\\tau")
 
     ax2 = pl.subplot(224)
     theta = np.linspace(0., 2 * np.pi, num=100)
-    ax2.plot(sigma[0] * np.cos(theta), sigma[1] * np.sin(theta))
+    ax2.plot(np.cos(theta) / sqrt(sigma[0]), np.sin(theta) / sqrt(sigma[1]))
     ax2.axvline(0, linestyle="--")
     ax2.axhline(0, linestyle="--")
     ax2.set_title("\sigma")
@@ -56,7 +56,7 @@ def best(A, E, e, y0, max_iter=1000, tol=1e-4, callback=None, **kwargs):
     ax3 = pl.subplot(121)
     values = -np.array(values)
     value *= -1.
-    ax3.plot(values)
+    ax3.semilogx(values)
     ax3.axhline(value, linestyle="--", c="r",
                label="value of game (= %g)" % value)
     ax3.set_ylabel("primal objective at kth iteration")
@@ -160,14 +160,30 @@ def best_response(A, E, e, y0, max_iter=1000, tol=1e-2, theta=1.,
 
 
 if __name__ == "__main__":
-    A = np.zeros((5, 3))
-    A[2:4, 1:] = [[1, -1], [-2, 4]]
-    A[-1, 0] = 1
-    A = A.T
-    E = np.array([[1, 0, 0, 0, 0], [-1, 1, 1, 0, 0], [-1, 0, 0, 1, 1]])
-    e = np.eye(E.shape[0])[0]
-    y0 = np.array([1., 2. / 3., 1. / 3.])
+    # A = np.zeros((5, 3))
+    # A[2:4, 1:] = [[1, -1], [-2, 4]]
+    # A[-1, 0] = 1
+    # A = A.T
+    # E = np.array([[1, 0, 0, 0, 0], [-1, 1, 1, 0, 0], [-1, 0, 0, 1, 1]])
+    # e = np.eye(E.shape[0])[0]
+    # y0 = np.array([1., 2. / 3., 1. / 3.])
 
+    p, m, n = 10, 50, 100
+    E = np.zeros((p, n))
+    E[0, 0] = 1.
+    E[1:, :] = np.random.rand(E.shape[0] - 1, E.shape[1]) > .5
+    E[1, 0] = -1
+    for j in xrange(2, E.shape[0]):
+        E[j, :] = np.roll(E[j - 1, :].copy(), (np.random.rand() > .5) + 3)
+
+    e = np.zeros(E.shape[0])
+    e[0] = 1
+    A = np.ones((m, n))
+    A[np.random.randn(*A.shape) > .8] = -5
+    y0 = np.random.rand(m)
+    y0[0] = 1.
+    print E
+    # assert 0
     import pylab as pl
     from matplotlib import lines
 
@@ -208,7 +224,7 @@ if __name__ == "__main__":
 
         xstar, zetastar, errors = best(A, E, e, y0, theta=theta,
                                        callback=None, tol=1e-8,
-                                       max_iter=200)
+                                       max_iter=2000)
         print "x* =", xstar
         print "zeta* =", zetastar
         print "e - Ex* =", E.dot(xstar) - e

@@ -164,8 +164,12 @@ def devil(L, r, z, A=None, norm_L=None, norm_A=None, max_iter=100, verbose=0,
 
 def evil(L, r, z, proj_C=lambda v: np.maximum(v, 0.), L_norm=None,
          max_iter=100, verbose=1, tol=1e-4):
-    """Projects the point z onto the intersection of the polyhedron "Ex=r"
+    """Projects the point z onto the intersection of the polyhedron "Lx=r"
     and the convex set C.
+
+    References
+    ----------
+    P. Combettes et al, "Dualization of Signal Recovery Problems", p.17
     """
     if L_norm is None:
         L_norm = linalg.svdvals(L)[0]
