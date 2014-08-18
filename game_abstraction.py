@@ -15,7 +15,7 @@ class PokerTree:
     def init_state(self, **kwargs):
         """Creates game state, overriding defaults with kwargs."""
         state = {}
-        state["player"] = kwargs.get('player', 0)
+        state["player"] = kwargs.get('player', 1)
         state["bet_size"] = kwargs.get('bet_size', 1)
         state["pot"] = kwargs.get('pot', 0)
         state["middle"] = kwargs.get('middle', False)
@@ -51,6 +51,12 @@ class PokerTree:
         self.end_round(state)
         state['hand_ended'] = True
 
+    def set_next_player(self, state):
+        if state['player'] == 0:
+            state['player'] = 1
+        else:
+            state['player'] = 1 + state['player'] % 2
+
     def handle_move(self, state, move):
         """Updates game state by effecting the given move."""
         if move == "check":
@@ -62,13 +68,13 @@ class PokerTree:
         elif move == "fold":
             self.end_hand(state)
         elif move == "raise":
-            state['bet_size'] += 1
+            state['bet_size'] *= 2
             state['pot'] += state['bet_size']
         else:
             assert 0
 
         state['middle'] = True
-        state['player'] = 1 - state['player']
+        self.set_next_player(state)
 
     def can_check(self, state):
         """Checks whether current player can "check" in given state."""
@@ -87,7 +93,7 @@ class PokerTree:
     def can_raise(self, state):
         """Checks whether current player can "raise" in given state."""
         # can raise if and only if new bet would not exceed limit
-        return state["bet_size"] + 1 <= self.limit
+        return 2 * state["bet_size"] <= self.limit
 
     def can_call(self, state):
         """Checks whether current player can "call" in given state."""
@@ -109,7 +115,7 @@ class PokerTree:
             move = "kall"
         if state['player'] == 1:  # XXX swapped with 0
             move = move.upper()
-        elif state['player'] == 0:
+        elif state['player'] == 2:
             move = move.lower()
         else:
             assert 0
@@ -135,10 +141,11 @@ class PokerTree:
             self.node_count += 1
             state_['node_id'] = self.node_count
             print state_['padding'][:-1] + (
-                "+-" + "%s(node_id=%i,round=%i,bet_size=%g$,pot=%g$)%s" % (
-                    mid, state_['node_id'], state_["round"],
-                    state_['bet_size'],
-                    state_['pot'], "/" if state_["hand_ended"] else ""))
+                "+-" + "%s(node_id=%i,player=%i,round=%i,bet_size=%g$,"
+                "pot=%g$)%s" % (mid, state_['node_id'], state_['player'],
+                                state_["round"], state_['bet_size'],
+                                state_['pot'],
+                                "/" if state_["hand_ended"] else ""))
             # continue ?
             if state_['round_ended']:
                 if self.can_start_round(state_):
@@ -159,7 +166,7 @@ class KuhnPokerTree(PokerTree):
             return False
         if state['move'] != 'raise':
             return False
-        
+
 
 def test_check_ends_round():
     pt = PokerTree()
@@ -301,5 +308,8 @@ def test_can_start_round():
 
 
 if __name__ == '__main__':
-    pt = KuhnPokerTree(limit=2, max_rounds=1)
+    import sys
+    limit = int(sys.argv[1] if len(sys.argv) > 1 else 4)
+    max_rounds = int(sys.argv[2] if len(sys.argv) > 2 else 2)
+    pt = PokerTree(limit=limit, max_rounds=max_rounds)
     pt()

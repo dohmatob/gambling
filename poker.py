@@ -228,10 +228,13 @@ class Poker(object):
         pass
 
     def handle_call(self, p):
-        pass
+        assert self.can_call(p)
+        self.debit(p, self.bet)
 
     def handle_raise(self, p):
-        pass
+        assert self.can_raise(p)
+        self.bet *= 2
+        self.handle_call(p)
 
     def do_flop(self):
         pass
