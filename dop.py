@@ -80,4 +80,4 @@ def gamma(t, T, a, L):
 if __name__ == "__main__":
     a = [1, 0., np.array([0, 0]), np.array([10, 1])]
     for x in gamma(0, 4, a, 5):
-        print x
+        x
