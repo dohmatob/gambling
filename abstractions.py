@@ -211,10 +211,16 @@ class Game(object):
         if data:
             for node, data in self.tree.nodes_iter(data=True):
                 if self.is_leaf(node):
+                    if not 'payoff' in data:
+                        raise RuntimeError(
+                            "Leaf node %s doesn't have a payoff!" % node)
                     yield node, data
         else:
             for node in self.tree.nodes_iter(data=False):
                 if self.is_leaf(node):
+                    if not 'payoff' in data:
+                        raise RuntimeError(
+                            "Leaf node %s doesn't have a payoff!" % node)
                     yield node
 
     def build_infosets(self):
