@@ -17,8 +17,9 @@ from sequential_games import compute_ne
 
 
 class Player(object):
-    def __init__(self, name):
+    def __init__(self, name, player):
         self.name = name
+        self.player = player
 
     def __str__(self):
         return self.name
@@ -57,8 +58,7 @@ class NashPlayer(Player):
     """
 
     def __init__(self, name, player, game):
-        super(NashPlayer, self).__init__(name)
-        self.player = player
+        super(NashPlayer, self).__init__(name, player)
         self.game = game
         self.compute_optimal_rplan()
 
@@ -145,7 +145,7 @@ class Game(object):
                             self.__class__.__name__, a, b))
 
         # build game
-        self.nature = _ChancePlayer("nature")
+        self.nature = _ChancePlayer("nature", 0)
         self.tree = nx.DiGraph()
         self.edge_labels = {}
         self.infosets = {}
@@ -623,7 +623,7 @@ def test_leafs_iter():
 
 
 def test_play():
-    players = [Player('alice'), Player('bob')]
+    players = [Player('alice', 1), Player('bob', 2)]
     for game_cls in [Kuhn3112, SimplifiedPoker]:
         game = game_cls()
         for _ in xrange(10):
@@ -636,6 +636,20 @@ def test_play():
             term_, payoff_ = game.play(players, start=term)
             assert_equal(term_, term)
             assert_equal(payoff_, payoff)
+
+
+def test_nash_player():
+    game = SimplifiedPoker()
+    nash = NashPlayer("alice", 1, game)
+    opponents = [NashPlayer("bob", 2, game), Player("olaf", 2)]
+    for opponent in opponents:
+        mean_payoff = np.mean([game.play([nash, opponent])[1]
+                               for _ in xrange(10000)])
+        if isinstance(opponent, NashPlayer):
+            np.testing.assert_almost_equal(mean_payoff, -.25,
+                                           decimal=1)
+        else:
+            assert_true(mean_payoff >= -.25)
 
 if __name__ == "__main__":
     plt.close("all")
