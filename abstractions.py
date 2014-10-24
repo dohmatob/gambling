@@ -26,6 +26,8 @@ class Player(object):
     def choice(self, _, choices):
         """Invoked to make a choice from given list of choices.
 
+        XXX Use local rng!
+
         Parameters
         ----------
         start : string
