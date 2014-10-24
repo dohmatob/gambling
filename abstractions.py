@@ -89,8 +89,9 @@ class Game(object):
                 if not set(self.PLAYER_COLORS[a]).isdisjoint(
                         self.PLAYER_COLORS[b]):
                     raise RuntimeError(
-                        ("Invalid game! Choices for players "
-                         "%i and %i are not disjoint!") % (a, b))
+                        ("Invalid game class %s! Choices for players "
+                        "%i and %i are not disjoint!") % (
+                            self.__class__.__name__, a, b))
 
         # build game
         self.nature = _ChancePlayer("nature")
@@ -124,6 +125,10 @@ class Game(object):
         """Checks whether given node is leaf / terminal."""
         return self.tree.out_degree(node) == 0.
 
+    def is_root(self, node):
+        """Checks whether given node is root."""
+        return node == "/"
+
     def project_onto_player(self, node, player):
         """Ignores all but the choices of a player, along given node."""
         if isinstance(node, str):
@@ -140,10 +145,8 @@ class Game(object):
         elif node[-1] not in self.PLAYER_CHOICES[2]:
             return 2
         else:
-            assert 0
-
-    def is_root(self, node):
-        return node == "/"
+            raise RuntimeError(
+                "Node %s belongs neither to player 1 nor 2." % node)
 
     def previous_player(self, node):
         """Player whose move leads to this node."""
@@ -154,7 +157,8 @@ class Game(object):
             if node[-1] in v:
                 return k
         else:
-            assert 0
+            raise RuntimeError(
+                "Node %s belongs neither to player 1 nor 2." % node)
 
     def info_at_node(self, node):
         """Returns all the information available at a node."""
@@ -167,11 +171,23 @@ class Game(object):
         else:
             m = re.match('^/\.%s' % ("(.)" if player == 1 else ".(.)"),
                          node)
-            assert m, "Node %s not in tree!" % node
+            if m is None:
+                raise RuntimeError("Node %s not in tree!" % node)
             signal = m.group(1)
         return signal, tuple(sigma), tuple(choices)
 
-    def level_first_traversal(self, root="/", player=None):
+    def level_first_traversal(self, player=None):
+        """Traverses nodes of game tree projected unto given player,
+           breadth-first.
+
+        Returns
+        -------
+        nodes : generator
+            The nodes of the game tree projected unto given player,
+            breadth-first
+        """
+
+        root = "/"
         _skip = lambda node: False if player is None else (
             self.previous_player(node) != player)
         if not _skip(root):
@@ -191,6 +207,7 @@ class Game(object):
             cur_level = next_level
 
     def leafs_iter(self, data=True):
+        """Iterator on leafs of game tree."""
         if data:
             for node, data in self.tree.nodes_iter(data=True):
                 if self.is_leaf(node):
@@ -213,7 +230,8 @@ class Game(object):
             if info not in self.infosets[player]:
                 self.infosets[player][info] = [node]
             else:
-                assert not node in self.infosets[player][info]
+                if node in self.infosets[player][info]:
+                    raise RuntimeError
                 self.infosets[player][info].append(node)
         return self.infosets
 
@@ -352,6 +370,8 @@ class Game(object):
         return self.play(players, start=start)
 
     def draw(self):
+        """Draws game tree.
+        """
         pos = nx.graphviz_layout(self.tree, prog='dot')
 
         # leaf (terminal) nodes
