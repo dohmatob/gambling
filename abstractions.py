@@ -13,7 +13,6 @@ import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 from nose.tools import assert_equal, assert_true, assert_false
-import random
 from sequential_games import compute_ne
 
 
@@ -93,7 +92,7 @@ class NashPlayer(Player):
         c : string
             The made choice.
         """
-        # get all nodes of the form node.z where z \in choices
+        # get all nodes possible "next" nodes (in sequence-form)
         menu = map(self.game.node2seq, ['.'.join([node, c]) for c in choices])
 
         # get the probabilities at which these nodes are played next
@@ -409,7 +408,11 @@ class Game(object):
 
         # end subgame if start is a leaf
         if self.is_leaf(start):
-            return start, self.tree.node[start]["payoff"]
+            payoff = self.tree.node[start]["payoff"]
+            print "oracle: Ending at terminal node %s with payoff %g" % (
+                start, payoff)
+            print
+            return start, payoff
 
         # get player to start subgame
         p = self.tree.node[start]['player']
@@ -636,7 +639,7 @@ def test_play():
 
 if __name__ == "__main__":
     plt.close("all")
-    which = 1
+    which = 3
     if which == 1:
         game = Kuhn3112()
     elif which == 2:
