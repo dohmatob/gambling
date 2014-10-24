@@ -83,6 +83,16 @@ class Game(object):
     PLAYER_COLORS = "bgm"
 
     def __init__(self):
+        # ensure disjoint choices for different players
+        for a in xrange(3):
+            for b in xrange(a + 1, 3):
+                if not set(self.PLAYER_COLORS[a]).isdisjoint(
+                        self.PLAYER_COLORS[b]):
+                    raise RuntimeError(
+                        ("Invalid game! Choices for players "
+                         "%i and %i are not disjoint!") % (a, b))
+
+        # build game
         self.nature = _ChancePlayer("nature")
         self.tree = nx.DiGraph()
         self.edge_labels = {}
