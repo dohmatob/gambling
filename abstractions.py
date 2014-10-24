@@ -16,13 +16,6 @@ from nose.tools import assert_equal, assert_true, assert_false
 import random
 
 
-def _random_element(choices):
-    rng = np.random.RandomState(42)
-    n = len(choices)
-    return choices[np.argmin(
-        np.abs(np.random.rand() - np.arange(n) / (n - 1.)))]
-
-
 class Player(object):
     def __init__(self, name):
         self.name = name
@@ -30,8 +23,31 @@ class Player(object):
     def __str__(self):
         return self.name
 
-    def choice(self, src, choices):
-        return  _random_element(choices)
+    def choice(self, _, choices):
+        """Invoked to make a choice from given list of choices.
+
+        Parameters
+        ----------
+        start : string
+            Node from which choice is to be made
+
+        choices : list of characters from universal choice alphabet
+            Choices available at node `start`
+
+        Returns
+        -------
+        c : string
+            The made choice.
+        """
+
+        n = len(choices)
+        return choices[np.argmin(
+            np.abs(np.random.rand() - np.arange(n) / (n - 1.)))]
+
+
+class _ChancePlayer(Player):
+    """Nature / chance player (private!)."""
+    pass
 
 
 class Game(object):
@@ -65,6 +81,7 @@ class Game(object):
     PLAYER_COLORS = "bgm"
 
     def __init__(self):
+        self.nature = _ChancePlayer("nature")
         self.tree = nx.DiGraph()
         self.edge_labels = {}
         self.infosets = {}
@@ -299,18 +316,28 @@ class Game(object):
             is zero-sum).
         """
 
-        if self.is_leaf(src):
-            return src, self.tree.node[src]["payoff"]
-        player = players[self.tree.node[src]['player']]
-        choices = [c.split(".")[-1] for c in self.tree.succ[src].keys()]
-        choice = player.choice(start, choices.copy())
+        # end subgame if start is a leaf
+        if self.is_leaf(start):
+            return start, self.tree.node[start]["payoff"]
+
+        # get player to start subgame
+        player = self.tree.node[start]['player']
+        player = players[player - 1] if player > 0 else self.nature
+
+        # retrieve available choices
+        choices = [c.split(".")[-1] for c in self.tree.succ[start].keys()]
+
+        # let player make a choice
+        choice = player.choice(start, list(choices))
         while not choice in choices:
             print "%s, your last choice of '%s' is invalid!" % (
                 player, choice)
-            choice = player.choice(start, choices)
-        print "%s: %s" % (player.name, choice.copy())
-        succ = ".".join([src, choice])
-        return self.play(players, start=succ)
+            choice = player.choice(start, list(choices))
+        print "%s: %s" % (player.name, choice)
+
+        # play subsubgame
+        start = ".".join([start, choice])
+        return self.play(players, start=start)
 
     def draw(self):
         pos = nx.graphviz_layout(self.tree, prog='dot')
@@ -496,6 +523,22 @@ def test_build_payoff_matrix():
 def test_leafs_iter():
     k = Kuhn3112()
     assert_equal(len(list(k.leafs_iter())), 30)
+
+
+def test_play():
+    players = [Player('alice'), Player('bob')]
+    for game_cls in [Kuhn3112, SimplifiedPoker]:
+        game = game_cls()
+        for _ in xrange(10):
+            term, payoff = game.play(players)
+
+            # check term is a leaf
+            assert_true(game.is_leaf(term))
+
+            # check game over
+            term_, payoff_ = game.play(players, start=term)
+            assert_equal(term_, term)
+            assert_equal(payoff_, payoff)
 
 if __name__ == "__main__":
     from sequential_games import compute_ne
