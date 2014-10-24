@@ -1,4 +1,6 @@
 """
+Lossless abstraction and representaion of sequential games (Poker, etc.)
+
 References
 ----------
 [1] Bernhard von Stengel, "Efficient Computation of Behavior Strategies"
@@ -9,11 +11,58 @@ References
 import re
 import networkx as nx
 import numpy as np
+import matplotlib.pyplot as plt
 from nose.tools import assert_equal, assert_true, assert_false
+import random
+
+
+def _random_element(choices):
+    rng = np.random.RandomState(42)
+    n = len(choices)
+    return choices[np.argmin(
+        np.abs(np.random.rand() - np.arange(n) / (n - 1.)))]
+
+
+class Player(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return self.name
+
+    def choice(self, src, choices):
+        return  _random_element(choices)
 
 
 class Game(object):
-    player_choices = None
+    """Sequence-from representation of sequential games like Poker, etc.
+
+    Each node is a string of the form "/.x.y.z....", where "/" denotes
+    the root node of the game tree, and x, y, z, ... is the sequence
+    of moves leading from the root node to the given node, and represents
+    a game-play upto a given point.
+
+    Attributes
+    ----------
+    infosets: dict
+        Keys are 0 (chance player), 1 (player 1), and 2 (player 2).
+        Each value is itself a dict where the keys are the information
+        (i.e the choice leading to, and the choices available at) at
+        an (informational) equivalence class of nodes and the corresponding
+        value is the list of node belonging to the equivalence class. An
+        example of such a infoset is ('1', (), ('C', 'R')): ['/.12', '/.13'].
+
+    sequences: dict
+        Keys are 0 (chance player), 1 (player 1), and 2 (player 2).
+        Each value is the list of possible sequences for the corresponding
+        player and is of the form (i_1, a_1)(i_2,, a_2)..., where each a_j
+        is an action at the information set i_j. An example of such a
+        sequence is [(('2', (), ('C', 'R')), 'C')].
+
+    """
+
+    PLAYER_CHOICES = None
+    PLAYER_COLORS = "bgm"
 
     def __init__(self):
         self.tree = nx.DiGraph()
@@ -31,12 +80,15 @@ class Game(object):
     def build_tree(self):
         raise NotImplementedError
 
-    def add_labelled_edge(self, x, choice, **kwargs):
+    def add_labelled_edge(self, x, choice, player=None, **kwargs):
         """Adds a labelled edge to the tree."""
+        if player is None:
+            raise ValueError("'player' must be specified")
         y = ".".join([x, choice])
         self.tree.add_node(y, **kwargs)
         self.tree.add_edge(x, y)
         self.edge_labels[(x, y)] = choice
+        self.tree.node[x]['player'] = player
         return y
 
     def is_leaf(self, node):
@@ -47,16 +99,16 @@ class Game(object):
         """Ignores all but the choices of a player, along given node."""
         if isinstance(node, str):
             node = node.split(".")
-        return [x for x in node if x in self.player_choices[player]]
+        return [x for x in node if x in self.PLAYER_CHOICES[player]]
 
     def current_player(self, node):
         """Returns player to which node belongs."""
         if self.is_root(node):
             return 0
         node = node.split('.')
-        if node[-1] not in self.player_choices[1]:
+        if node[-1] not in self.PLAYER_CHOICES[1]:
             return 1
-        elif node[-1] not in self.player_choices[2]:
+        elif node[-1] not in self.PLAYER_CHOICES[2]:
             return 2
         else:
             assert 0
@@ -69,7 +121,7 @@ class Game(object):
         if self.is_root(node):
             return None
         node = node.split('.')
-        for k, v in self.player_choices.iteritems():
+        for k, v in self.PLAYER_CHOICES.iteritems():
             if node[-1] in v:
                 return k
         else:
@@ -164,9 +216,7 @@ class Game(object):
             return self.last_node(".".join(node.split('.')[:-1]), player)
 
     def build_sequences(self):
-        """
-        Each sequence for a player is of the form (i_1, a_1)(i_2,, a_2)...,
-        wher each a_j is an action at the information set i_j
+        """Builds possible sequence of moves for each player.
         """
         self.sequences.clear()
         for player in self.infosets.keys():
@@ -228,19 +278,55 @@ class Game(object):
             self.payoff_matrix[i, j] += data['payoff'] * data['proba']
         return self.payoff_matrix
 
+    def play(self, players, start="/"):
+        """Recursively makes players play subgame rooted at node `start`.
+
+        Paremeters
+        ----------
+        players : List of 2 Player instances of subclasses of Player
+            The 2 players competing.
+
+        start : string
+            Root node of subgame about to be played.
+
+        Returns
+        -------
+        term : string
+            Terminal node at which the game has ended.
+
+        payoff: float
+            Payoff to players[0] (players[0] gets -payoff since the game
+            is zero-sum).
+        """
+
+        if self.is_leaf(src):
+            return src, self.tree.node[src]["payoff"]
+        player = players[self.tree.node[src]['player']]
+        choices = [c.split(".")[-1] for c in self.tree.succ[src].keys()]
+        choice = player.choice(start, choices.copy())
+        while not choice in choices:
+            print "%s, your last choice of '%s' is invalid!" % (
+                player, choice)
+            choice = player.choice(start, choices)
+        print "%s: %s" % (player.name, choice.copy())
+        succ = ".".join([src, choice])
+        return self.play(players, start=succ)
+
     def draw(self):
         pos = nx.graphviz_layout(self.tree, prog='dot')
 
         # leaf (terminal) nodes
-        nx.draw_networkx_nodes(self.tree, pos,
-                               nodelist=[n for n in self.tree.nodes()
-                                         if self.is_leaf(n)], node_shape='s')
+        term_nodes = [n for n in self.tree.nodes() if self.is_leaf(n)]
+        nx.draw_networkx_nodes(self.tree, pos, nodelist=term_nodes,
+                               node_color="k", node_shape="s")
 
-        # decision nodes
-        nx.draw_networkx_nodes(self.tree, pos,
-                               nodelist=[n for n in self.tree.nodes()
-                                         if not self.is_leaf(n)],
-                               node_shape='o')
+        # decision nodes (different colors represent different players)
+        dec_nodes = [n for n in self.tree.nodes() if not self.is_leaf(n)]
+        nx.draw_networkx_nodes(
+            self.tree, pos, nodelist=dec_nodes,
+            node_color=[self.PLAYER_COLORS[self.tree.node[n]['player']]
+                        for n in dec_nodes],
+            node_shape='o')
 
         # labelled edges
         nx.draw_networkx_edges(self.tree, pos, arrows=False)
@@ -253,7 +339,7 @@ class Kuhn3112(Game):
     Proof-of-Concept for sequence-form representation (@ la BvS) poker.
     """
 
-    player_choices = {0: ['12', '13', '21', '23', '31', '32'],
+    PLAYER_CHOICES = {0: ['12', '13', '21', '23', '31', '32'],
                       1: list('CFKR'), 2: list('cfkr')}
 
     def cmp_cards(self, a, b):
@@ -301,13 +387,14 @@ class Kuhn3112(Game):
 
 class BvSFig21(Game):
     '''Example in Reference 1, fig 2.1.'''
-    player_choices = {0: ['1', '2'], 1: list('lr'), 2: list('cd')}
+    # XXX Broken!
+    PLAYER_CHOICES = {0: ['1', '2'], 1: list('lr'), 2: list('cd')}
 
     def build_tree(self):
-        a = self.add_labelled_edge("/", '1', proba=1. / 3)
+        a = self.add_labelled_edge("/", '1', proba=1. / 3, player=0)
         proba = 1. / 3
-        self.add_labelled_edge(a, "l", payoff=0., proba=proba)
-        b = self.add_labelled_edge(a, "r")
+        self.add_labelled_edge(a, "l", payoff=0., proba=proba, player=1)
+        b = self.add_labelled_edge(a, "r", player=1)
         self.add_labelled_edge(b, 'c', payoff=3., proba=proba)
         self.add_labelled_edge(b, "d", payoff=-3., proba=proba)
         a = self.add_labelled_edge("/", '2')
@@ -319,17 +406,17 @@ class BvSFig21(Game):
 
 
 class SimplifiedPoker(Game):
-    player_choices = {0: ['KK', 'KA', 'AK', 'AA'],
+    PLAYER_CHOICES = {0: ['KK', 'KA', 'AK', 'AA'],
                       1: list('BF'), 2: list('bf')}
 
     def build_tree(self):
         for perm in ['KK', 'KA', 'AK', 'AA']:
-            child = self.add_labelled_edge("/", perm)
+            child = self.add_labelled_edge("/", perm, player=0)
             for x in 'BF':
-                a = self.add_labelled_edge(child, x)
+                a = self.add_labelled_edge(child, x, player=1)
                 if x == "F":
                     self.tree.add_node("%s.%s" % (child, x),
-                                       proba=.25, payoff=-1.)
+                                       proba=.25, payoff=-1., player=1)
                 else:
                     for y in 'bf':
                         if y == "f":
@@ -339,7 +426,7 @@ class SimplifiedPoker(Game):
                         else:
                             payoff = 0.
                         self.add_labelled_edge(a, y, proba=.25,
-                                               payoff=payoff)
+                                               payoff=payoff, player=2)
 
 
 def test_build_tree():
@@ -411,7 +498,6 @@ def test_leafs_iter():
     assert_equal(len(list(k.leafs_iter())), 30)
 
 if __name__ == "__main__":
-    import pylab as pl
     from sequential_games import compute_ne
     which = 1
     if which == 1:
@@ -428,15 +514,15 @@ if __name__ == "__main__":
     print "Nash Equilibrium:"
     print "x* = ", x
     print "y* =", y
-    pl.semilogx(values)
+    plt.semilogx(values)
     value = values[-1]
-    pl.axhline(value, linestyle="--",
+    plt.axhline(value, linestyle="--",
                label="value of the game: %5.2e" % value)
-    pl.xlabel("k")
-    pl.ylabel("value of game after k iterations")
-    pl.legend(loc="best")
-    pl.title("NE computation in sequence-form (game = %s)" % (
+    plt.xlabel("k")
+    plt.ylabel("value of game after k iterations")
+    plt.legend(loc="best")
+    plt.title("NE computation in sequence-form (game = %s)" % (
             game.__class__.__name__))
-    pl.figure()
+    plt.figure()
     game.draw()
-    pl.show()
+    plt.show()
