@@ -14,6 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from nose.tools import assert_equal, assert_true, assert_false
 import random
+from sequential_games import compute_ne
 
 
 class Player(object):
@@ -42,14 +43,65 @@ class Player(object):
             The made choice.
         """
 
-        n = len(choices)
-        return choices[np.argmin(
-            np.abs(np.random.rand() - np.arange(n) / (n - 1.)))]
+        return np.random.choice(choices, size=1)[0]
 
 
 class _ChancePlayer(Player):
     """Nature / chance player (private!)."""
     pass
+
+
+class NashPlayer(Player):
+    """Player using NE solution concept.
+
+       See Benhard von Stengel 1995, etc.
+    """
+
+    def __init__(self, name, player, game):
+        super(NashPlayer, self).__init__(name)
+        self.player = player
+        self.game = game
+        self.compute_optimal_rplan()
+
+    def compute_optimal_rplan(self):
+        """Compute optimal realization plan, which is our own part of
+        the Nash-Equlibrium for the sequence-form representation of the
+        game. This computation is done offline.
+        """
+
+        E, e = self.game.constraints[1]
+        F, f = self.game.constraints[2]
+        A = self.game.payoff_matrix
+        x, y, values = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
+        self.rplan = np.array([x, y][self.player - 1])
+        self.sequences = self.game.sequences[self.player]
+
+    def choice(self, node, choices):
+        """Makes a choice at give node, according to our optimal realization
+        plan pre-computed offline.
+
+        Parameters
+        ----------
+        start : string
+            Node from which choice is to be made
+
+        choices : list of characters from universal choice alphabet
+            Choices available at node `start`
+
+        Returns
+        -------
+        c : string
+            The made choice.
+        """
+        # get all nodes of the form node.z where z \in choices
+        menu = map(self.game.node2seq, ['.'.join([node, c]) for c in choices])
+
+        # get the probabilities at which these nodes are played next
+        weights = self.rplan[map(self.sequences.index, menu)]
+
+        # ... and then make the next move according to this distribution
+        return choices[np.random.choice(
+            range(len(menu)), p=weights / weights.sum(), size=1)[0]]
 
 
 class Game(object):
@@ -110,7 +162,8 @@ class Game(object):
     def build_tree(self):
         raise NotImplementedError
 
-    def add_labelled_edge(self, x, choice, player=None, **kwargs):
+    def add_labelled_edge(self, x, choice, player=None, proba=1.,
+                          **kwargs):
         """Adds a labelled edge to the tree."""
         if player is None:
             raise ValueError("'player' must be specified")
@@ -119,6 +172,8 @@ class Game(object):
         self.tree.add_edge(x, y)
         self.edge_labels[(x, y)] = choice
         self.tree.node[x]['player'] = player
+        proba *= self.tree.node[x].get("proba", 1.)
+        self.tree.node[y]['proba'] = proba
         return y
 
     def is_leaf(self, node):
@@ -357,11 +412,13 @@ class Game(object):
             return start, self.tree.node[start]["payoff"]
 
         # get player to start subgame
-        player = self.tree.node[start]['player']
-        player = players[player - 1] if player > 0 else self.nature
+        p = self.tree.node[start]['player']
+        player = players[p - 1] if p > 0 else self.nature
 
         # retrieve available choices
         choices = [c.split(".")[-1] for c in self.tree.succ[start].keys()]
+        for c in choices:
+            assert c in self.PLAYER_CHOICES[p]
 
         # let player make a choice
         choice = player.choice(start, list(choices))
@@ -415,7 +472,7 @@ class Kuhn3112(Game):
         for perm, proba in zip(['12', '13', '21', '23', '31', '32'],
                                [1. / 6] * 6):
             self.add_labelled_edge('/', ''.join(perm),
-                                   player=0)
+                                   player=0, proba=proba)
             for a in 'CR':
                 self.add_labelled_edge('/.%s' % ''.join(perm), a, player=1)
                 if a == 'C':  # check
@@ -476,12 +533,12 @@ class SimplifiedPoker(Game):
 
     def build_tree(self):
         for perm in ['KK', 'KA', 'AK', 'AA']:
-            child = self.add_labelled_edge("/", perm, player=0)
+            child = self.add_labelled_edge("/", perm, player=0, proba=.25)
             for x in 'BF':
                 a = self.add_labelled_edge(child, x, player=1)
                 if x == "F":
                     self.tree.add_node("%s.%s" % (child, x),
-                                       proba=.25, payoff=-1., player=1)
+                                       payoff=-1., player=1)
                 else:
                     for y in 'bf':
                         if y == "f":
@@ -490,8 +547,7 @@ class SimplifiedPoker(Game):
                             payoff = 4. if perm[0] == "A" else -4.
                         else:
                             payoff = 0.
-                        self.add_labelled_edge(a, y, proba=.25,
-                                               payoff=payoff, player=2)
+                        self.add_labelled_edge(a, y, payoff=payoff, player=2)
 
 
 def test_build_tree():
@@ -579,7 +635,7 @@ def test_play():
             assert_equal(payoff_, payoff)
 
 if __name__ == "__main__":
-    from sequential_games import compute_ne
+    plt.close("all")
     which = 1
     if which == 1:
         game = Kuhn3112()
