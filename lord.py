@@ -1,3 +1,5 @@
+# Author: DOHMATOB Elvis Dopgima
+
 import itertools
 from nose.tools import assert_equal, assert_false, assert_true
 import networkx as nx
@@ -16,6 +18,7 @@ is_root = lambda node: node == "/"  # is this node the root ?
 
 
 def node_color(node):
+    """Get node color (i.e player to whom node belongs)."""
     if is_root(node):
         return "b"
     node = node.split(".")[-1]
@@ -51,7 +54,7 @@ def do_raise(a, p):
 
 
 def u(a, cmd):
-    """Executes a command (cmd) and updates the players' accounts."""
+    """Executes a command (cmd) and updates the band info `a`."""
     if not cmd:
         return a
     if cmd[0].lower() == "f":
@@ -93,16 +96,16 @@ def leafs(t, T, a, L):
 
     Returns
     -------
-    An iterator of strings. Each string is a string of caracters seperated by
-    "." (to demarkate succesive moves)
+    An iterator of strings of caracters seperated by "."
+    (to demarkate succesive moves)
     """
     if t < T and ok(a, L):
         p = norminal(t)  # norminal player for this round
         q = opponent(p)  # the other player
 
-        # chance player always opens a round by disclosing some (possible void)
-        # partial --perhaps full-- observable signals (hole, cards, community
-        # cards, nothing, etc.
+        # chance player always opens a round by disclosing some (possibly void)
+        # partial (or fully) observable signals (hole, cards, community cards,
+        # etc.)
         for perm in chance(t):
             if t == 0:
                 perm = join(["/", perm])
@@ -110,7 +113,7 @@ def leafs(t, T, a, L):
             # "fold" (always possible)
             yield join([perm, move_id("f", p)])
 
-            # "check" and continue to next round
+            # "check" (if possible!) and continue to next round
             c = move_id("c", p)
             a[0] = 1.
             for x in leafs(t + 1, T, a, L):
@@ -254,7 +257,7 @@ if __name__ == "__main__":
 
     a = [1, 0., np.array([0, 0]), np.array([1, 2])]
     tree = nx.DiGraph()
-    tree.add_edges_from(edges(0, 10, a, 3))
+    tree.add_edges_from(edges(0, 8, a, 3))
     for x, y in tree.edges_iter():
         assert y.split(".")[:-1] == x.split(".")
     for node in tree.nodes_iter():
