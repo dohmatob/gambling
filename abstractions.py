@@ -181,6 +181,8 @@ class Game(object):
         for s in self.sequences.values():
             s = sorted(s, cmp=lambda a, b: len(a) - len(b)
                        if len(a) != len(b) else cmp(a, b))
+        for player in self.sequences:
+            self.sequences[player].sort()
         return self.sequences
 
     def build_strategy_constraints(self):
