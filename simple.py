@@ -8,8 +8,7 @@ import numpy as np
 
 class Game(object):
     """Sequence-form representaion of two-person zero-sum games with perfect
-    recall and imcomplete information (like poker, certain political
-    situations, etc.)
+    recall and imcomplete information (like Poker, love, war, diplomacy, etc.)
 
     Terminology
     -----------
@@ -19,8 +18,8 @@ class Game(object):
     There are 3 players, namely: the chance player (player 0, aka nature),
     Alice (player 0), and Bob (player 2), all three treated symmetrically.
     Each player p has a set of moves (aka, choices, actions, etc.) denoted
-    by an alphabet A_p. The set of moves of any two distinct players don't
-    overlap.
+    by an alphabet A_p. For clarity of the discussion, we assume that the
+    set of moves of any two distinct players are disjoint.
 
     The game tree T (from Alice's perspective) is defined as follows.
     T has a set V(T) of nodes (aka vertices) and a set E(T) of edges.
@@ -33,7 +32,7 @@ class Game(object):
     There are two kinds of nodes: the leafs L(T), at which the game must
     end and decision nodes D(T), at which the player to act must make a move.
     L(T) and D(T) are a partition of the node V(T). For example in Poker,
-    a Leaf node is reached at countdown, or when a player folds, or when the
+    a leaf node is reached at countdown, or when a player folds, or when the
     player runs out of money.
 
     There is a special node root(T) defined by
@@ -45,7 +44,7 @@ class Game(object):
     Typically, p_0 = 0 (i.e the game begins with chance).
 
     In accordance with the rules of the game, every other node
-    y \in V(T)\{root(T)} if of the form
+    y \in V(T)\{root(T)} is of the form
 
          y = v.(c, p(v))
 
@@ -293,14 +292,15 @@ class Game(object):
                         next_level.add(w)
             cur_level = next_level
 
-    def chop(self, node):
+    def chop(self, node, player=None):
         """Return list of all nodes played along this path,
-        by previous player."""
-        prev = self.previous_player(node)
+        by given player (defaults to None)"""
+        if player is None:
+            player = self.previous_player(node)
         pieces = node.split(".")
         for j in xrange(len(pieces)):
             child = pieces[:j + 1]
-            if self.previous_player(".".join(child)) == prev:
+            if self.previous_player(".".join(child)) == player:
                 yield child
 
     def node2seq(self, node):
@@ -312,10 +312,29 @@ class Game(object):
             return [(self.tree.node['.'.join(item[:-1])]["info"], item[-1])
                     for item in self.chop(node)]
 
+    def leafs_iter(self, data=True):
+        """Iterate over leafs of game tree."""
+        if data:
+            for node, data in self.tree.nodes_iter(data=True):
+                if self.is_leaf(node):
+                    yield node, data
+        else:
+            for node in self.tree.nodes_iter(data=False):
+                if self.is_leaf(node):
+                    yield node
+
+    def last_node(self, node, player):
+        """Last node played by given player, before this point."""
+        if self.is_root(node):
+            return None
+        if self.previous_player(node) == player:
+            return node
+        else:
+            return self.last_node(".".join(node.split('.')[:-1]), player)
+
     def build_sequences(self):
-        """
-        Each sequence for a player is of the form (i_1, a_1)(i_2,, a_2)...,
-        wher each a_j is an action at the information set i_j
+        """Each sequence for a player is of the form (i_1, a_1)(i_2,, a_2)...,
+        where each a_j is an action at the information set i_j.
         """
         self.sequences.clear()
         for player in self.infosets.keys():
@@ -372,31 +391,20 @@ class Game(object):
             self.constraints[player] = np.array(E), e
         return self.constraints
 
-    def leafs_iter(self, data=True):
-        """Iterate over leafs of game tree."""
-        if data:
-            for node, data in self.tree.nodes_iter(data=True):
-                if self.is_leaf(node):
-                    yield node, data
-        else:
-            for node in self.tree.nodes_iter(data=False):
-                if self.is_leaf(node):
-                    yield node
-
-    def last_node(self, node, player):
-        """Last node played by given player, before this point."""
-        if self.is_root(node):
-            return None
-        if self.previous_player(node) == player:
-            return node
-        else:
-            return self.last_node(".".join(node.split('.')[:-1]), player)
-
     def build_payoff_matrix(self):
         """Builds payoff matrix from player 1's perspective.
 
         The rows (resp. columns) are labelled with player 1's (resp. 2's)
         sequences.
+
+        TODO
+        ----
+        Use tricks in equation (38) of "Smoothing Techniques for Computing Nash
+        Equilibria of Sequential Games" http://repository.cmu.edu/cgi
+        /viewcontent.cgi?article=2442&context=compsci to compute the payoff
+        matrix as a block diagonal matrix whose blocs are sums of Kronecker
+        products of sparse matrices. This can be done by appropriately
+        permuting the list of sequences of each (non-chance) player.
         """
         self.payoff_matrix = np.zeros((len(self.sequences[1]),
                                        len(self.sequences[2])))
