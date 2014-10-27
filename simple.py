@@ -176,6 +176,14 @@ class Game(object):
         hit = self.last_node_played_patterns[player].match(node)
         return None if hit is None else hit.groups()
 
+    def chance_word_to_char(self, word):
+        """Convert chance choice from long to short form."""
+        return self.PLAYER_CHOICES[0][self.BOOK.index(word)]
+
+    def chance_char_to_word(self, char):
+        """Converts chance choice from short to long form."""
+        return self.BOOK[self.PLAYER_CHOICES[0].index(char)]
+
     def project_onto_player(self, node, player=None):
         """Returns the encoding of the given node, only using characters
         from the player to play at the node.
@@ -454,16 +462,15 @@ class Kuhn3112(Game):
                       2: list('cfkr')}
     BOOK = ['12', '13', '21', '23', '31', '32']
 
-    def chance_word_to_char(self, word):
-        return self.PLAYER_CHOICES[0][self.BOOK.index(word)]
-
-    def chance_char_to_word(self, char):
-        return self.BOOK[self.PLAYER_CHOICES[0].index(char)]
-
     def blur(self, choice, player):
+        """Projects chance player's choice into given player's space (i.e
+        reveals only the part of the choice which should be visible to
+        the given player (cf. hole / private cards in Poker).
+        """
         return self.chance_char_to_word(choice)[player - 1]
 
     def cmp_cards(self, a, b):
+        """Compares two cards lexicographically."""
         return cmp(int(a), int(b))
 
     def build_tree(self):
@@ -508,21 +515,21 @@ class Kuhn3112(Game):
 
 
 class SimplifiedPoker(Game):
+    """A simplified 2-card Poker."""
     PLAYER_CHOICES = {0: ['u', 'v', 'w', 'x'],
                       1: list('BF'), 2: list('bf')}
 
     BOOK = ['KK', 'KA', 'AK', 'AA']
 
-    def chance_word_to_char(self, word):
-        return self.PLAYER_CHOICES[0][self.BOOK.index(word)]
-
-    def chance_char_to_word(self, char):
-        return self.BOOK[self.PLAYER_CHOICES[0].index(char)]
-
     def blur(self, choice, player):
+        """Projects chance player's choice into given player's space (i.e
+        reveals only the part of the choice which should be visible to
+        the given player (cf. hole / private cards in Poker).
+        """
         return self.chance_char_to_word(choice)[player - 1]
 
     def cmp_cards(self, a, b):
+        """Compares two cards lexicographically."""
         return cmp(int(a), int(b))
 
     def build_tree(self):
