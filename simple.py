@@ -275,7 +275,8 @@ class Game(object):
         proba *= self.tree.node[src].get("proba", 1.)
         self.tree.add_node(dst, proba=proba, **kwargs)
         self.tree.add_edge(src, dst)
-        self.edge_labels[(src, dst)] = choice
+        self.edge_labels[(src, dst)] = (choice if self.player_to_play(src) > 0
+                                        else self.chance_char_to_word(choice))
         if choices is None:
             choices = []
         self.set_node_info(next_player, dst, choices)
@@ -444,10 +445,6 @@ class Game(object):
         nx.draw_networkx_edges(self.tree, pos, arrows=False)
         nx.draw_networkx_edge_labels(self.tree, pos,
                                      edge_labels=self.edge_labels)
-
-
-        # turn off axes (they look ugly on the fig)
-        plt.axis("off")
 
 
 class Kuhn3112(Game):
