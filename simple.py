@@ -130,6 +130,7 @@ class Game(object):
     """
 
     PLAYER_CHOICES = None
+    BOOK = None
     PLAYER_COLORS = "gbr"
 
     def __init__(self):
@@ -469,6 +470,17 @@ class Kuhn3112(Game):
         """
         return self.chance_char_to_word(choice)[player - 1]
 
+    def unblur(self, part, player):
+        if player == 0:
+            raise ValueError("Must be non-chance player!")
+        for i, x in enumerate(self.BOOK):
+            if player == 1 and x.startswith(part):
+                return self.PLAYER_CHOICES[0][i]
+            elif player == 2 and x.endswith(part):
+                return self.PLAYER_CHOICES[0][i]
+        else:
+            raise RuntimeError
+
     def cmp_cards(self, a, b):
         """Compares two cards lexicographically."""
         return cmp(int(a), int(b))
@@ -561,11 +573,15 @@ class Player(object):
     def __init__(self, name, player):
         self.name = name
         self.player = player
+        self.location = "(/,0)"
 
     def __str__(self):
         return self.name
 
-    def choice(self, _, choices):
+    def clear(self):
+        self.location = "(/,0)"
+
+    def choice(self, choices):
         """Invoked to make a choice from given list of choices.
 
         XXX Use local rng!
@@ -586,6 +602,9 @@ class Player(object):
 
         return np.random.choice(choices, size=1)[0]
 
+    def observe(self, _, choice):
+        self.location = "%s.%s" % (self.location, choice)
+
 
 class _ChancePlayer(Player):
     """Nature / chance player (private!)."""
@@ -602,6 +621,7 @@ class NashPlayer(Player):
         super(NashPlayer, self).__init__(name, player)
         self.game = game
         self.compute_optimal_rplan()
+        self.location = "(/,0)"
 
     def compute_optimal_rplan(self):
         """Compute optimal realization plan, which is our own part of
@@ -616,7 +636,15 @@ class NashPlayer(Player):
         self.rplan = np.array([x, y][self.player - 1])
         self.sequences = self.game.sequences[self.player]
 
-    def choice(self, node, choices):
+    def observe(self, player, choice):
+        if player == 0:
+            c, i = re.match("\((.),(\d)\)", choice).groups()
+            i = int(i)
+            c = self.game.unblur(c, self.player)
+            choice = "(%c,%i)" % (c, i)
+        super(NashPlayer, self).observe(player, choice)
+
+    def choice(self, choices):
         """Makes a choice at give node, according to our optimal realization
         plan pre-computed offline.
 
@@ -634,14 +662,17 @@ class NashPlayer(Player):
             The made choice.
         """
         # get all nodes possible "next" nodes (in sequence-form)
-        menu = map(self.game.node2seq, ['.'.join([node, c]) for c in choices])
+        menu = map(self.game.node2seq, ['.'.join([self.location, choice])
+                                        for choice in choices])
 
         # get the probabilities at which these nodes are played next
         weights = self.rplan[map(self.sequences.index, menu)]
 
         # ... and then make the next move according to this distribution
-        return choices[np.random.choice(
-            range(len(menu)), p=weights / weights.sum(), size=1)[0]]
+        choice = choices[np.random.choice(
+                range(len(menu)), p=weights / weights.sum(), size=1)[0]]
+        self.observe(self.player, choice)
+        return choice
 
 
 class Duel(object):
@@ -667,7 +698,7 @@ class Duel(object):
 
         Paremeters
         ----------
-        players : List of 2 Player instances of subclasses of Player
+        players : List of 2 `Player` instances
             The 2 players competing.
 
         root : string
@@ -682,6 +713,10 @@ class Duel(object):
             Payoff to players[0] (players[0] gets -payoff since the game
             is zero-sum).
         """
+
+        if self.game.is_root(root):
+            for player in self.players:
+                player.clear()
 
         # end subgame if root is a leaf
         if self.game.is_leaf(root):
@@ -700,10 +735,23 @@ class Duel(object):
         choices = self.game.tree.node[root]['info']['choices']
 
         # let player make a choice
-        choice = player.choice(root, list(choices))
+        choice = player.choice(list(choices))
         assert choice in choices
         if self.verbose:
             print "%s: %s" % (player.name, choice)
+
+        # let other player observe what has just been played
+        if p == 0:
+            # blur
+            c, next_player = re.match("^\((.),(\d)\)$", choice).groups()
+            next_player = int(next_player)
+            for i in xrange(2):
+                c_ = self.game.blur(c, i + 1)
+                self.players[i].observe(0, "(%s,%i)" % (c_, next_player))
+
+        else:
+            other_player = 1 + p % 2
+            self.players[other_player - 1].observe(other_player, choice)
 
         # play subsubgame
         root = ".".join([root, choice])
