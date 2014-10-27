@@ -257,7 +257,7 @@ if __name__ == "__main__":
 
     a = [1, 0., np.array([0, 0]), np.array([1, 2])]
     tree = nx.DiGraph()
-    tree.add_edges_from(edges(0, 8, a, 3))
+    tree.add_edges_from(edges(0, 3, a, 2))
     for x, y in tree.edges_iter():
         assert y.split(".")[:-1] == x.split(".")
     for node in tree.nodes_iter():
