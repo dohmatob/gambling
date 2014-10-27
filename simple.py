@@ -222,10 +222,11 @@ class Game(object):
     def set_node_info(self, player, node, choices):
         """Computes info at a node given node, and stores it in the tree
         structure for the game."""
-        if not choices:
-            return
         if not node in self.tree.node:
             self.tree.add_node(node)
+        self.tree.node[node]["player"] = player
+        if not choices:
+            return
         info = self.compute_info_at_node(node, choices)
         if not player in self.infosets:
             self.infosets[player] = {}
@@ -235,33 +236,41 @@ class Game(object):
         self.tree.node[node]["info"] = dict(chance=info[0], sigma=info[1],
                                             choices=info[2])
 
-    def add_labelled_edge(self, src, choice, player, choices=[], **kwargs):
+    def add_labelled_edge(self, src, choice, next_player, choices=None,
+                          proba=1., **kwargs):
         """Adds a labelled edge to the tree.
 
         Parameters
         ----------
         src : string
-            Source node.
+            Source (current) node.
 
-        player : int
+        next_player : int
             Player to move at a node `src`.
 
         choice : char
-            The choice made by player at node `src`
+            The choice made by player at node `src`.
 
-        choices : None
-            Choices available at this node.
+        choices : list, optional (default None)
+            Choices available at destination (final) node.
 
-        kwargs : value-pair dict-like
+        proba : float in the interval (0, 1]
+            If player is chance player, then `proba` is the probability with
+            which it is making the choice.
+
+        **kwargs : value-pair dict-like
             Additional data to store at destination node.
         """
-        dst = "%s.(%s,%s)" % (src, choice, player)
-        next_player = self.player_to_play(dst)
-        assert_equal(player, next_player)
-        self.tree.add_node(dst, player=player, **kwargs)
+        dst = "%s.(%s,%s)" % (src, choice, next_player)
+        assert 0. < proba <= 1.
+        proba *= self.tree.node[src].get("proba", 1.)
+        self.tree.add_node(dst, proba=proba, **kwargs)
         self.tree.add_edge(src, dst)
         self.edge_labels[(src, dst)] = choice
-        self.set_node_info(player, dst, choices)
+        if choices is None:
+            choices = []
+        self.set_node_info(next_player, dst,
+                           ["(%s,%i)" % (c, next_player) for c in choices])
         return dst
 
     def level_first_traversal(self, player=None):
@@ -442,7 +451,8 @@ class Kuhn3112(Game):
         self.set_node_info(0, "(/,0)", self.PLAYER_CHOICES[0])
         for perm, proba in zip(self.PLAYER_CHOICES[0], [1. / 6] * 6):
             perm_word = self.chance_char_to_word(perm)
-            x = self.add_labelled_edge("(/,0)", perm, 1, choices=["C", "R"])
+            x = self.add_labelled_edge("(/,0)", perm, 1, choices=["C", "R"],
+                                       proba=proba)
 
             for a in 'CR':
                 if a == 'C':  # check
@@ -450,29 +460,26 @@ class Kuhn3112(Game):
                     for b in 'cr':
                         if b == "c":  # check
                             self.add_labelled_edge(
-                                y, b, 1, proba=proba, payoff=self.cmp_cards(
-                                    *perm_word))
+                                y, b, 1, payoff=self.cmp_cards(*perm_word))
                         else:  # raise
                             z = self.add_labelled_edge(
                                 y, b, 1, choices=['F', 'K'])
                             for w in 'FK':
                                 if w == "F":  # fold
                                     self.add_labelled_edge(
-                                        z, w, 2, proba=proba,
-                                        payoff=-1)
+                                        z, w, 2, payoff=-1)
                                 else:  # call
                                     self.add_labelled_edge(
-                                        z, w, 2, proba=proba,
+                                        z, w, 2,
                                         payoff=2 * self.cmp_cards(*perm_word))
                 else:  # raise
                     y = self.add_labelled_edge(x, a, 2, choices=["f", "k"])
                     for b in "fk":
                         if b == "f":  # fold
-                            self.add_labelled_edge(
-                                y, b, 1, proba=proba, payoff=1.)
+                            self.add_labelled_edge(y, b, 1, payoff=1.)
                         else:  # call
                             self.add_labelled_edge(
-                                y, b, 1, proba=proba,
+                                y, b, 1,
                                 payoff=2 * self.cmp_cards(*perm_word))
 
 
