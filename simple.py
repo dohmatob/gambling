@@ -4,6 +4,7 @@ import re
 from nose.tools import assert_equal, assert_true
 import networkx as nx
 import numpy as np
+import matplotlib.pyplot as plt
 from sequential_games import compute_ne
 
 
@@ -441,6 +442,9 @@ class Game(object):
         nx.draw_networkx_edge_labels(self.tree, pos,
                                      edge_labels=self.edge_labels)
 
+        # turn off axes (they look ugly on the fig)
+        plt.axis("off")
+
 
 class Kuhn3112(Game):
     """Kuhn's 3-card Poker: http://en.wikipedia.org/wiki/Kuhn_poker"""
@@ -803,25 +807,29 @@ def test_nash_player():
 
 
 if __name__ == "__main__":
-    import pylab as pl
-    game = SimplifiedPoker()  # Kuhn3112()
-    E, e = game.constraints[1]
-    F, f = game.constraints[2]
-    A = game.payoff_matrix
-    x, y, values = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
-    print
-    print "Nash Equilibrium:"
-    print "x* = ", x
-    print "y* =", y
-    pl.semilogx(values)
-    value = values[-1]
-    pl.axhline(value, linestyle="--",
-               label="value of the game: %5.2e" % value)
-    pl.xlabel("k")
-    pl.ylabel("value of game after k iterations")
-    pl.legend(loc="best")
-    pl.title("NE computation in sequence-form (game = %s)" % (
-            game.__class__.__name__))
-    pl.figure()
-    game.draw()
-    pl.show()
+    for game_cls in [SimplifiedPoker, Kuhn3112]:
+        game = game_cls()
+        E, e = game.constraints[1]
+        F, f = game.constraints[2]
+        A = game.payoff_matrix
+        x, y, values = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
+        print
+        print "Nash Equilibrium:"
+        print "x* = ", x
+        print "y* =", y
+        plt.figure()
+        plt.semilogx(values)
+        value = values[-1]
+        plt.axhline(value, linestyle="--",
+                   label="value of the game: %5.2e" % value)
+        plt.xlabel("k")
+        plt.ylabel("value of game after k iterations")
+        plt.legend(loc="best")
+        plt.title("%s: NE computation in sequence-form" % (
+                game.__class__.__name__))
+
+        plt.figure()
+        game.draw()
+        plt.title("Game tree (T) for %s" % game.__class__.__name__)
+
+    plt.show()
