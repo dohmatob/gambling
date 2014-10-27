@@ -15,19 +15,20 @@ class Game(object):
 
     Game Tree (normal-form definition)
     ==================================
-    There are 3 players, namely: the chance player (player 0, aka nature),
-    Alice (player 0), and Bob (player 2), all three treated symmetrically.
-    Each player p has a set of moves (aka, choices, actions, etc.) denoted
-    by an alphabet A_p. For clarity of the discussion, we assume that the
-    set of moves of any two distinct players are disjoint.
+    There are 3 players, namely: the "chance" player (player 0, aka nature),
+    Alice (player 0), and Bob (player 2), and the "mute" (player 3) all four
+    treated symmetrically. Each player p has a set of moves (aka, choices,
+    actions, etc.) denoted by an alphabet A_p. For clarity of the discussion,
+    we assume that the set of moves of any two distinct players are disjoint.
+    Furthermore, player 3 (mute) has no moves, i.e A_3 = {}, hence her name.
 
     The game tree T (from Alice's perspective) is defined as follows.
     T has a set V(T) of nodes (aka vertices) and a set E(T) of edges.
     Each node v belongs to a single player, p(v), called "the player to act
-    at v". At node v, the player p(v) has a set C(v) \subset A_p of possible
-    moves. For each player p \in [0, 1, 2], the set of all nodes at which p
-    acts is called the nodes of p, denoted V_p(T). Thus v(0), v(1), and v(2)
-    form a partition of V(T).
+    at v"; p(v) := 3 if v is a leaf node. At node v, the player p(v) has a set
+    C(v) \subset A_p of possible moves. For each player p \in [0, 1, 2],
+    the set of all nodes at which p acts is called the nodes of p,
+    denoted V_p(T). Thus v(0), v(1), and v(2) form a partition of V(T).
 
     There are two kinds of nodes: the leafs L(T), at which the game must
     end and decision nodes D(T), at which the player to act must make a move.
@@ -461,7 +462,9 @@ class Kuhn3112(Game):
 
     def build_tree(self):
         """Builds the game tree for Kuhn's Poker, as an nx.DiGraph object."""
-        self.set_node_info(0, "(/,0)", self.PLAYER_CHOICES[0])
+        self.set_node_info(
+            0, "(/,0)", ["(%s,1)" % choice
+                         for choice in self.PLAYER_CHOICES[0]])
         for perm, proba in zip(self.PLAYER_CHOICES[0], [1. / 6] * 6):
             perm_word = self.chance_char_to_word(perm)
             x = self.add_labelled_edge("(/,0)", perm, 1,
@@ -477,25 +480,209 @@ class Kuhn3112(Game):
                                 y, b, 1, payoff=self.cmp_cards(*perm_word))
                         else:  # raise
                             z = self.add_labelled_edge(
-                                y, b, 1, choices=['(F,*)', '(K,*)'])
+                                y, b, 1, choices=['(F,3)', '(K,3)'])
                             for w in 'FK':
                                 if w == "F":  # fold
                                     self.add_labelled_edge(
-                                        z, w, "*", payoff=-1)
+                                        z, w, 3, payoff=-1)
                                 else:  # call
                                     self.add_labelled_edge(
-                                        z, w, "*",
+                                        z, w, 3,
                                         payoff=2 * self.cmp_cards(*perm_word))
                 else:  # raise
                     y = self.add_labelled_edge(
-                        x, a, 2, choices=["(f,*)", "(k,*)"])
+                        x, a, 2, choices=["(f,3)", "(k,3)"])
                     for b in "fk":
                         if b == "f":  # fold
-                            self.add_labelled_edge(y, b, "*", payoff=1.)
+                            self.add_labelled_edge(y, b, 3, payoff=1.)
                         else:  # call
                             self.add_labelled_edge(
-                                y, b, "*",
+                                y, b, 3,
                                 payoff=2 * self.cmp_cards(*perm_word))
+
+
+class SimplifiedPoker(Game):
+    PLAYER_CHOICES = {0: ['u', 'v', 'w', 'x'],
+                      1: list('BF'), 2: list('bf')}
+
+    BOOK = ['KK', 'KA', 'AK', 'AA']
+
+    def chance_word_to_char(self, word):
+        return self.PLAYER_CHOICES[0][self.BOOK.index(word)]
+
+    def chance_char_to_word(self, char):
+        return self.BOOK[self.PLAYER_CHOICES[0].index(char)]
+
+    def blur(self, choice, player):
+        return self.chance_char_to_word(choice)[player - 1]
+
+    def cmp_cards(self, a, b):
+        return cmp(int(a), int(b))
+
+    def build_tree(self):
+        self.set_node_info(
+            0, "(/,0)", ["(%s,1)" % choice
+                         for choice in self.PLAYER_CHOICES[0]])
+        for perm, proba in zip(self.PLAYER_CHOICES[0], [1. / 4] * 4):
+            perm_word = self.chance_char_to_word(perm)
+            child = self.add_labelled_edge(
+                "(/,0)", perm, 1, proba=proba, choices=["(B,2)", "(F,3)"])
+            for x in 'BF':
+                if x == "F":
+                    self.add_labelled_edge(child, x, 3, payoff=-1.)
+                else:
+                    a = self.add_labelled_edge(
+                        child, x, 2, payoff=-1., choices=["(b,3)", "(f,3)"])
+                    for y in 'bf':
+                        if y == "f":
+                            payoff = 1
+                        elif perm_word[0] != perm_word[1]:
+                            payoff = 4. if perm_word[0] == "A" else -4.
+                        else:
+                            payoff = 0.
+                        self.add_labelled_edge(a, y, 3, payoff=payoff)
+
+
+class Player(object):
+    def __init__(self, name, player):
+        self.name = name
+        self.player = player
+
+    def __str__(self):
+        return self.name
+
+    def choice(self, _, choices):
+        """Invoked to make a choice from given list of choices.
+
+        XXX Use local rng!
+
+        Parameters
+        ----------
+        start : string
+            Node from which choice is to be made
+
+        choices : list of characters from universal choice alphabet
+            Choices available at node `start`
+
+        Returns
+        -------
+        c : string
+            The made choice.
+        """
+
+        return np.random.choice(choices, size=1)[0]
+
+
+class _ChancePlayer(Player):
+    """Nature / chance player (private!)."""
+    pass
+
+
+class NashPlayer(Player):
+    """Player using NE solution concept.
+
+       See Benhard von Stengel 1995, etc.
+    """
+
+    def __init__(self, name, player, game):
+        super(NashPlayer, self).__init__(name, player)
+        self.game = game
+        self.compute_optimal_rplan()
+
+    def compute_optimal_rplan(self):
+        """Compute optimal realization plan, which is our own part of
+        the Nash-Equlibrium for the sequence-form representation of the
+        game. This computation is done offline.
+        """
+
+        E, e = self.game.constraints[1]
+        F, f = self.game.constraints[2]
+        A = self.game.payoff_matrix
+        x, y, values = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
+        self.rplan = np.array([x, y][self.player - 1])
+        self.sequences = self.game.sequences[self.player]
+
+    def choice(self, node, choices):
+        """Makes a choice at give node, according to our optimal realization
+        plan pre-computed offline.
+
+        Parameters
+        ----------
+        start : string
+            Node from which choice is to be made
+
+        choices : list of characters from universal choice alphabet
+            Choices available at node `start`
+
+        Returns
+        -------
+        c : string
+            The made choice.
+        """
+        # get all nodes possible "next" nodes (in sequence-form)
+        menu = map(self.game.node2seq, ['.'.join([node, c]) for c in choices])
+
+        # get the probabilities at which these nodes are played next
+        weights = self.rplan[map(self.sequences.index, menu)]
+
+        # ... and then make the next move according to this distribution
+        return choices[np.random.choice(
+            range(len(menu)), p=weights / weights.sum(), size=1)[0]]
+
+
+class Duel(object):
+    def __init__(self, game, players):
+        self.game = game
+        self.players = players
+        self.nature = _ChancePlayer("nature", 0)
+
+    def play(self, root="(/,0)"):
+        """Recursively makes players play subgame rooted at node `start`.
+
+        Paremeters
+        ----------
+        players : List of 2 Player instances of subclasses of Player
+            The 2 players competing.
+
+        root : string
+            Root node of subgame about to be played.
+
+        Returns
+        -------
+        term : string
+            Terminal node at which the game has ended.
+
+        payoff: float
+            Payoff to players[0] (players[0] gets -payoff since the game
+            is zero-sum).
+        """
+
+        # end subgame if root is a leaf
+        if self.game.is_leaf(root):
+            payoff = self.game.tree.node[root]["payoff"]
+            print "oracle: Ending at terminal node %s with payoff %g" % (
+                root, payoff)
+            print
+            return root, payoff
+
+        # get player to start subgame
+        p = self.game.tree.node[root]['player']
+        player = self.players[p - 1] if p > 0 else self.nature
+
+        # retrieve available choices
+        choices = self.game.tree.node[root]['info']['choices']
+
+        # let player make a choice
+        choice = player.choice(root, list(choices))
+        while not choice in choices:
+            print "%s, your last choice of '%s' is invalid!" % (
+                player, choice)
+            choice = player.choice(root, list(choices))
+        print "%s: %s" % (player.name, choice)
+
+        # play subsubgame
+        root = ".".join([root, choice])
+        return self.play(root=root)
 
 
 def test_player_to_play():
@@ -544,15 +731,52 @@ def test_compute_info_at_node():
     assert_equal(z, ('F',))
 
 
-def test_all_leafs_have_proba_datum():
+def test_build_sequences():
     g = Kuhn3112()
-    for _, leaf_data in g.leafs_iter():
-        assert_true("proba" in leaf_data)
+    g.build_sequences()
+    assert_equal(len(g.sequences[0]), 7)
+    for player in xrange(1, 3):
+        assert_equal(len(g.sequences[player]), 13, msg=len(g.sequences[1]))
+
+
+def test_build_payoff_matrix():
+    k = Kuhn3112()
+    k.build_payoff_matrix()
+    assert_equal((k.payoff_matrix != 0.).sum(), 30.)
+
+
+def test_leafs_iter():
+    k = Kuhn3112()
+    assert_equal(len(list(k.leafs_iter())), 30)
+
+
+def test_all_leafs_have_proba_datum():
+    for game_cls in [Kuhn3112, SimplifiedPoker]:
+        game = game_cls()
+        for _, leaf_data in game.leafs_iter():
+            assert_true("proba" in leaf_data)
+
+
+def test_play():
+    players = [Player('alice', 1), Player('bob', 2)]
+    for game_cls in [Kuhn3112, SimplifiedPoker]:
+        game = game_cls()
+        duel = Duel(game, players)
+        for _ in xrange(10):
+            term, payoff = duel.play()
+
+            # check term is a leaf
+            assert_true(game.is_leaf(term))
+
+            # check game over
+            term_, payoff_ = duel.play(root=term)
+            assert_equal(term_, term)
+            assert_equal(payoff_, payoff)
 
 if __name__ == "__main__":
     import pylab as pl
     from sequential_games import compute_ne
-    game = Kuhn3112()
+    game = SimplifiedPoker()  # Kuhn3112()
     E, e = game.constraints[1]
     F, f = game.constraints[2]
     A = game.payoff_matrix
