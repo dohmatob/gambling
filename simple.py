@@ -868,9 +868,9 @@ def test_all_leafs_have_proba_datum():
 
 
 def test_play():
-    players = [Player('alice', 1), Player('bob', 2)]
     for game_cls in [Kuhn3112, SimplifiedPoker]:
         game = game_cls()
+        players = [Player('alice', 1, game), Player('bob', 2, game)]
         duel = Duel(game, players)
         for _ in xrange(10):
             term, payoff = duel.play()
@@ -887,7 +887,7 @@ def test_play():
 def test_nash_player():
     game = SimplifiedPoker()
     nash = NashPlayer("alice", 1, game)
-    opponents = [NashPlayer("bob", 2, game), Player("olaf", 2)]
+    opponents = [NashPlayer("bob", 2, game), Player("olaf", 2, game)]
     for opponent in opponents:
         duel = Duel(game, [nash, opponent], verbose=0)
         mean_payoff = np.mean([duel.play()[1]
