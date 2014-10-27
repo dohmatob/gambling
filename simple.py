@@ -545,6 +545,7 @@ class SimplifiedPoker(Game):
 
 
 class Player(object):
+    """Generic player."""
     def __init__(self, name, player):
         self.name = name
         self.player = player
@@ -599,7 +600,7 @@ class NashPlayer(Player):
         E, e = self.game.constraints[1]
         F, f = self.game.constraints[2]
         A = self.game.payoff_matrix
-        x, y, values = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
+        x, y, _ = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
         self.rplan = np.array([x, y][self.player - 1])
         self.sequences = self.game.sequences[self.player]
 
@@ -632,6 +633,17 @@ class NashPlayer(Player):
 
 
 class Duel(object):
+    """Two-person zero-sum sequential game duel.
+
+    Parameters
+    ----------
+    game : `Game` instance
+        Instance of game to be played.
+
+    players : list of 2 `Player` objects
+        The contending players.
+    """
+
     def __init__(self, game, players, verbose=1):
         self.game = game
         self.players = players
@@ -776,13 +788,13 @@ def test_play():
 
 
 def test_nash_player():
-    game = Kuhn3112()  # SimplifiedPoker()
+    game = SimplifiedPoker()
     nash = NashPlayer("alice", 1, game)
     opponents = [NashPlayer("bob", 2, game), Player("olaf", 2)]
     for opponent in opponents:
         duel = Duel(game, [nash, opponent], verbose=0)
         mean_payoff = np.mean([duel.play()[1]
-                               for _ in xrange(10000)])
+                               for _ in xrange(1000)])
         if isinstance(opponent, NashPlayer):
             np.testing.assert_almost_equal(mean_payoff, -.25,
                                            decimal=1)
