@@ -130,6 +130,7 @@ class Game(object):
     """
 
     PLAYER_CHOICES = None
+    PLAYER_COLORS = "gbr"
 
     def __init__(self):
         self.tree = nx.DiGraph()
@@ -427,15 +428,17 @@ class Game(object):
         pos = nx.graphviz_layout(self.tree, prog='dot')
 
         # leaf (terminal) nodes
-        nx.draw_networkx_nodes(self.tree, pos,
-                               nodelist=[n for n in self.tree.nodes()
-                                         if self.is_leaf(n)], node_shape='s')
+        leaf_nodes = [node for node in self.tree.nodes() if self.is_leaf(node)]
+        nx.draw_networkx_nodes(self.tree, pos, nodelist=leaf_nodes,
+                               node_shape='s', node_color="k")
 
         # decision nodes
-        nx.draw_networkx_nodes(self.tree, pos,
-                               nodelist=[n for n in self.tree.nodes()
-                                         if not self.is_leaf(n)],
-                               node_shape='o')
+        dec_nodes = [node
+                     for node in self.tree.nodes() if not self.is_leaf(node)]
+        nx.draw_networkx_nodes(
+            self.tree, pos, nodelist=dec_nodes, node_shape='o',
+            node_color=[self.PLAYER_COLORS[self.tree.node[node]["player"]]
+                        for node in dec_nodes])
 
         # labelled edges
         nx.draw_networkx_edges(self.tree, pos, arrows=False)
