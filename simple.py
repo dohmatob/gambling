@@ -4,6 +4,7 @@ import re
 from nose.tools import assert_equal, assert_true
 import networkx as nx
 import numpy as np
+from sequential_games import compute_ne
 
 
 class Game(object):
@@ -631,9 +632,10 @@ class NashPlayer(Player):
 
 
 class Duel(object):
-    def __init__(self, game, players):
+    def __init__(self, game, players, verbose=1):
         self.game = game
         self.players = players
+        self.verbose = verbose
         self.nature = _ChancePlayer("nature", 0)
 
     def play(self, root="(/,0)"):
@@ -660,13 +662,14 @@ class Duel(object):
         # end subgame if root is a leaf
         if self.game.is_leaf(root):
             payoff = self.game.tree.node[root]["payoff"]
-            print "oracle: Ending at terminal node %s with payoff %g" % (
-                root, payoff)
+            if self.verbose:
+                print "oracle: Ending at terminal node %s with payoff %g" % (
+                    root, payoff)
             print
             return root, payoff
 
         # get player to start subgame
-        p = self.game.tree.node[root]['player']
+        p = self.game.player_to_play(root)
         player = self.players[p - 1] if p > 0 else self.nature
 
         # retrieve available choices
@@ -674,11 +677,9 @@ class Duel(object):
 
         # let player make a choice
         choice = player.choice(root, list(choices))
-        while not choice in choices:
-            print "%s, your last choice of '%s' is invalid!" % (
-                player, choice)
-            choice = player.choice(root, list(choices))
-        print "%s: %s" % (player.name, choice)
+        assert choice in choices
+        if self.verbose:
+            print "%s: %s" % (player.name, choice)
 
         # play subsubgame
         root = ".".join([root, choice])
@@ -773,9 +774,24 @@ def test_play():
             assert_equal(term_, term)
             assert_equal(payoff_, payoff)
 
+
+def test_nash_player():
+    game = Kuhn3112()  # SimplifiedPoker()
+    nash = NashPlayer("alice", 1, game)
+    opponents = [NashPlayer("bob", 2, game), Player("olaf", 2)]
+    for opponent in opponents:
+        duel = Duel(game, [nash, opponent], verbose=0)
+        mean_payoff = np.mean([duel.play()[1]
+                               for _ in xrange(10000)])
+        if isinstance(opponent, NashPlayer):
+            np.testing.assert_almost_equal(mean_payoff, -.25,
+                                           decimal=1)
+        else:
+            assert_true(mean_payoff >= -.25)
+
+
 if __name__ == "__main__":
     import pylab as pl
-    from sequential_games import compute_ne
     game = SimplifiedPoker()  # Kuhn3112()
     E, e = game.constraints[1]
     F, f = game.constraints[2]
