@@ -128,7 +128,6 @@ class Game(object):
     information.
 
     """
-
     PLAYER_CHOICES = None
     BOOK = None
     PLAYER_COLORS = "gbr"
@@ -234,7 +233,6 @@ class Game(object):
     def set_node_info(self, player, node, choices):
         """Computes info at a node given node, and stores it in the tree
         structure for the game."""
-
         # create node if inexsitent
         if not node in self.tree.node:
             self.tree.add_node(node)
@@ -630,19 +628,17 @@ class Player(object):
         c : string
             The made choice.
         """
-
         return np.random.choice(choices, size=1)[0]
 
     def observe(self, player, choice):
         """Observe given player make a move, and memorize it."""
         if player == 0:
-            # unblur chance move by extrapolation unto any node in current
+            # unblur chance move by extrapolating unto any node in current
             # information set
             c, i = re.match("\((.),(\d)\)", choice).groups()
             i = int(i)
             c = self.game.unblur(c, self.player)
             choice = "(%c,%i)" % (c, i)
-
         self.location = "%s.%s" % (self.location, choice)
 
 
@@ -656,7 +652,6 @@ class NashPlayer(Player):
 
        See Benhard von Stengel 1995, etc.
     """
-
     def __init__(self, name, player, game):
         super(NashPlayer, self).__init__(name, player, game)
         self.game = game
@@ -718,7 +713,6 @@ class Duel(object):
     players : list of 2 `Player` objects
         The contending players.
     """
-
     def __init__(self, game, players, verbose=1):
         self.game = game
         self.players = players
@@ -745,7 +739,6 @@ class Duel(object):
             Payoff to players[0] (players[0] gets -payoff since the game
             is zero-sum).
         """
-
         if self.game.is_root(root):
             print "Oracle: Entering new game..."
             for player in self.players:
