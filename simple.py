@@ -471,6 +471,8 @@ class Kuhn3112(Game):
         return self.chance_char_to_word(choice)[player - 1]
 
     def unblur(self, part, player):
+        """Computes chance choice which has given projection unto given
+        player."""
         if player == 0:
             raise ValueError("Must be non-chance player!")
         for i, x in enumerate(self.BOOK):
@@ -540,6 +542,19 @@ class SimplifiedPoker(Game):
         """
         return self.chance_char_to_word(choice)[player - 1]
 
+    def unblur(self, part, player):
+        """Computes chance choice which has given projection unto given
+        player."""
+        if player == 0:
+            raise ValueError("Must be non-chance player!")
+        for i, x in enumerate(self.BOOK):
+            if player == 1 and x.startswith(part):
+                return self.PLAYER_CHOICES[0][i]
+            elif player == 2 and x.endswith(part):
+                return self.PLAYER_CHOICES[0][i]
+        else:
+            raise RuntimeError
+
     def cmp_cards(self, a, b):
         """Compares two cards lexicographically."""
         return cmp(int(a), int(b))
@@ -569,10 +584,26 @@ class SimplifiedPoker(Game):
 
 
 class Player(object):
-    """Generic player."""
-    def __init__(self, name, player):
+    """Generic player
+
+    Parameters
+    ----------
+    name : string
+        Name of player.
+
+    player : int in [0, 1]
+        Player number.
+
+    Attributes
+    ----------
+    location : string
+        Current node / state of game tree, from player's perspective
+        (Note that there is uncertainty due to imcomplete information.)
+    """
+    def __init__(self, name, player, game):
         self.name = name
         self.player = player
+        self.game = game
         self.location = "(/,0)"
 
     def __str__(self):
@@ -602,7 +633,16 @@ class Player(object):
 
         return np.random.choice(choices, size=1)[0]
 
-    def observe(self, _, choice):
+    def observe(self, player, choice):
+        """Observe given player make a move, and memorize it."""
+        if player == 0:
+            # unblur chance move by extrapolation unto any node in current
+            # information set
+            c, i = re.match("\((.),(\d)\)", choice).groups()
+            i = int(i)
+            c = self.game.unblur(c, self.player)
+            choice = "(%c,%i)" % (c, i)
+
         self.location = "%s.%s" % (self.location, choice)
 
 
@@ -618,7 +658,7 @@ class NashPlayer(Player):
     """
 
     def __init__(self, name, player, game):
-        super(NashPlayer, self).__init__(name, player)
+        super(NashPlayer, self).__init__(name, player, game)
         self.game = game
         self.compute_optimal_rplan()
         self.location = "(/,0)"
@@ -635,14 +675,6 @@ class NashPlayer(Player):
         x, y, _ = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
         self.rplan = np.array([x, y][self.player - 1])
         self.sequences = self.game.sequences[self.player]
-
-    def observe(self, player, choice):
-        if player == 0:
-            c, i = re.match("\((.),(\d)\)", choice).groups()
-            i = int(i)
-            c = self.game.unblur(c, self.player)
-            choice = "(%c,%i)" % (c, i)
-        super(NashPlayer, self).observe(player, choice)
 
     def choice(self, choices):
         """Makes a choice at give node, according to our optimal realization
@@ -665,7 +697,7 @@ class NashPlayer(Player):
         menu = map(self.game.node2seq, ['.'.join([self.location, choice])
                                         for choice in choices])
 
-        # get the probabilities at which these nodes are played next
+        # get the probabilities with which these nodes are played next
         weights = self.rplan[map(self.sequences.index, menu)]
 
         # ... and then make the next move according to this distribution
@@ -691,7 +723,7 @@ class Duel(object):
         self.game = game
         self.players = players
         self.verbose = verbose
-        self.nature = _ChancePlayer("nature", 0)
+        self.nature = _ChancePlayer("nature", 0, game)
 
     def play(self, root="(/,0)"):
         """Recursively makes players play subgame rooted at node `start`.
@@ -715,6 +747,7 @@ class Duel(object):
         """
 
         if self.game.is_root(root):
+            print "Oracle: Entering new game..."
             for player in self.players:
                 player.clear()
 
@@ -722,7 +755,7 @@ class Duel(object):
         if self.game.is_leaf(root):
             payoff = self.game.tree.node[root]["payoff"]
             if self.verbose:
-                print "oracle: Ending at terminal node %s with payoff %g" % (
+                print "Oracle: Terminated at leaf node %s with payoff %g." % (
                     root, payoff)
             print
             return root, payoff
@@ -735,11 +768,15 @@ class Duel(object):
         choices = self.game.tree.node[root]['info']['choices']
 
         # let player make a choice
+        if self.verbose:
+            if p > 0:
+                print "True location: %s" % root
+                print "%s's assumed location: %s" % (
+                    player, player.location)
         choice = player.choice(list(choices))
         assert choice in choices
         if self.verbose:
             print "%s: %s" % (player.name, choice)
-
         # let other player observe what has just been played
         if p == 0:
             # blur
@@ -881,7 +918,7 @@ if __name__ == "__main__":
         plt.xlabel("k")
         plt.ylabel("value of game after k iterations")
         plt.legend(loc="best")
-        plt.title("%s: NE computation in sequence-form" % (
+        plt.title("%s: Sequence-form NE computation" % (
                 game.__class__.__name__))
 
         plt.figure()
