@@ -113,12 +113,12 @@ via efficient computation of Nash equilibria: proof-of-concept on Kuhn's 3-card 
 
 \begin{frame}
 \frametitle{Simplexes and complexes (examples of)}
-\begin{figure}
-  \includegraphics[width=3cm]{simplex.png}
-  \includegraphics[width=3cm]{7-simplex.png}
-  \includegraphics[width=3cm]{10-simplex.png}
-  \caption{\textbf{Left}: 2-simplex \textbf{Middle}: 7-simplex \textbf{Right}: 10-simplex}
-\end{figure}
+%% \begin{figure}
+%%   \includegraphics[width=3cm]{simplex.png}
+%%   \includegraphics[width=3cm]{7-simplex.png}
+%%   \includegraphics[width=3cm]{10-simplex.png}
+%%   \caption{\textbf{Left}: 2-simplex \textbf{Middle}: 7-simplex \textbf{Right}: 10-simplex}
+%% \end{figure}
 \end{frame}
 
 \begin{frame}
@@ -131,7 +131,6 @@ Thanks to the sequence-form representation, we have:
     \label{eq:minimax_stengel}
   \end{equation}
   
-  \uncover<2>{
     where:
    \begin{equation}
      \left .
@@ -148,16 +147,61 @@ Thanks to the sequence-form representation, we have:
     \begin{equation}
       \underset{x\in Q_1}{maximize}\text{ }{y_0^TAx}
     \end{equation}
-}
   \end{itemize}
 \end{frame}
     
     \begin{frame}
   \frametitle{Two-person zero sum Sequential games}
-    The game tree T (from Alice's perspective) is defined as follows.
-    T has a set V(T) of nodes (aka vertices) and a set E(T) of edges.
+  \begin{itemize}[<+->]
+    \item The game tree $T$ (from Alice's perspective) is defined as follows.
+    $T$ has a set $V(T)$ of nodes (aka vertices) and a set $E(T)$ of edges.
+    \item Each node $v$ belongs to a single player, $p(v)$, called "\textcolor{blue}{the player to act
+    at $v$}"; $p(v) := 3$ if $v$ is a leaf node. At node $v$, the player $p(v)$ has a set
+    $C(v) \subset A_p$ of possible moves.
+    \item For each player $p \in \{0, 1, 2\}$,
+      the set of all nodes at which $p$ acts is called the nodes of $p$,
+    denoted $V_p(T)$.% Thus $v(0)$, $v(1)$, and $v(2)$ form a partition of $V(T)$.
+  \item There are two kinds of nodes: the \textcolor{blue}{leaf nodes} $L(T)$, at which the game must
+    end and \textcolor{blue}{decision nodes} $D(T)$, at which the player to act must make a move.
+    \textcolor{orange}{For example in Poker,
+    a leaf node is reached at countdown, or when a player folds, or when the
+    player runs out of money.}
+    \item  There is a special node \textcolor{blue}{root}(T) defined by $root(T) := (/, p_0)$,
+
+    \item In accordance with the rules of the game, every other node
+      $y \in V(T)-\{root(T)\}$ is of the form $y = v.(c, p(v))$
+
+  \end{itemize}
 \end{frame}
   
+\begin{frame}
+  \frametitle{Sequences and payoff matrix}
+  \begin{itemize}[<+->]
+    \item Let $S_p$ be the sequences of moves for player $p$. Then any $\sigma \in S_p$ is either the empty sequence $\empty$ set or can be written as $\sigma_{h_p} c$ where $h_p$ is an information set of $p$ and $c$ is a choice at $h_p$.
+      \item Precisely,
+        \begin{equation}
+          S_p = \{\emptyset\} \cup \{\sigma_{h}c\text{ }|\text{ }h \in H_{p}, c \in C_h\}
+        \end{equation}
+        \item The payoff matrix $A = (a_{\sigma,\tau})$ by
+          \begin{equation}
+            a_{\sigma,\tau} := \sum_{\text{leaf }t:\text{ } \sigma_1(t) = \sigma, \sigma_2(t) = \tau}\beta_0(\sigma_0(t))a(t)
+            \end{equation}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{NE computation Kuhn's Poker}
+  \[   E = \left( \begin{array}{ccccccccccccc}
+1&0&0&0&0&0&0&0&0&0&0&0&0\\-1&0&0&0&0&0&0&0&0&1&0&0&1\\-1&1&0&0&1&0&0&0&0&0&0&0&0\\-1&0&0&0&0&1&0&0&1&0&0&0&0\\0&-1&1&1&0&0&0&0&0&0&0&0&0\\0&0&0&0&0&-1&1&1&0&0&0&0&0\\0&0&0&0&0&0&0&0&0&-1&1&1&0
+\end{array} \right),\]
+  $e = (1, 0, 0, 0, 0, 0, 0)$
+
+  %% \begin{figure}
+  %%   \includegraphics[width=7cm]{Kuhn3112_NE.pdf}
+  %%   \includegraphics[width=5cm]{Kuhn3112_payoff.pdf}
+  %%   \caption{\textbf{Left}: 2-simplex \textbf{Middle}: 7-simplex \textbf{Right}: 10-simplex}
+  %% \end{figure}
+\end{frame}
 
 \begin{frame}
   \frametitle{Non-Linear Ledoit-Wolf: Why? How?}

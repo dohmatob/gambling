@@ -903,16 +903,24 @@ if __name__ == "__main__":
         print "Nash Equilibrium:"
         print "x* = ", x
         print "y* =", y
-        plt.figure()
-        plt.semilogx(values)
+        plt.figure(figsize=(13.5, 10))
+        plt.semilogx(values, linewidth=4)
         value = values[-1]
         plt.axhline(value, linestyle="--",
-                   label="value of the game: %5.2e" % value)
-        plt.xlabel("k")
-        plt.ylabel("value of game after k iterations")
-        plt.legend(loc="best")
-        plt.title("%s: Sequence-form NE computation" % (
-                game.__class__.__name__))
+                   label="value of the game: %5.2e" % value, linewidth=4,
+                    color="k")
+        plt.xlabel("k", fontsize=25)
+        plt.ylabel("value of game after k iterations", fontsize=25)
+        plt.legend(loc="best", prop=dict(size=25))
+        # plt.title("%s: Sequence-form NE computation" % (
+        #         game.__class__.__name__))
+        plt.tick_params(axis='both', which='major', labelsize=20)
+        plt.savefig("%s_NE.pdf" % game.__class__.__name__)
+
+        tmpfig = plt.figure(figsize=(13.5, 10))
+        plt.matshow(game.payoff_matrix, fignum=tmpfig.number)
+        plt.axis("off")
+        plt.savefig("%s_payoff.pdf" % game.__class__.__name__)
 
         plt.figure()
         game.draw()
