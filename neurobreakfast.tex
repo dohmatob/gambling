@@ -29,7 +29,7 @@
 \usepackage{multirow}
 \usepackage{amsmath}
 \usepackage{stmaryrd}
-
+\usepackage{graphicx}
 \usepackage{bm}
 \setbeamercovered{transparent}
 
@@ -46,7 +46,7 @@
 
 \title[NeuroBreakfast - \today\hspace{\stretch{1}}
   (\insertframenumber{}/\inserttotalframenumber{})]{Solving two-person zero-sum sequential games
-via efficient computaion of Nash equilibria: proof-of-concept on Kuhn's 3-card Poker}
+via efficient computation of Nash equilibria: proof-of-concept on Kuhn's 3-card Poker}
 \author{DOHMATOB Elvis \inst{1,2}}
 \institute{
   \inst{1}Parietal Team, INRIA\\\inst{2}Universit\'e Paris-Sud}
@@ -89,31 +89,70 @@ via efficient computaion of Nash equilibria: proof-of-concept on Kuhn's 3-card P
   \begin{itemize}[<+->]
       \item There are 3 players: \textcolor{blue}{nature (player 0)}, \textcolor{red}{Alice (player 1)}, and \textcolor{green}{Bob (player 2)}.}
     \item Players take turns in making moves
-    \item Set of moves of any two distinct players don't
+    \item Sets of moves of any two distinct players don't
       overlap (i.e \textcolor{red}{$A_p \cap A_q = \emptyset$ if $p \ne q$})
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Minimax NE problem for general sequential game}
-  \begin{equation}
-    \underset{x \in Q_1}{maximize}\text{ }\underset{y \in \mathbb{R}_+^m, Fy=f}{minimize}\text{ }y^TAx,
-  \end{equation}
-
-\uncover<2>{
-  where:
-  \begin{equation}
-    \left .
-    \begin{split}
-      Q_1 &:= \{x \in \mathbb{R}_+^n\text{ }|\text{ }Ex=e\} \text{ is \textcolor{blue}{Alice's complex}, and}\\
-      Q_2 &:= \{y \in \mathbb{R}_+^m\text{ }|\text{ }Fy=f\} \text{ is \textcolor{red}{Bob's complex}.}
-    \end{split}
-    \right\}
-  \end{equation}
-}
+\frametitle{Strategy profiles, simplexes and complexes}
+\begin{definition}
+  \begin{itemize}[<+->]
+    \item The \textcolor{blue}{$n$-\textit{simplex}}, denoted $\Delta_n$, is the subset of $\mathbb{R}^{n+1}$ defined by
+      \begin{equation}
+        \Delta_n := \left\{x \in \mathbb{R}^{n+1}\text{ }|\text{ } x_i \ge 0\text{ } \forall i, \text{ and } \sum_{i=1}^{n+1}{x_i} = 1\right\}
+      \end{equation}
+    \item Each kink $\delta_i := (0, ..., 0,1,0, ...,0)$ of $\Delta_n$ represents a \textit{\textcolor{blue}{pure-strategy}}.
+      Any non-kink point $x$ of $\Delta_n$ represents a
+      \textit{\textcolor{blue}{mixed-strategy}}. Thus $\Delta_n$ is simply the \textit{convex hall} of $(n+1)$-dimensional pure strategies $\delta_i$.
+    \item A \textit{\textcolor{blue}{complex}} is an abstract \textit{\textcolor{blue}{polyhedron}} whose kinks are themselves simplexes. Points on
+      a complex correspond to \textit{\textcolor{blue}{behavioural strategies}}.
+  \end{itemize}
+\end{definition}
 \end{frame}
 
 \begin{frame}
+\frametitle{Simplexes and complexes (examples of)}
+\begin{figure}
+  \includegraphics[width=3cm]{simplex.png}
+  \includegraphics[width=3cm]{7-simplex.png}
+  \includegraphics[width=3cm]{10-simplex.png}
+  \caption{\textbf{Left}: 2-simplex \textbf{Middle}: 7-simplex \textbf{Right}: 10-simplex}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{NE minimax and best-response in sequential-games}
+Thanks to the sequence-form representation, we have:
+\begin{itemize}[<+->]
+\item NE problem for Alice and Bob is the the \textit{\textcolor{blue}{saddle-point problem}}
+  \begin{equation}
+    \underset{x \in Q_1}{maximize}\text{ }\underset{y \in Q_2}{minimize}\text{ }y^TAx,
+    \label{eq:minimax_stengel}
+  \end{equation}
+  
+  \uncover<2>{
+    where:
+   \begin{equation}
+     \left .
+     \begin{split}
+       Q_1 &:= \{x \in \mathbb{R}_+^n\text{ }|\text{ }Ex=e\} \text{ is \textcolor{blue}{Alice's complex, and}}\\
+       Q_2 &:= \{y \in \mathbb{R}_+^m\text{ }|\text{ }Fy=f\} \text{ is \textcolor{red}{Bob's complex}.}
+     \end{split}
+      \right\}
+   \end{equation}
+   A saddle-point $(x^*, y^*)$ corresponds to a NE for the game.
+   \item Given a fixed behavioural strategy $y_0 \in Q_2$ for Bob, a \textit{\textcolor{blue}{best-response}} behavioural strategy $x_0$ for Alice
+     \footnote{Of course, there is an analogous concept for Bob.}
+    is a solution to the LCP
+    \begin{equation}
+      \underset{x\in Q_1}{maximize}\text{ }{y_0^TAx}
+    \end{equation}
+}
+  \end{itemize}
+\end{frame}
+    
+    \begin{frame}
   \frametitle{Two-person zero sum Sequential games}
     The game tree T (from Alice's perspective) is defined as follows.
     T has a set V(T) of nodes (aka vertices) and a set E(T) of edges.

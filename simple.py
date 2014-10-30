@@ -402,7 +402,7 @@ class Game(object):
                     row[i] = -1.
                     row[where] = 1.
                     E.append(row)
-            # right handside
+            # right handside, e
             e = np.zeros(len(self.infosets[player]) + 1)
             e[0] = 1.
             self.constraints[player] = np.array(E), e
@@ -419,7 +419,7 @@ class Game(object):
         Use tricks in equation (38) of "Smoothing Techniques for Computing Nash
         Equilibria of Sequential Games" http://repository.cmu.edu/cgi
         /viewcontent.cgi?article=2442&context=compsci to compute the payoff
-        matrix as a block diagonal matrix whose blocs are sums of Kronecker
+        matrix as a block diagonal matrix whose blocks are sums of Kronecker
         products of sparse matrices. This can be done by appropriately
         permuting the list of sequences of each (non-chance) player.
         """
@@ -655,6 +655,7 @@ class NashPlayer(Player):
     def __init__(self, name, player, game):
         super(NashPlayer, self).__init__(name, player, game)
         self.game = game
+        self.sequences = self.game.sequences[self.player]
         self.compute_optimal_rplan()
         self.location = "(/,0)"
 
@@ -669,7 +670,6 @@ class NashPlayer(Player):
         A = self.game.payoff_matrix
         x, y, _ = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
         self.rplan = np.array([x, y][self.player - 1])
-        self.sequences = self.game.sequences[self.player]
 
     def choice(self, choices):
         """Makes a choice at give node, according to our optimal realization
