@@ -252,6 +252,13 @@ class Game(object):
         self.tree.node[node]["info"] = dict(chance=info[0], sigma=info[1],
                                             choices=info[2])
 
+    def unpack_choice(self, choice):
+        """Splits a choice into the a pair (char, int) pair, namely (c, p)
+        where `c` is the character representing the choice and `p` is the
+        player to act next."""
+        choice, next_player = re.match("^\((.),(\d)\)$", choice).groups()
+        return choice, int(next_player)
+
     def add_labelled_edge(self, src, choice, next_player, choices=None,
                           proba=1., **kwargs):
         """Adds a labelled edge to the tree.
@@ -264,7 +271,7 @@ class Game(object):
         next_player : int
             Player to move at a node `src`.
 
-        choice : char
+        choice : string of the for "(%c,%i)"
             The choice made by player at node `src`.
 
         choices : list, optional (default None)
@@ -277,7 +284,10 @@ class Game(object):
         **kwargs : value-pair dict-like
             Additional data to store at destination node.
         """
-        dst = "%s.(%s,%s)" % (src, choice, next_player)
+        choice_ = "(%s,%i)" % (choice, next_player)
+        if not choice_ in self.tree.node[src]["info"]["choices"]:
+            raise RuntimeError("%s is not a choice at %s" % (choice_, src))
+        dst = "%s.%s" % (src, choice_)
         assert 0. < proba <= 1.
         proba *= self.tree.node[src].get("proba", 1.)
         self.tree.add_node(dst, proba=proba, **kwargs)
@@ -290,6 +300,7 @@ class Game(object):
         return dst
 
     def level_first_traversal(self, player=None):
+        """Level-first traversal of the game tree."""
         root = "(/,0)"
         _skip = lambda node: False if player is None else (
             self.previous_player(node) != player)
@@ -478,8 +489,7 @@ class Kuhn3112(Game):
                 return self.PLAYER_CHOICES[0][i]
             elif player == 2 and x.endswith(part):
                 return self.PLAYER_CHOICES[0][i]
-        else:
-            raise RuntimeError
+        raise RuntimeError("Shouldn't be here")
 
     def cmp_cards(self, a, b):
         """Compares two cards lexicographically."""
@@ -550,8 +560,7 @@ class SimplifiedPoker(Game):
                 return self.PLAYER_CHOICES[0][i]
             elif player == 2 and x.endswith(part):
                 return self.PLAYER_CHOICES[0][i]
-        else:
-            raise RuntimeError
+        raise RuntimeError("Shouldn't be here!")
 
     def cmp_cards(self, a, b):
         """Compares two cards lexicographically."""
@@ -770,11 +779,11 @@ class Duel(object):
         assert choice in choices
         if self.verbose:
             print "%s: %s" % (player.name, choice)
+
         # let other player observe what has just been played
         if p == 0:
             # blur
-            c, next_player = re.match("^\((.),(\d)\)$", choice).groups()
-            next_player = int(next_player)
+            c, next_player = self.game.unpack_choice(choice)
             for i in xrange(2):
                 c_ = self.game.blur(c, i + 1)
                 self.players[i].observe(0, "(%s,%i)" % (c_, next_player))
