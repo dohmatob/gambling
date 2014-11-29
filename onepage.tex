@@ -48,10 +48,12 @@
 % applicative context remains a difficult challenge.
 % XXX : don't call it SPM but just "predictive regions or predictive
 % maps"
-In this manuscript we present a simple primal-dual algorithm for computing Nash equilibria and best reponse strategies in  sequential games with
+In this manuscript, we present a simple primal-dual algorithm for computing Nash equilibria and best reponse strategies in  sequential games with
 imcomplete information and perfect recall. The proposed algorithm derives from the primal-dual scheme of A. Chambolle and T. Pock, applied to the
-equilibrium and best response strategy problems for the sequence form representation of the game. We use a dualization trick to render all
-proximity operators computable in closed-form.
+equilibrium and best response strategy problems in the sequence-form representation of the game. Our technique is to use a dualization
+trick and unconstrain the saddle-point problem. All proximal operators in the resulting primal-dual algorithm are simple,
+only involving nonnegative thresholding and translations.
+The convergence and convergence rate of our algorithm derive explicitly from the general Chambolle-Pock primal-dual scheme.
 
 %% In this manuscript, we consider the problem of computing a best response against an opponent's realization plan in two-person sequential games.
 %% The proposed algorithm for solving the corresponding contrained convex-optimization problem, derives from the primal-dual scheme of A. Chambolle and T. Pock.
@@ -63,28 +65,12 @@ proximity operators computable in closed-form.
 
 
 \begin{IEEEkeywords}
-  game theory; Nash equilibrium; two-person sequential game; imcomplete information; perfect recall; sequence-form representaion; best response strategy;
-  convex-optimization; dualization; primal-dual algorithms
+  game theory; Nash equilibrium; two-person zero-sum game; sequential game; imcomplete information; perfect recall; sequence-form representaion;
+  best response strategy; convex-optimization; dualization; proximal operator; primal-dual algorithms
 \end{IEEEkeywords}
 
 \section{Introduction}
 %\label{sec:intro}
-\subsection{Notation and Terminology}
-Give positive integers $m$ and $n$, $\mathbb{R}^{n}$ denotes the $n$-dimensional real vector space, and $\mathbb{R}^{m \times n}$
-the space of all $m$-by-$n$ real matrices. $0_{m,n}$ denotes the $m$-by-$n$ matrix of zeros.
-$\mathbb{R}^n_+$ := $\{x \in \mathbb{R}^n|x_j \ge 0 \text{ }  \forall j\}$ is the $n$-dimensional \textit{nonnegati
-ve orthant}.
-For a vector $x \in \mathbb{R}^n$, $\|x\|$ denotes the $2$-\textit{norm} of $x$ defined by $\|x\| := \sqrt{x^Tx}$.
-$(x)_+$ denotes its point-wise maximum with 0. Note that $(x)_+ \in \mathbb{R}^n_+$.
-For example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The \textit{spectral norm} of a matrix $K$, denoted $\|K\|$, is defined by
-$\|K\| := \underset{x \ne 0}{max}\text{ }\frac{\|Kx\|}{\|x\|}$. Equivalently, $\|K\|$ is the largest \textit{singular value} of $K$, i.e the largest
-\textit{eigen-value} of $K^TK$. Given a convex subset $C$ of $\mathbb{R}^n$, $i_C$ denotes its \textit{indicator function} defined by
-$i_C(x) = 0$ if $x \in C$ and $i_C(x) = +\infty$ otherwise. Finally, given a \textit{proper} convex function (i.e a convex function which takes a finite
-value at least a one point) $f : \mathbb{R}^n \rightarrow [0, +\infty]$, and a positive real number $\tau$, the \textit{proximal operator} of $f$ of rank $\tau$,
-denoted $\text{prox}_{\tau f}$ is the function which maps a point $x \in \mathbb{R}^n$ to the (necessarily unique) solution of the problem
-\begin{equation}
-  \underset{z \in \mathbb{R}^n}{argmin}\text{ }\frac{1}{2}\|z - x\|^2 + \tau f(z)
-\end{equation}
 
 %% We will be needing the following notation: %%  The reader should lookup any standard textbook
 %% %% (for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions.
@@ -107,11 +93,11 @@ denoted $\text{prox}_{\tau f}$ is the function which maps a point $x \in \mathbb
 We are interested in the problem of computing a Nash equilibrium for a two-person zero-sum sequential game with imcomplete information
 and perfect recall (e.g Texas Hold'em Poker, etc.). In the \textit{sequence-form representation} of the game, the problem has the following saddle-point formulation
 \begin{equation}
-  \underset{y \in Q_2}{minimize}\text{ }\underset{x \in Q_1}{maximize}\text{ }{y^TAx}
+  \underset{y \in Q_2}{minimize}\text{ }\underset{x \in Q_1}{maximize}\text{ }{x^TAy}
   \label{eq:opt_pb}
 \end{equation}
 
-where $Q_j := \{z \in \mathbb{R}_+^{n_j}|E_jz=e_j\}$, for $j \in \{1, 2\}$. As usual, the ``minimize-maximize'' notation in problem
+where $Q_j := \{z \in \mathbb{R}^{n_j}|z \ge 0, E_jz=e_j\}$, for $j \in \{1, 2\}$. As usual, the ``minimize-maximize'' notation in problem
 \eqref{eq:opt_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution iff
 \begin{equation}
   {y^*}^TAx \le y^TAx \le y^TAx^*, \forall (x, y) \in Q_1 \times Q_2
@@ -120,7 +106,7 @@ Such pairs correspond to the Nash equilibria of the game.
 
 We recall that $E_j$ is a $p_j$-by-$n_j$ matrix whose
 entries are $-1$, $0$, or $+1$, and $e_j := (1, 0, 0, ..., 0)$ is a vector of length $p_j$. We also recall that $E_1$ and $e_1$ (resp. $E_2$ and $e_2$)
-encode linear constraints on our (resp. the opponent's)  ``admissible'' realization $x$ (resp. $y$). $A$ is the payoff matrix, of size $n_2 \times n_1$.
+encode linear constraints on our (resp. the opponent's)  ``admissible'' realization $x$ (resp. $y$). $A$ is the payoff matrix, of size $n_1 \times n_2$.
 
 
 \begin{remark}
@@ -145,22 +131,42 @@ This sparsity should be thoroughly exploited by a solver for problem \eqref{eq:o
 \section{The proposed algorithm}
 We preprose to solve problem \eqref{eq:opt_pb} using the primal-dual scheme of A. Chambolle and T. Pock.
 Though this scheme has recently gained considerable popularity in the signal processing community, to the best of our knowledge,
-this is the first time it is being applied to game theoretic problems.
+this is the first time it is being applied to compute Nash equilibria.
+
+We first introduce some fundamental notations, and then proceed to derive the algorithm. The convergence and convergence rate
+of our algorithm derive explicitly from the general Chambolle-Pock primal-dual scheme.
+
+\subsection{Notation and Terminology}
+Give positive integers $m$ and $n$, $\mathbb{R}^{m \times n}$ denotes
+the space of all $m$-by-$n$ real matrices. $0_{m,n}$ denotes the $m$-by-$n$ matrix of zeros.
+$\mathbb{R}^n_+$ := $\{x \in \mathbb{R}^n|x_j \ge 0 \text{ }  \forall j\}$ is the $n$-dimensional \textit{nonnegative orthant}.
+For a vector $x \in \mathbb{R}^n$, $\|x\|$ denotes the $2$-\textit{norm} of $x$ defined by $\|x\| := \sqrt{x^Tx}$.
+$(x)_+$ denotes its point-wise maximum with 0. Note that $(x)_+ \in \mathbb{R}^n_+$.
+For example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The \textit{spectral norm} of a matrix $K$, denoted $\|K\|$, is defined by
+\footnote{Equivalently, $\|K\|$ is the largest \textit{singular value} of $K$, i.e the largest \textit{eigen-value} of $K^TK$.}
+$\|K\| := \underset{x \ne 0}{max}\text{ }\frac{\|Kx\|}{\|x\|}$.
+
+Given a \textit{convex subset} $C$ of $\mathbb{R}^n$, $i_C$ denotes its \textit{indicator function} defined by
+$i_C(x) = 0$ if $x \in C$ and $i_C(x) = +\infty$ otherwise. Note that $i_{C \cap D} = i_C + i_D$. Finally, given a \textit{proper convex
+function} (i.e a convex function which takes a finite
+value at least a one point) $f : \mathbb{R}^n \rightarrow [0, +\infty]$, and a positive real number $\tau$, the \textit{proximal operator} of $f$ of rank $\tau$,
+denoted $\text{prox}_{\tau f}$ is the function which maps a point $x \in \mathbb{R}^n$ to the (necessarily unique) solution of the problem
+\begin{equation}
+  \underset{z \in \mathbb{R}^n}{argmin}\text{ }\frac{1}{2}\|z - x\|^2 + \tau f(z)
+\end{equation}
 
 %% \label{sec:algo}
 %% In this section we present the algorithm which is the purpose of this paper, namely an algorithm
 %% for solving \eqref{eq:opt_pb}. Our algorithm (Alg.\ref{Tab:algo}) is a use-case of
 %% the generic primal-dual algorithm of A. Chambolle and T. Pock, namely Algorithm 1 of \cite{chambolle2010}.
 
-Now, observe that
-\begin{eqnarray*}
-  i_{Q_j}(z) = i_{\mathbb{R}^{n_j}_+}(z) + \underset{w \in \mathbb{R}^{n_j}}{max}\text{}{w^T(E_jz - e_j)}, \forall z \in \mathbb{R}^{n_j},
-\end{eqnarray*}
+\subsection{Derivation of the algorithm}
+Observe that $i_{Q_j}(z) = i_{\mathbb{R}^{n_j}_+}(z) + \underset{w \in \mathbb{R}^{n_j}}{max}\text{}{w^T(E_jz - e_j)}, \forall z \in \mathbb{R}^{n_j}$,
 and so problem \eqref{eq:opt_pb} can be re-written as
 
 \begin{equation}
   \underset{y \in \mathbb{R}^{n_2}, v\in \mathbb{R}^{p_1}}{minimize}\text{ }\underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{p_2}}{maximize}
-           {\begin{bmatrix}y\\v\end{bmatrix}^TK\begin{bmatrix}x\\u\end{bmatrix} + G(y, v) - F(x, u)}
+           {\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + G(y, v) - F(x, u)}
   \label{eq:my_opt_pb}
 \end{equation}
 
@@ -174,7 +180,7 @@ where:
         A & E_1^T \\ \hline
         E_2 & 0_{p_2, p_1}
       \end{array}
-      \right] \in \mathbb{R}^{(n_2 + p_1) \times (n_1 + p_2)} \\
+      \right] \in \mathbb{R}^{(n_1 + p_2) \times (n_2 + p_1)} \\
     %%\begin{bmatrix}A \text{ } E_1^T\\ E_2 \text{ } 0\end{bmatrix} \in \mathbb{R}^{(n_2 + p_1) \times (n_1 + p_2)}\\
       G: \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} \rightarrow [0, +\infty], (y, v) \mapsto i_{\mathbb{R}^{n_2}_+}(y) - v^Te_1\\
       F: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} \rightarrow [0, +\infty], (x, u) \mapsto i_{\mathbb{R}^{n_1}_+}(x) - u^Te_2
