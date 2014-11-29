@@ -271,12 +271,12 @@ if __name__ == "__main__":
     """
 
     ### Load the game tree ###################################################
-    import scipy.io
-    game = scipy.io.loadmat('game.mat')
-    A, P, Q, a, b = [game[key] for key in "APQab"]
-    A = A.T
-    a = a.ravel()
-    b = b.ravel()
+    # import scipy.io
+    # game = scipy.io.loadmat('game.mat')
+    # A, P, Q, a, b = [game[key] for key in "APQab"]
+    # A = A.T
+    # a = a.ravel()
+    # b = b.ravel()
     A = np.zeros((5, 3))
     A[2:4, 1:] = [[1, -1], [-2, 4]]
     A[-1, 0] = 1

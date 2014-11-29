@@ -1,0 +1,242 @@
+\documentclass[a4paper,9pt,journal]{IEEEtran}
+\usepackage{graphicx} \usepackage[cmex10]{amsmath}
+\usepackage{amssymb} \usepackage{fancybox} \usepackage{alltt}
+\usepackage{soul} \usepackage{color} \usepackage{verbatim}
+\usepackage{xcolor} \usepackage{colortbl,hhline}
+\usepackage[ruled,vlined]{algorithm2e} \usepackage{framed}
+\usepackage{amsthm} \usepackage{fancyref}
+\usepackage{amsmath,amsfonts,amssymb, amsthm} \usepackage{textcomp}
+
+\newtheorem{remark}{Remark}
+
+\def \lb {{\langle}} \def \rb {{\rangle}}
+\newcommand{\fro}[1]{\|#1\|_2}
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+
+\usepackage{hyperref}
+
+
+\newtheorem{theorem}{Theorem} \newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+
+
+\newcommand{\prox}{\textrm{pr ox} } \newcommand{\grad}{\textrm{grad} }
+\newcommand{\dive}{\textrm{div} }
+
+\pagenumbering{gobble}
+
+\begin{document}
+\onecolumn
+\title{A fast and simple primal-dual algorithm for computing Nash equilibria and best response strategies
+  in two-person zero-sum sequential games with imcomplete information}
+
+
+\author{\IEEEauthorblockN{DOHMATOB Elvis}}
+
+
+\maketitle
+
+\begin{abstract}
+% LESS THAN 200 WORDS !!!!!
+% 
+% While medical imaging typically provides massive amounts of
+% data, the extraction of relevant information in a given
+% applicative context remains a difficult challenge.
+% XXX : don't call it SPM but just "predictive regions or predictive
+% maps"
+In this manuscript we present a simple primal-dual algorithm for computing Nash equilibria and best reponse strategies in  sequential games with
+imcomplete information and perfect recall. The proposed algorithm derives from the primal-dual scheme of A. Chambolle and T. Pock, applied to the
+equilibrium and best response strategy problems for the sequence form representation of the game. We use a dualization trick to render all
+proximity operators computable in closed-form.
+
+%% In this manuscript, we consider the problem of computing a best response against an opponent's realization plan in two-person sequential games.
+%% The proposed algorithm for solving the corresponding contrained convex-optimization problem, derives from the primal-dual scheme of A. Chambolle and T. Pock.
+%% Our algorithm is simple: all resolvent operators can be effectively computed in closed-form, using only elementary algebraic operations.
+%%  and is orders of magnitude more efficient than state-of-the-art algorithms like those based on Linear Programming, Interior-Point methods,
+%% and more recently, the Nesterov Excessive Gap Technique.
+% By way of example, we conclude by exhibiting results on Texas Hold'em Poker.
+\end{abstract}
+
+
+\begin{IEEEkeywords}
+  game theory; Nash equilibrium; two-person sequential game; imcomplete information; perfect recall; sequence-form representaion; best response strategy;
+  convex-optimization; dualization; primal-dual algorithms
+\end{IEEEkeywords}
+
+\section{Introduction}
+%\label{sec:intro}
+\subsection{Notation and Terminology}
+Give positive integers $m$ and $n$, $\mathbb{R}^{n}$ denotes the $n$-dimensional real vector space, and $\mathbb{R}^{m \times n}$
+the space of all $m$-by-$n$ real matrices. $0_{m,n}$ denotes the $m$-by-$n$ matrix of zeros.
+$\mathbb{R}^n_+$ := $\{x \in \mathbb{R}^n|x_j \ge 0 \text{ }  \forall j\}$ is the $n$-dimensional \textit{nonnegati
+ve orthant}.
+For a vector $x \in \mathbb{R}^n$, $\|x\|$ denotes the $2$-\textit{norm} of $x$ defined by $\|x\| := \sqrt{x^Tx}$.
+$(x)_+$ denotes its point-wise maximum with 0. Note that $(x)_+ \in \mathbb{R}^n_+$.
+For example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The \textit{spectral norm} of a matrix $K$, denoted $\|K\|$, is defined by
+$\|K\| := \underset{x \ne 0}{max}\text{ }\frac{\|Kx\|}{\|x\|}$. Equivalently, $\|K\|$ is the largest \textit{singular value} of $K$, i.e the largest
+\textit{eigen-value} of $K^TK$. Given a convex subset $C$ of $\mathbb{R}^n$, $i_C$ denotes its \textit{indicator function} defined by
+$i_C(x) = 0$ if $x \in C$ and $i_C(x) = +\infty$ otherwise. Finally, given a \textit{proper} convex function (i.e a convex function which takes a finite
+value at least a one point) $f : \mathbb{R}^n \rightarrow [0, +\infty]$, and a positive real number $\tau$, the \textit{proximal operator} of $f$ of rank $\tau$,
+denoted $\text{prox}_{\tau f}$ is the function which maps a point $x \in \mathbb{R}^n$ to the (necessarily unique) solution of the problem
+\begin{equation}
+  \underset{z \in \mathbb{R}^n}{argmin}\text{ }\frac{1}{2}\|z - x\|^2 + \tau f(z)
+\end{equation}
+
+%% We will be needing the following notation: %%  The reader should lookup any standard textbook
+%% %% (for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions.
+%% Viz,
+%% \begin{itemize}
+%% \item $\mathbb{R}^n$: $n$-dimensional real vector space;
+%% \item $\mathbb{R}^{m \times n}$: \quad space of all $m$-by-$n$ real matrices;
+%% \item $0_{m,n}$: $m$-by-$n$ matrix of zeros;
+%% \item $(x)_+$: \quad component-wise maximum of a vector $x$ and 0;
+%% \item $\mathbb{R}^n_+$: \quad $\{x \in \mathbb{R}^n|x = (x)_+\}$, the $n$-dimensional nonnegative orthant 
+%% \item $i_C$: \quad indicator function of a convex set $C$;
+%% % \item $\Pi_C$: \quad euclidean projector onto a convex set $C$;
+%% \item $\|K\|_2$: \quad spectral norm of a matrix $K$
+%% % \item $F^*$: the convex conjugate of a convex function $F$.
+%% %% \item \textit{l.s.c.p.c}: \quad acronym for adjective \textit{lower semi-continuous proper convex};
+%% %% \item $f^*$: \quad Fenchel transform (a.k.a convex conjugate) of a \textit{l.s.c.p.c} function $f$;
+%% \end{itemize}
+
+\subsection{Statement of the problem}
+We are interested in the problem of computing a Nash equilibrium for a two-person zero-sum sequential game with imcomplete information
+and perfect recall (e.g Texas Hold'em Poker, etc.). In the \textit{sequence-form representation} of the game, the problem has the following saddle-point formulation
+\begin{equation}
+  \underset{y \in Q_2}{minimize}\text{ }\underset{x \in Q_1}{maximize}\text{ }{y^TAx}
+  \label{eq:opt_pb}
+\end{equation}
+
+where $Q_j := \{z \in \mathbb{R}_+^{n_j}|E_jz=e_j\}$, for $j \in \{1, 2\}$. As usual, the ``minimize-maximize'' notation in problem
+\eqref{eq:opt_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution iff
+\begin{equation}
+  {y^*}^TAx \le y^TAx \le y^TAx^*, \forall (x, y) \in Q_1 \times Q_2
+\end{equation}
+Such pairs correspond to the Nash equilibria of the game.
+
+We recall that $E_j$ is a $p_j$-by-$n_j$ matrix whose
+entries are $-1$, $0$, or $+1$, and $e_j := (1, 0, 0, ..., 0)$ is a vector of length $p_j$. We also recall that $E_1$ and $e_1$ (resp. $E_2$ and $e_2$)
+encode linear constraints on our (resp. the opponent's)  ``admissible'' realization $x$ (resp. $y$). $A$ is the payoff matrix, of size $n_2 \times n_1$.
+
+
+\begin{remark}
+  In practice, the matrices $A$, $E_1$, and $E_2$ are large but very sparse too.
+%% : $A$ will be sparse because a concrete sequential game will
+%% typically have very few\footnote{Few, relative to the size of the game tree.} leafs, and only a few
+%% combinations of sequences of moves of the players, will actually lead to a leaf (i.e. end the game);
+%% $E$ and $F$ will be sparse because the kinks of possible sequences of moves of each player will
+%% zig-zag between only a limited number of the player's information sets so that a move at an information set will
+%% rarely\footnote{Relative to the number of information sets for the player.}  extend another information set.
+This sparsity should be thoroughly exploited by a solver for problem \eqref{eq:opt_pb}.
+\end{remark}
+
+%% In section \ref{sec:related_work}, we give a brief overview of existing methods for solving \eqref{eq:opt_pb}.
+%% We elaborate our proposed algorithm in section \ref{sec:algo}.
+
+%% \section{Related work}
+%% \label{sec:related_work}
+
+%% Pending...
+
+\section{The proposed algorithm}
+We preprose to solve problem \eqref{eq:opt_pb} using the primal-dual scheme of A. Chambolle and T. Pock.
+Though this scheme has recently gained considerable popularity in the signal processing community, to the best of our knowledge,
+this is the first time it is being applied to game theoretic problems.
+
+%% \label{sec:algo}
+%% In this section we present the algorithm which is the purpose of this paper, namely an algorithm
+%% for solving \eqref{eq:opt_pb}. Our algorithm (Alg.\ref{Tab:algo}) is a use-case of
+%% the generic primal-dual algorithm of A. Chambolle and T. Pock, namely Algorithm 1 of \cite{chambolle2010}.
+
+Now, observe that
+\begin{eqnarray*}
+  i_{Q_j}(z) = i_{\mathbb{R}^{n_j}_+}(z) + \underset{w \in \mathbb{R}^{n_j}}{max}\text{}{w^T(E_jz - e_j)}, \forall z \in \mathbb{R}^{n_j},
+\end{eqnarray*}
+and so problem \eqref{eq:opt_pb} can be re-written as
+
+\begin{equation}
+  \underset{y \in \mathbb{R}^{n_2}, v\in \mathbb{R}^{p_1}}{minimize}\text{ }\underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{p_2}}{maximize}
+           {\begin{bmatrix}y\\v\end{bmatrix}^TK\begin{bmatrix}x\\u\end{bmatrix} + G(y, v) - F(x, u)}
+  \label{eq:my_opt_pb}
+\end{equation}
+
+where:
+\begin{equation}
+  \left .
+  \begin{split}
+    K :=
+    \left[
+      \begin{array}{c|c}
+        A & E_1^T \\ \hline
+        E_2 & 0_{p_2, p_1}
+      \end{array}
+      \right] \in \mathbb{R}^{(n_2 + p_1) \times (n_1 + p_2)} \\
+    %%\begin{bmatrix}A \text{ } E_1^T\\ E_2 \text{ } 0\end{bmatrix} \in \mathbb{R}^{(n_2 + p_1) \times (n_1 + p_2)}\\
+      G: \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} \rightarrow [0, +\infty], (y, v) \mapsto i_{\mathbb{R}^{n_2}_+}(y) - v^Te_1\\
+      F: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} \rightarrow [0, +\infty], (x, u) \mapsto i_{\mathbb{R}^{n_1}_+}(x) - u^Te_2
+  \end{split}
+  \right\}
+\end{equation}
+
+It is clear that $G$ and $F$ are proper convex lower semi-continuous and a straightforward computation reveals that their proximal operators are given by
+\begin{equation}
+  \left .
+  \begin{split}
+    (1 + \tau \partial G)^{-1}: \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} \rightarrow \mathbb{R}^{n_2} \times \mathbb{R}^{p_1}, (y, v) \mapsto ((y)_+, v + \tau e_1)\\
+    (1 + \sigma \partial F)^{-1}: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} \rightarrow \mathbb{R}^{n_1} \times \mathbb{R}^{p_2}, (x, u) \mapsto ((x)_+, u + \sigma e_2)
+  \end{split}
+  \right\}
+\end{equation}
+
+%% \begin{algorithm}[htb]
+%%   \caption{Primal-dual algorithm for computing best response against opponent's fixed realization plan $y_0$}
+%%   \textbf{Given} Tolerance $\epsilon > 0$.\\
+%%   \textbf{Initialize} $\tilde{x^{(0)}} = x^{(0)} \in \mathbb{R}^n$; $\zeta^{(0)} \in \mathbb{R}^{q}$;
+%%   $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$; $k = 0$.\\
+%%   \textbf{Precompute} $\eta_0 \leftarrow \tau A^Ty_0$\\
+%%   \Repeat{
+%%     $\frac{\|x^{(k+1)} - x^{(k)}\|^2_2}{2\tau} + \frac{\|\zeta^{(k+1)} - \zeta^{(k)}\|^2_2}{2\sigma} < \epsilon$}{
+%%     \begin{eqnarray*}
+%%       \zeta^{(k+1)} &\leftarrow& \zeta^{(k)} - \sigma \bigl(e - E\tilde{x}^{(k)}\bigr)\\
+%%       x^{(k+1)} &\leftarrow& \bigl(x^{(k)} + \eta_0 + E^T\zeta^{(k+1)}\bigr)_+\\
+%%       \tilde{x}^{(k+1)} &\leftarrow& 2x^{(k+1)} - x^{(k)}\\
+%%       k &\leftarrow& k + 1
+%%     \end{eqnarray*}
+%%   } \Return $x^{(k)}$, $-y_0^TAx^{(k)}$
+%%   \label{Tab:algo}
+%% \end{algorithm}
+
+%% \subsection{Convergence analysis of the algorithm}
+%% Pending...
+
+%% \begin{remark}
+%% The derivation above reveals that in equation \eqref{eq:opt_pb} above, if the constraint ``$x \ge 0$'' is replaced by
+%% a constraint ``$x \in C$'' (thus obtaining a new problem) where $C$ is a convex set
+%% %% onto which euclidean projections
+%% %% can be easily computed (for example, a probability simplex)
+%% , then we simply need to replace the operator ``$(.)_+$''
+%% with ``$\Pi_C$'' in the equations to obtain a corresponding algorithm. Of course, this is because $i_C^* = \Pi_C$.
+%% \end{remark}
+
+%% \medskip \noindent
+%% \textbf{Acknowledgments:}
+%% Pending...
+
+% ==========
+% = biblio =
+% ==========
+% {\small
+\bibliographystyle{IEEEtran} \bibliography{IEEEabrv,bib_tv.bib,agt.bib}
+\end{document}
+
+
+
+
+%
+%
+
+
