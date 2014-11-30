@@ -310,6 +310,8 @@ if __name__ == "__main__":
     print "Nash Equilibrium:"
     print "x* = ", x
     print "y* =", y
+    print "Px^* - a = %s" % (P.dot(x) - a)
+    print "Qy^* - b = %s" % (Q.dot(y) - b)
 
     pl.figure()
     pl.plot(values, 's-')

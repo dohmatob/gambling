@@ -30,9 +30,8 @@
 \pagenumbering{gobble}
 
 \begin{document}
-\onecolumn
-\title{A fast and simple primal-dual algorithm for computing Nash equilibria and best response strategies
-  in two-person zero-sum sequential games with imcomplete information}
+%\onecolumn
+\title{A fast and simple primal-dual algorithm for computing Nash equilibria and best response strategies in two-person zero-sum games}
 
 
 \author{\IEEEauthorblockN{DOHMATOB Elvis}}
@@ -140,6 +139,7 @@ of our algorithm derive explicitly from the general Chambolle-Pock primal-dual s
 Give positive integers $m$ and $n$, $\mathbb{R}^{m \times n}$ denotes
 the space of all $m$-by-$n$ real matrices. $0_{m,n}$ denotes the $m$-by-$n$ matrix of zeros.
 $\mathbb{R}^n_+$ := $\{x \in \mathbb{R}^n|x_j \ge 0 \text{ }  \forall j\}$ is the $n$-dimensional \textit{nonnegative orthant}.
+
 For a vector $x \in \mathbb{R}^n$, $\|x\|$ denotes the $2$-\textit{norm} of $x$ defined by $\|x\| := \sqrt{x^Tx}$.
 $(x)_+$ denotes its point-wise maximum with 0. Note that $(x)_+ \in \mathbb{R}^n_+$.
 For example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The \textit{spectral norm} of a matrix $K$, denoted $\|K\|$, is defined by
@@ -147,9 +147,8 @@ For example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The \textit
 $\|K\| := \underset{x \ne 0}{max}\text{ }\frac{\|Kx\|}{\|x\|}$.
 
 Given a \textit{convex subset} $C$ of $\mathbb{R}^n$, $i_C$ denotes its \textit{indicator function} defined by
-$i_C(x) = 0$ if $x \in C$ and $i_C(x) = +\infty$ otherwise. Note that $i_{C \cap D} = i_C + i_D$. Finally, given a \textit{proper convex
-function} (i.e a convex function which takes a finite
-value at least a one point) $f : \mathbb{R}^n \rightarrow [0, +\infty]$, and a positive real number $\tau$, the \textit{proximal operator} of $f$ of rank $\tau$,
+$i_C(x) = 0$ if $x \in C$ and $i_C(x) = +\infty$ otherwise. Note that $i_{C \cap D} = i_C + i_D$. Finally, given a \textit{proper convex lower semi-continous
+function} (\textit{p.c.l.s.c} for short) $f : \mathbb{R}^n \rightarrow [0, +\infty]$, and a positive real number $\tau$, the \textit{proximal operator} of $f$ of rank $\tau$,
 denoted $\text{prox}_{\tau f}$ is the function which maps a point $x \in \mathbb{R}^n$ to the (necessarily unique) solution of the problem
 \begin{equation}
   \underset{z \in \mathbb{R}^n}{argmin}\text{ }\frac{1}{2}\|z - x\|^2 + \tau f(z)
@@ -161,8 +160,16 @@ denoted $\text{prox}_{\tau f}$ is the function which maps a point $x \in \mathbb
 %% the generic primal-dual algorithm of A. Chambolle and T. Pock, namely Algorithm 1 of \cite{chambolle2010}.
 
 \subsection{Derivation of the algorithm}
-Observe that $i_{Q_j}(z) = i_{\mathbb{R}^{n_j}_+}(z) + \underset{w \in \mathbb{R}^{n_j}}{max}\text{}{w^T(E_jz - e_j)}, \forall z \in \mathbb{R}^{n_j}$,
-and so problem \eqref{eq:opt_pb} can be re-written as
+Observe that $\forall (x, y) \in \mathbb{R}^{n_1} \times \mathbb{R}^{n_2}$, we have
+\begin{equation}
+  \left .
+  \begin{split}
+    -i_{Q_1}(x) &= -i_{\mathbb{R}^{n_1}_+}(x) + \underset{v \in \mathbb{R}^{p_1}}{min}\text{}{v^T(e_1 - E_1x)}\\
+  i_{Q_2}(y) &= i_{\mathbb{R}^{n_2}_+}(y) + \underset{u \in \mathbb{R}^{p_2}}{max}\text{}{u^T(E_2y - e_2)}
+  \end{split}
+  \right\}
+\end{equation}
+and so problem \eqref{eq:opt_pb} can be re-written in the unconstrained form
 
 \begin{equation}
   \underset{y \in \mathbb{R}^{n_2}, v\in \mathbb{R}^{p_1}}{minimize}\text{ }\underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{p_2}}{maximize}
@@ -170,51 +177,64 @@ and so problem \eqref{eq:opt_pb} can be re-written as
   \label{eq:my_opt_pb}
 \end{equation}
 
-where:
+where $v \in \mathbb{R}^{p_1}$ and $u \in \mathbb{R}^{p_2}$ are auxiliary dual variables and 
 \begin{equation}
   \left .
   \begin{split}
     K :=
     \left[
       \begin{array}{c|c}
-        A & E_1^T \\ \hline
+        A & -E_1^T \\ \hline
         E_2 & 0_{p_2, p_1}
       \end{array}
       \right] \in \mathbb{R}^{(n_1 + p_2) \times (n_2 + p_1)} \\
     %%\begin{bmatrix}A \text{ } E_1^T\\ E_2 \text{ } 0\end{bmatrix} \in \mathbb{R}^{(n_2 + p_1) \times (n_1 + p_2)}\\
-      G: \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} \rightarrow [0, +\infty], (y, v) \mapsto i_{\mathbb{R}^{n_2}_+}(y) - v^Te_1\\
-      F: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} \rightarrow [0, +\infty], (x, u) \mapsto i_{\mathbb{R}^{n_1}_+}(x) - u^Te_2
+      G: \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} \rightarrow [0, +\infty], (y, v) \mapsto i_{\mathbb{R}^{n_2}_+}(y) + e_1^Tv\\
+      F: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} \rightarrow [0, +\infty], (x, u) \mapsto i_{\mathbb{R}^{n_1}_+}(x) + e_2^Tu
   \end{split}
   \right\}
 \end{equation}
 
-It is clear that $G$ and $F$ are proper convex lower semi-continuous and a straightforward computation reveals that their proximal operators are given by
+It is clear that $G$ and $F$ are \textit{p.c.l.s.c} and a straightforward computation reveals that their proximal operators are given by
 \begin{equation}
   \left .
   \begin{split}
-    \text{prox}_{\tau G}: \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} \rightarrow \mathbb{R}^{n_2} \times \mathbb{R}^{p_1}, (y, v) \mapsto ((y)_+, v + \tau e_1)\\
-    (1 + \sigma \partial F)^{-1}: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} \rightarrow \mathbb{R}^{n_1} \times \mathbb{R}^{p_2}, (x, u) \mapsto ((x)_+, u + \sigma e_2)
+    \text{prox}_{\tau G} : \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} &\rightarrow \mathbb{R}^{n_2} \times \mathbb{R}^{p_1}\\
+    (y, v) &\mapsto ((y)_+, v - \tau e_1)\\
   \end{split}
   \right\}
 \end{equation}
 
-%% \begin{algorithm}[htb]
-%%   \caption{Primal-dual algorithm for computing best response against opponent's fixed realization plan $y_0$}
-%%   \textbf{Given} Tolerance $\epsilon > 0$.\\
-%%   \textbf{Initialize} $\tilde{x^{(0)}} = x^{(0)} \in \mathbb{R}^n$; $\zeta^{(0)} \in \mathbb{R}^{q}$;
-%%   $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$; $k = 0$.\\
-%%   \textbf{Precompute} $\eta_0 \leftarrow \tau A^Ty_0$\\
-%%   \Repeat{
-%%     $\frac{\|x^{(k+1)} - x^{(k)}\|^2_2}{2\tau} + \frac{\|\zeta^{(k+1)} - \zeta^{(k)}\|^2_2}{2\sigma} < \epsilon$}{
-%%     \begin{eqnarray*}
-%%       \zeta^{(k+1)} &\leftarrow& \zeta^{(k)} - \sigma \bigl(e - E\tilde{x}^{(k)}\bigr)\\
-%%       x^{(k+1)} &\leftarrow& \bigl(x^{(k)} + \eta_0 + E^T\zeta^{(k+1)}\bigr)_+\\
-%%       \tilde{x}^{(k+1)} &\leftarrow& 2x^{(k+1)} - x^{(k)}\\
-%%       k &\leftarrow& k + 1
-%%     \end{eqnarray*}
-%%   } \Return $x^{(k)}$, $-y_0^TAx^{(k)}$
-%%   \label{Tab:algo}
-%% \end{algorithm}
+and
+\begin{equation}
+  \left .
+  \begin{split}
+    \text{prox}_{\sigma F}: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} &\rightarrow \mathbb{R}^{n_1} \times \mathbb{R}^{p_2}\\
+    (x, u) &\mapsto ((x)_+, u - \sigma e_2)
+  \end{split}
+  \right\}
+\end{equation}
+
+Putting everything together, we obtain Algorithm \ref{Tab:algo}.
+
+\begin{algorithm}[htb]
+  \caption{Primal-dual algorithm for computing a Nash equilibrium of a two-person zero-sum game}
+  \textbf{initialize}
+  $x^{(0)} \in \mathbb{R}^{n_1}$; $v \in \mathbb{R}^{p_1}$; $\tilde{y^{(0)}}, y^{(0)} \in \mathbb{R}^{n_2}$; $u^{(0)} \in \mathbb{R}^{p_2}$; 
+  $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$ (for example take $\tau = \sigma = \frac{.99}{\|K\|}$); $k = 0$.\\
+  \Repeat{Convergence}{
+    \begin{eqnarray*}
+      x^{(k+1)} &\leftarrow& \left(x^{(k)} + \tau \left(A\tilde{y}^{(k)} - E_1^T\tilde{v}^{(k)}\right)\right)_+\\
+      u^{(k+1)} &\leftarrow& u^{(k)} + \tau \left(E_2\tilde{y}^{(k)} - e_2\right)\\
+      y^{(k+1)} &\leftarrow& \left(y^{(k)} - \sigma \left(A^Tx^{(k + 1)} + E_2^Tu^{(k + 1)}\right)\right)_+\\
+      v^{(k+1)} &\leftarrow& v^{(k)} - \sigma \left(e_1 - E_1x^{(k+1)}\right)\\
+      \tilde{y}^{(k+1)} &\leftarrow& 2y^{(k+1)} - y^{(k)}\\
+      \tilde{u}^{(k+1)} &\leftarrow& 2u^{(k+1)} - u^{(k)}\\
+      k &\leftarrow& k + 1
+    \end{eqnarray*}
+  } \Return $x^{(k)}$, $y^{(k)}$
+  \label{Tab:algo}
+\end{algorithm}
 
 %% \subsection{Convergence analysis of the algorithm}
 %% Pending...
