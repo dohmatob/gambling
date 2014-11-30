@@ -8,7 +8,7 @@ import numpy as np
 
 
 def power(A, p, max_iter=100, **kwargs):
-    """Power iteration to estimate spectral radius of an operator."""
+    """Power iteration to estimate spectral radius of a linear operator."""
     b = np.random.randn(p)
     for _ in xrange(max_iter):
         b = A(b, **kwargs)
