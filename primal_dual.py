@@ -23,7 +23,15 @@ def power(A, p, max_iter=100, **kwargs):
 
 def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
     """Primal-Dual algorithm for computing Nash equlibrium for two-person
-    zero-sum game with payoff matrix A and contrains Qj: Ejx = ej."""
+    zero-sum game with payoff matrix A and contraint sets
+
+        Qj := {z | z = (z)_+, Ejz = ej
+
+    The formal problem is:
+
+        minimize maximize <x, Ay>
+        y in Q2  x in Q1
+    """
     n1, n2 = A.shape
     p1, p2 = E1.shape[0], E2.shape[0]
 
