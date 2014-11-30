@@ -1,3 +1,6 @@
+# Primal-Dual algorithm for computing Nash equilibria in two-person
+# zero-sum games.
+#
 # author: DOHMATOB Elvis
 
 from math import sqrt
