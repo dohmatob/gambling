@@ -57,17 +57,17 @@ def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
         old_x = x.copy()
         old_u = u.copy()
 
-        # (x, u) update
+        # update x and u
         x += tau * (A.dot(ytilde) - E1.T.dot(vtilde))
         x = np.maximum(x, 0.)
         u += tau * (E2.dot(ytilde) - e2)
 
-        # (y, v) update
+        # update y and v
         y -= sigma * (A.T.dot(x) + E2.T.dot(u))
         y = np.maximum(y, 0.)
         v -= sigma * (e1 - E1.dot(x))
 
-        # (ytilde, vtile) update
+        # update ytilde and vtilde
         ytilde = 2 * y - old_y
         vtilde = 2 * v - old_v
 
