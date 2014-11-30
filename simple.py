@@ -678,7 +678,7 @@ class NashPlayer(Player):
         E, e = self.game.constraints[1]
         F, f = self.game.constraints[2]
         A = self.game.payoff_matrix
-        x, y, _ = primal_dual_ne(A, E, F, e, f, tol=0, max_iter=100)
+        x, y, _ = primal_dual_ne(A, E, F, e, f)
         self.rplan = np.array([x, y][self.player - 1])
 
     def choice(self, choices):
@@ -908,7 +908,7 @@ if __name__ == "__main__":
         E, e = game.constraints[1]
         F, f = game.constraints[2]
         A = game.payoff_matrix
-        x, y, values = primal_dual_ne(A, E, F, e, f, tol=0, max_iter=100)
+        x, y, values = primal_dual_ne(A, E, F, e, f)
         print
         print "Nash Equilibrium:"
         print "x* = ", x

@@ -46,6 +46,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
     vtilde = np.zeros_like(v)
 
     # main loop
+    values = []
     for k in xrange(max_iter):
         # backup variables
         old_y = y.copy()
@@ -68,6 +69,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
         vtilde = 2 * v - old_v
 
         # check convergence
+        values.append(x.T.dot(A.dot(y)))
         error = sqrt(((((x - old_x) ** 2).sum() + (
             u - old_u) ** 2).sum()) / tau + (((y - old_y) ** 2).sum() + (
                 (v - old_v) ** 2).sum() / sigma))
@@ -76,7 +78,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
         if error < tol:
             print "\tConverged after %i iterations." % (k + 1)
             break
-    return x, y
+    return x, y, values
 
 if __name__ == "__main__":
     # build the game
@@ -89,7 +91,7 @@ if __name__ == "__main__":
     e2 = np.eye(E2.shape[0])[0]
 
     # solve the game
-    x, y = primal_dual_ne(A, E1, E2, e1, e2)
+    x, y, _ = primal_dual_ne(A, E1, E2, e1, e2)
     print
     print "Nash Equilibrium:"
     print "x* = ", x
