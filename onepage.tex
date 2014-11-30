@@ -30,7 +30,7 @@
 \pagenumbering{gobble}
 
 \begin{document}
-%\onecolumn
+\onecolumn
 \title{A fast and simple primal-dual algorithm for computing Nash equilibria and best response strategies in two-person zero-sum games}
 
 
@@ -222,7 +222,7 @@ Putting everything together, we obtain Algorithm \ref{Tab:algo}.
   \textbf{initialize}
   $x^{(0)} \in \mathbb{R}^{n_1}$; $v \in \mathbb{R}^{p_1}$; $\tilde{y^{(0)}}, y^{(0)} \in \mathbb{R}^{n_2}$; $u^{(0)} \in \mathbb{R}^{p_2}$; 
   $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$ (for example take $\tau = \sigma = \frac{.99}{\|K\|}$); $k = 0$.\\
-  \Repeat{Convergence}{
+  \Repeat{$\frac{\|x^{(k+1)}-x^{(k)}\|^2 + \|v^{(k+1)}-v^{(k)}\|^2}{\sigma} + \frac{\|y^{(k+1)}-y^{(k)}\|^2 + \|u^{(k+1)}-u^{(k)}\|^2}{\tau} < \epsilon$}{
     \begin{eqnarray*}
       x^{(k+1)} &\leftarrow& \left(x^{(k)} + \tau \left(A\tilde{y}^{(k)} - E_1^T\tilde{v}^{(k)}\right)\right)_+\\
       u^{(k+1)} &\leftarrow& u^{(k)} + \tau \left(E_2\tilde{y}^{(k)} - e_2\right)\\

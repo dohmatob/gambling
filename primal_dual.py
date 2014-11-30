@@ -85,6 +85,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
     return x, y, values
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
     # build the game
     A = np.zeros((5, 3))
     A[2:4, 1:] = [[1, -1], [-2, 4]]
@@ -95,10 +96,15 @@ if __name__ == "__main__":
     e2 = np.eye(E2.shape[0])[0]
 
     # solve the game
-    x, y, _ = primal_dual_ne(A, E1, E2, e1, e2)
+    x, y, values = primal_dual_ne(A, E1, E2, e1, e2)
     print
     print "Nash Equilibrium:"
     print "x* = ", x
     print "y* =", y
     print "E1x^* - e1 = %s" % (E1.dot(x) - e1)
     print "E2y^* - e2 = %s" % (E2.dot(y) - e2)
+    plt.semilogx(values)
+    plt.axhline(values[-1], linestyle="--")
+    plt.xlabel("iteration (k)")
+    plt.ylabel("value of game after kth iterations")
+    plt.show()
