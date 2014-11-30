@@ -69,12 +69,14 @@ def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
         vtilde = 2 * v - old_v
 
         # check convergence
-        values.append(x.T.dot(A.dot(y)))
+        value = x.T.dot(A.dot(y))
+        print "Value of game: %g" % value
+        values.append(value)
         error = sqrt(((((x - old_x) ** 2).sum() + (
             u - old_u) ** 2).sum()) / tau + (((y - old_y) ** 2).sum() + (
                 (v - old_v) ** 2).sum() / sigma))
-        print "Primal-Dual iteration %i/%i: error=%.2e" % (
-            k + 1, max_iter, error)
+        print ("Primal-Dual iter %i/%i: value of game = %g,"
+               " elliptic error = %.2e") % (k + 1, max_iter, value, error)
         if error < tol:
             print "\tConverged after %i iterations." % (k + 1)
             break
