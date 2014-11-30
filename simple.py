@@ -5,7 +5,8 @@ from nose.tools import assert_equal, assert_true
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-from sequential_games import compute_ne
+# from sequential_games import compute_ne
+from primal_dual import primal_dual_ne
 
 
 class Game(object):
@@ -677,7 +678,7 @@ class NashPlayer(Player):
         E, e = self.game.constraints[1]
         F, f = self.game.constraints[2]
         A = self.game.payoff_matrix
-        x, y, _ = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
+        x, y, _ = primal_dual_ne(A, E, F, e, f, tol=0, max_iter=100)
         self.rplan = np.array([x, y][self.player - 1])
 
     def choice(self, choices):
@@ -907,7 +908,7 @@ if __name__ == "__main__":
         E, e = game.constraints[1]
         F, f = game.constraints[2]
         A = game.payoff_matrix
-        x, y, values = compute_ne(A, E, F, e, f, tol=0, max_iter=100)
+        x, y, values = primal_dual_ne(A, E, F, e, f, tol=0, max_iter=100)
         print
         print "Nash Equilibrium:"
         print "x* = ", x
