@@ -212,6 +212,7 @@ where $v \in \mathbb{R}^{p_1}$ and $u \in \mathbb{R}^{p_2}$ are auxiliary dual v
       F: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} \rightarrow [0, +\infty], (x, u) \mapsto i_{\mathbb{R}^{n_1}_+}(x) + e_2^Tu
   \end{split}
   \right\}
+  \label{eq:unconstrained_pb}
 \end{equation}
 
 It is clear that $G$ and $F$ are \textit{p.c.l.s.c} and a straightforward computation reveals that their proximal operators are given by
@@ -241,6 +242,7 @@ Putting everything together, we obtain Algorithm \ref{Tab:algo}.
   \textbf{require} the specification of a game $(A, E_1, E_2, e_1, e_2)$, where $A \in \mathbb{R}^{n_1 \times n_2}$,
   $E_1 \in \mathbb{R}^{p_1 \times n_1}$, $E_2 \in \mathbb{R}^{p_2 \times n_2}$, $e_1 \in \mathbb{R}^{p_1}$, $e_2 \in \mathbb{R}^{p_2}$;
   a tolerance level $\epsilon > 0$.\\
+  \textbf{precompute} $\|K\|$, where $K$ is constructed as in equations \eqref{eq:unconstrained_pb}. This can be done using a \textit{power iteration} on $K^TK$, for example.\\
   \textbf{initialize}
   $x^{(0)} \in \mathbb{R}^{n_1}$; $v \in \mathbb{R}^{p_1}$; $\tilde{y^{(0)}}, y^{(0)} \in \mathbb{R}^{n_2}$; $u^{(0)} \in \mathbb{R}^{p_2}$; 
   $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$ (for example take $\tau = \sigma = \frac{.99}{\|K\|}$); $k = 0$.\\
