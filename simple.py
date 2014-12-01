@@ -905,10 +905,10 @@ def test_nash_player():
 if __name__ == "__main__":
     for game_cls in [SimplifiedPoker, Kuhn3112]:
         game = game_cls()
-        E, e = game.constraints[1]
-        F, f = game.constraints[2]
+        E1, e1 = game.constraints[1]
+        E2, e2 = game.constraints[2]
         A = game.payoff_matrix
-        x, y, values = primal_dual_ne(A, E, F, e, f)
+        x, y, values = primal_dual_ne(A, E1, E2, e1, e2)
         print
         print "Nash Equilibrium:"
         print "x* = ", x
@@ -916,9 +916,12 @@ if __name__ == "__main__":
         plt.figure(figsize=(13.5, 10))
         plt.semilogx(values, linewidth=4)
         value = values[-1]
-        plt.axhline(value, linestyle="--",
-                   label="value of the game: %5.2e" % value, linewidth=4,
-                    color="k")
+        plt.axhline(-1. / 18. if isinstance(game, Kuhn3112) else value,
+                    linestyle="--",
+                    label="true value of the game: %s" % (
+                        "-1 / 18" if isinstance(game, Kuhn3112) else
+                        ("-1 / 4" if isinstance(game, SimplifiedPoker)
+                         else "%.2e" % value)), linewidth=4, color="k")
         plt.xlabel("k", fontsize=25)
         plt.ylabel("value of game after k iterations", fontsize=25)
         plt.legend(loc="best", prop=dict(size=25))

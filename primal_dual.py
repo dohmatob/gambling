@@ -92,6 +92,53 @@ def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
             break
     return x, y, values
 
+
+def array2tex(x, bars=False, brace="(", form=None, col_names=None,
+              row_names=None, omit_zero=False):
+    def _omit_zero(a):
+        return " " if omit_zero and float(a) == 0. else a
+
+    from math import floor
+    if not col_names is None:
+        bars = True
+        col_names = " & ".join([str(cn) for cn in col_names])
+    if row_names is None and not col_names is None:
+        row_names = [""] * len(x)
+    if form is None:
+        form = "%s"
+    if brace == "(":
+        closing_brace = ")"
+    elif brace == "[":
+        closing_brace = "]"
+    cline = "c" * x.shape[1]
+    if bars:
+        cline = "|%s|" % ("|".join(cline))
+    if col_names:
+        cline  = "c%s" % cline
+    out = "%s\\begin{array}{%s}\n" % ("\\left" + brace if brace else "", cline)
+    if not col_names is None:
+        out += "%s\\\\%s\n" % (col_names, "\\hline" if bars else "")
+    out += ("\\\\%s\n" % ("\\hline" if bars else "")).join(
+        [" & ".join([_omit_zero(str(int(a)) if floor(a) == a else
+                                ("%s" % form) % a) for a in y]) for y in x])
+    if not row_names is None:
+        tmp = out.split("\n")
+        out = "\n".join(tmp[:2] + ["%s & %s" % (row_name, o)
+                                   for row_name, o in zip(row_names, tmp[2:])])
+    elif not col_names is None:
+        out = "\n".join(["& %s" % o for o in out.split("\n")])
+    out += "\n\\end{array}%s\n" % (
+        "\\right%s" % closing_brace if brace else "")
+    return out
+
+
+def scientific2tex(x):
+    if not isinstance(x, basestring):
+        x = "%.2e" % x
+    tmp = x.split("e")
+    assert len(tmp) == 2
+    return "%s \\times 10^{%d}" % (tmp[0], int(tmp[1]))
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     # build the game

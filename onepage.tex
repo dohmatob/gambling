@@ -97,15 +97,34 @@ and perfect recall (e.g Texas Hold'em Poker, etc.). In the \textit{sequence-form
 \end{equation}
 
 where $Q_j := \{z \in \mathbb{R}^{n_j}|z \ge 0, E_jz=e_j\}$, for $j \in \{1, 2\}$. As usual, the ``minimize-maximize'' notation in problem
-\eqref{eq:opt_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution iff
+\eqref{eq:opt_pb} means that a pair $(\hat{x}, \hat{y}) \in Q_1 \times Q_2$ is a solution iff
 \begin{equation}
-  {y^*}^TAx \le y^TAx \le y^TAx^*, \forall (x, y) \in Q_1 \times Q_2
+  x^TA\hat{y} \le x^TAy \le {\hat{x}}^TAy, \forall (x, y) \in Q_1 \times Q_2
 \end{equation}
-Such pairs correspond to the Nash equilibria of the game.
+Such pairs $(\hat{x}, \hat{y})$ correspond to the Nash equilibria of the game, and ${\hat{x}}^TA\hat{y}$ is the \textit{value}\footnote{This value is the same for every equilibrium pair $(\hat{x}, \hat{y})$.} of the game.
 
 We recall that $E_j$ is a $p_j$-by-$n_j$ matrix whose
 entries are $-1$, $0$, or $+1$, and $e_j := (1, 0, 0, ..., 0)$ is a vector of length $p_j$. We also recall that $E_1$ and $e_1$ (resp. $E_2$ and $e_2$)
 encode linear constraints on our (resp. the opponent's)  ``admissible'' realization $x$ (resp. $y$). $A$ is the payoff matrix, of size $n_1 \times n_2$.
+
+For example, the pair $(\hat{x}, \hat{y})$ given by\\
+$\hat{x} = (1, .478, .522, .174, .826)$ and
+$\hat{y} = (1, 1/2, 1/2)$ is a Nash equilibrium for the sequence-form game given by\\
+$A = \left(\begin{array}{ccc}
+0 & 0 & 0\\
+0 & 0 & 0\\
+0 & 1 & -1\\
+0 & -2 & 4\\
+1 & 0 & 0
+\end{array}\right)$, $E_1 = \left(\begin{array}{ccccc}
+  1 & 0 & 0 & 0 & 0\\
+  -1 & 1 & 1 & 0 & 0\\
+  -1 & 0 & 0 & 1 & 1
+\end{array}\right)$,
+$e_1 = (1, 0, 0)$, $E_2 = \left(\begin{array}{ccc}
+  1 & 0 & 0\\
+  -1 & 1 & 1
+\end{array}\right)$, and $e_2 = (1, 0)$.
 
 
 \begin{remark}
@@ -219,10 +238,13 @@ Putting everything together, we obtain Algorithm \ref{Tab:algo}.
 
 \begin{algorithm}[htb]
   \caption{Primal-dual algorithm for computing a Nash equilibrium of a two-person zero-sum game}
+  \textbf{require} the specification of a game $(A, E_1, E_2, e_1, e_2)$, where $A \in \mathbb{R}^{n_1 \times n_2}$,
+  $E_1 \in \mathbb{R}^{p_1 \times n_1}$, $E_2 \in \mathbb{R}^{p_2 \times n_2}$, $e_1 \in \mathbb{R}^{p_1}$, $e_2 \in \mathbb{R}^{p_2}$;
+  a tolerance level $\epsilon > 0$.\\
   \textbf{initialize}
   $x^{(0)} \in \mathbb{R}^{n_1}$; $v \in \mathbb{R}^{p_1}$; $\tilde{y^{(0)}}, y^{(0)} \in \mathbb{R}^{n_2}$; $u^{(0)} \in \mathbb{R}^{p_2}$; 
   $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|_2^2 < 1$ (for example take $\tau = \sigma = \frac{.99}{\|K\|}$); $k = 0$.\\
-  \Repeat{$\frac{\|x^{(k+1)}-x^{(k)}\|^2 + \|v^{(k+1)}-v^{(k)}\|^2}{\sigma} + \frac{\|y^{(k+1)}-y^{(k)}\|^2 + \|u^{(k+1)}-u^{(k)}\|^2}{\tau} < \epsilon$}{
+  \Repeat{$\frac{\|\Delta x^{(k)}\|^2 + \|\Delta v^{(k)}\|^2}{\sigma} + \frac{\|\Delta y^{(k)}\|^2 + \|\Delta u^{(k)}\|^2}{\tau} < \epsilon$}{
     \begin{eqnarray*}
       x^{(k+1)} &\leftarrow& \left(x^{(k)} + \tau \left(A\tilde{y}^{(k)} - E_1^T\tilde{v}^{(k)}\right)\right)_+\\
       u^{(k+1)} &\leftarrow& u^{(k)} + \tau \left(E_2\tilde{y}^{(k)} - e_2\right)\\
@@ -235,6 +257,53 @@ Putting everything together, we obtain Algorithm \ref{Tab:algo}.
   } \Return $x^{(k)}$, $y^{(k)}$
   \label{Tab:algo}
 \end{algorithm}
+
+\section{Application to Poker}
+\subsection{Kuhn Poker}
+The Kuhn 3-card Poker has sequence-form specification given by (not showing zero entries)\\
+$E_1 = \left(\begin{array}{ccccccccccccc}
+1 &   &   &   &   &   &   &   &   &   &   &   &  \\
+-1 &   &   &   &   &   &   &   &   & 1 &   &   & 1\\
+-1 & 1 &   &   & 1 &   &   &   &   &   &   &   &  \\
+-1 &   &   &   &   & 1 &   &   & 1 &   &   &   &  \\
+  & -1 & 1 & 1 &   &   &   &   &   &   &   &   &  \\
+  &   &   &   &   & -1 & 1 & 1 &   &   &   &   &  \\
+  &   &   &   &   &   &   &   &   & -1 & 1 & 1 &  
+\end{array}\right)  \in \mathbb{R}^{7 \times 13}$, $e_1 = e_2 = (1, 0, 0, 0, 0, 0, 0) \in \mathbb{R}^7$,\\
+$E_2 = \left(\begin{array}{ccccccccccccc}
+1 &   &   &   &   &   &   &   &   &   &   &   &  \\
+-1 &   &   &   &   &   &   & 1 & 1 &   &   &   &  \\
+-1 &   &   &   &   &   &   &   &   & 1 & 1 &   &  \\
+-1 &   &   &   &   & 1 & 1 &   &   &   &   &   &  \\
+-1 &   &   &   &   &   &   &   &   &   &   & 1 & 1\\
+-1 & 1 & 1 &   &   &   &   &   &   &   &   &   &  \\
+-1 &   &   & 1 & 1 &   &   &   &   &   &   &   &  
+\end{array}\right)  \in \mathbb{R}^{7 \times 13}$, and\\
+$A = \left(\begin{array}{ccccccccccccc}
+  &   &   &   &   &   &   &   &   &   &   &   &  \\
+  &   &   &   &   &   &   & -0.167 &   &   &   & -0.167 &  \\
+  &   &   &   &   &   &   &   & -0.167 &   &   &   & -0.167\\
+  &   &   &   &   &   &   &   & -0.333 &   &   &   & -0.333\\
+  &   &   &   &   & 0.167 & -0.333 &   &   & 0.167 & -0.333 &   &  \\
+  &   &   & 0.167 &   &   &   &   &   &   &   & -0.167 &  \\
+  &   &   &   & -0.167 &   &   &   &   &   &   &   & -0.167\\
+  &   &   &   & 0.333 &   &   &   &   &   &   &   & -0.333\\
+  & 0.167 & 0.333 &   &   &   &   &   &   & 0.167 & -0.333 &   &  \\
+  &   &   & 0.167 &   &   &   & 0.167 &   &   &   &   &  \\
+  &   &   &   & -0.167 &   &   &   & -0.167 &   &   &   &  \\
+  &   &   &   & 0.333 &   &   &   & 0.333 &   &   &   &  \\
+  & 0.167 & 0.333 &   &   & 0.167 & 0.333 &   &   &   &   &   &  
+\end{array}\right)
+ \in \mathbb{R}^{13 \times 13}$.\\
+The pair $(\hat{x}, \hat{y}) \in \mathbb{R}^{13}_+ \times \mathbb{R}^{13}_+$ of realization plans given by $\hat{x} = (1, 0.759, 0.759, 0, 0.241, 1, 0.425, 0.575, 0, 0.275, 0, 0.275, 0.725)$ and\\
+$\hat{y} = (1, 1, 0, 0.667, 0.333, 0.667, 0.333, 1, 0, 0, 1, 0, 1)$ is a Nash equlibrium for the game, computed using Algorithm  \ref{Tab:algo}. The convergence curve is shown in Fig \ref{Tab:conv_curves}. One easy checks that this equilibrium is feasible. Indeed,  $E_1\hat{x} - e_1 = (4.76 \times 10^{-5}, -1.91 \times 10^{-5}, 5.67 \times 10^{-5}, 8.23 \times 10^{-6}, 2.90 \times 10^{-5}, -8.62 \times 10^{-7}, -1.96 \times 10^{-5})$ and $E_2\hat{y} - e_2 = (-7.04 \times 10^{-7}, 2.27 \times 10^{-6}, -3.29 \times 10^{-6}, -1.50 \times 10^{-6}, 2.92 \times 10^{-6}, -4.97 \times 10^{-7}, -5.85 \times 10^{-7})$. Finally, $\hat{x}^TA\hat{y} = -0.055593685705289997$, which agrees to 4 d.p with the value of $-1 / 18$ computed analytically by Kuhn in his 1954 paper.
+
+\begin{figure}
+  \includegraphics[width=.5\linewidth]{Kuhn3112_NE.pdf}
+  \includegraphics[width=.5\linewidth]{SimplifiedPoker_NE.pdf}
+  \caption{Convergence curves of Algorithm \ref{Tab:algo} on simplified variants of Poker. \textbf{Left}: Kuhn Poker. \textbf{Right}: Another simplified Poker variant}.
+  \label{Tab:conv_curves}
+\end{figure}
 
 %% \subsection{Convergence analysis of the algorithm}
 %% Pending...
