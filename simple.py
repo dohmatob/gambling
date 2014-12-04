@@ -930,13 +930,13 @@ if __name__ == "__main__":
         plt.tick_params(axis='both', which='major', labelsize=20)
         plt.savefig("%s_NE.pdf" % game.__class__.__name__)
 
-        tmpfig = plt.figure(figsize=(13.5, 10))
-        plt.matshow(game.payoff_matrix, fignum=tmpfig.number)
-        plt.axis("off")
-        plt.savefig("%s_payoff.pdf" % game.__class__.__name__)
+        # tmpfig = plt.figure(figsize=(13.5, 10))
+        # plt.matshow(game.payoff_matrix, fignum=tmpfig.number)
+        # plt.axis("off")
+        # plt.savefig("%s_payoff.pdf" % game.__class__.__name__)
 
-        plt.figure()
-        game.draw()
-        plt.title("Game tree (T) for %s" % game.__class__.__name__)
+        # plt.figure()
+        # game.draw()
+        # plt.title("Game tree (T) for %s" % game.__class__.__name__)
 
     plt.show()

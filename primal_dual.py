@@ -21,11 +21,13 @@ def power(A, p, max_iter=100, **kwargs):
     return lambd
 
 
-def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
+def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
+                   proj_C2=lambda y: np.maximum(y, 0.),
+                   L=None, max_iter=1500, tol=1e-4):
     """Primal-Dual algorithm for computing Nash equlibrium for two-person
     zero-sum game with payoff matrix A and contraint sets
 
-        Qj := {z | z = (z)_+, Ejz = ej
+        Qj := {z in Cj | Ejz = ej}
 
     The formal problem is:
 
@@ -67,12 +69,12 @@ def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
 
         # update x and u
         x += tau * (A.dot(ytilde) - E1.T.dot(vtilde))
-        x = np.maximum(x, 0.)
+        x = proj_C1(x)
         u += tau * (E2.dot(ytilde) - e2)
 
         # update y and v
         y -= sigma * (A.T.dot(x) + E2.T.dot(u))
-        y = np.maximum(y, 0.)
+        y = proj_C2(y)
         v -= sigma * (e1 - E1.dot(x))
 
         # update ytilde and vtilde
@@ -90,6 +92,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, L=None, max_iter=10000, tol=1e-4):
         if error < tol:
             print "\tConverged after %i iterations." % (k + 1)
             break
+
     return x, y, values
 
 
