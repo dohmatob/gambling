@@ -918,12 +918,12 @@ if __name__ == "__main__":
         value = values[-1]
         plt.axhline(-1. / 18. if isinstance(game, Kuhn3112) else value,
                     linestyle="--",
-                    label="true value of the game: %s" % (
+                    label="true value of the game: $%s$" % (
                         "-1 / 18" if isinstance(game, Kuhn3112) else
                         ("-1 / 4" if isinstance(game, SimplifiedPoker)
                          else "%.2e" % value)), linewidth=4, color="k")
-        plt.xlabel("k", fontsize=25)
-        plt.ylabel("value of game after k iterations", fontsize=25)
+        plt.xlabel("$k$", fontsize=25)
+        plt.ylabel("value of game after $k$ iterations", fontsize=25)
         plt.legend(loc="best", prop=dict(size=25))
         # plt.title("%s: Sequence-form NE computation" % (
         #         game.__class__.__name__))

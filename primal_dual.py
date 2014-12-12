@@ -96,6 +96,14 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     return x, y, values
 
 
+def primal_dual_sg_ne(A):
+    n1, n2 = A.shape
+    E1 = np.ones((1, n1))
+    E2 = np.ones((1, n2))
+    e1 = e2 = 1.
+    return primal_dual_ne(A, E1, E2, e1, e2)[:2]
+
+
 def array2tex(x, bars=False, brace="(", form=None, col_names=None,
               row_names=None, omit_zero=False):
     def _omit_zero(a):
