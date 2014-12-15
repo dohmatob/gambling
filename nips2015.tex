@@ -90,31 +90,42 @@ For sequential games with imcomplete information and perfect recall like Texas H
 %% It is now known, thanks to the \textit{sequence-form representaion}, that the Nash equilibrium problem for such games takes the form \eqref{eq:opt_pb}.
 
 %%%
-\paragraph{From extensive-form to Sequence-form representaion}
-The game consists of three players: player 1 (Alice), player 2 (Bob), and player 0, a special player called \textit{chance}, who plays a publicly known \textit{mixed strategy} $\beta_0$ (more on this later). All three players are treated symmetrically.
-The players take turns to play according to the rules of the game, until a terminal node (aka \textit{leaf}) is reached upon which the game automatically stops. The sequence-form is similar to the \textit{extensive-form} except that in the latter, pure strategies are defined on edges, whilst they're defined on paths (sequences of ordered moves) in the former.
-The sequence-form representation for such a game is a quintuplet $(A, E_1, E_2, e_1, e_1)$, where
-\begin{itemize}
-\item At each node of the \textit{game tree}, a unique player \textit{acts} (ie take their turn), referred to as the \textit{player to act} at the given node. This way, the nodes of the game tree are partitioned into three classes: the nodes at which the chance player acts (e.g the root node), the nodes at which Alice acts, and the nodes at which Bob acts.
-\item Due to imcompleted information, each player's nodes are grouped into equivalent classes of strategically indistinguishable nodes called \textit{information sets}. $\mathcal{I}_k$ is the set of all information sets of player $k$. If each information set is a singleton, then the game reduces to a game complete information.
-\item For each information set $h$ of player $k$, $\sigma_h$ is the sequence of moves to $h$. $C_h$ is the set of choices at $h$. The set of \textit{sequences} of player $k$, denoted $\mathcal{S}_k$, is defined by 
+\paragraph{Extensive-form representation}
+The game consists of three players: player 1 (Alice), player 2 (Bob), and player 0, a special player called \textit{chance}. All three players are treated symmetrically.
+The players take turns to play according to the rules of the game, until a terminal node (aka \textit{leaf}) is reached upon which the game automatically stops. %% The sequence-form is similar to the \textit{extensive-form} except that in the latter, pure strategies are defined on edges, whilst they're defined on paths (sequences of ordered choices) in the former.
+
+At each node $t$ of the \textit{game tree}, a unique player \textit{acts} (ie take their turn), referred to as the \textit{player to act} at the given node. This way, the nodes of the game tree are partitioned into three classes: the nodes at which the chance player acts (e.g the root node), the nodes at which Alice acts, and the nodes at which Bob acts. Due to imcompleted information, each player's nodes are grouped into equivalent classes of \textit{strategically indistinguishable} nodes called \textit{information sets}; $\mathcal{I}_k$ is the set of all information sets of player $k$. If each information set is a singleton, then the game reduces to a game complete information.
+
+$a(t)$ is the payoff received by player $1$ at node $t$. That the game is zero-sum means that player 2 receives a payoff of $-a(t)$. Note that $a(t)$ is $0$ for all non-leaf nodes.
+
+A \textit{mixed-strategy} for a player is specified by a prescription of the probability of making a given choice from a given node at which the player acts. The chance player plays a publicly known \textit{mixed strategy} $\beta_0$.
+
+\paragraph{From extensive-form to sequence-form representation}
+For each information set $h$ of player $k$, $\sigma_h$ is the sequence of choices from the root node, to --any node of-- $h$, ignoring the choices of the other players. \textit{Perfect recall} means that a player cannot get additional information on the game treee by remembering their earlier choices. $C_h$ is the set of choices at $h$. The set of \textit{sequences} of player $k$, denoted $\mathcal{S}_k$, is defined by 
 \begin{equation}
 \mathcal{S}_k := \{\emptyset\} \cup \{\sigma_h c\text{ } |\text{ } h \in I_k, c \in C_h\}
 \end{equation}
-Each element $\sigma$ of $\mathcal{S}_k$ is a path joining the root node to a leaf in the game tree, with the moves of all other players (the other player, and the \textit{chance} player, aka \textit{nature}) deleted. Such a sequence represents a possible sequence of moves made by player $k$ in the game, from start to finish.
-\item Given a node $t$
-  \begin{itemize}
-  \item $a(t)$ is the payoff received by player $1$ at node $t$. That the game is zero-sum means that player 2 receives a payoff of $-a(t)$. Note that $a(t)$ is $0$ for all non-leaf nodes.
-  \item $\sigma_k(t)$ is the unique sequence in $\mathcal{S}_k$ which can be extended to the path from root to node $t$, by including the moves of the other players;
-  \item $\beta_0(t)$ is the product of the probabilities of the moves made by the chance player along $\sigma_0(t)$.
-  \end{itemize}
+Each element $\sigma$ of $\mathcal{S}_k$ is a path joining the root node to a leaf in the game tree, with the choices of all other players (the other player, and the \textit{chance} player, aka \textit{nature}) deleted. Such a sequence represents a possible sequence of choices made by player $k$ in the game, from start to finish.
 
-\item Besides nonnegativity, the \textit{realization plans} $z$ of each play $k>0$ must obey linear contraints of the form
+$\sigma_k(t)$ is the unique sequence in $\mathcal{S}_k$ which can be extended to the path from root to node $t$, by including the choices of the other players;
+$\beta_0(t)$ is the product of the probabilities of the choices made by the chance player along $\sigma_0(t)$.
+
+Besides nonnegativity, the \textit{realization plans} $z$ of each play $k>0$ must obey linear contraints of the form
 \begin{equation}
     z(\emptyset) = 1 \text{ and }
     z(\sigma_h) - \sum_{c \in C_h}{z(\sigma_h c)} = 0\text{, } \forall h \in \mathcal{I}_k
   \label{eq:lin}
 \end{equation}
+
+A realization plan $z$ for a player $k$ induces a \textit{behavioural-strategy} $\beta_k$ defined by
+\begin{equation}
+  \beta_k(c) := \begin{cases}
+    z(\sigma_hc)/z(\sigma_h), é\mbox{if } z(\sigma_h) > 0\\
+    0, &\mbox{Otherwise}.
+  \end{cases}
+\end{equation}
+
+where $h \in \mathcal{I}_k$ and $c \in \mathcal{C}_h$, and $\beta_k(c)$ is the probability to play $c$ given that the player is at information set $h$. From this definition, it is clear that each behavioural-strategy is equivalent to a mixed-strategy.
 
 These linear constraints \eqref{eq:lin} can be written in the form
 \begin{equation}
@@ -122,12 +133,6 @@ These linear constraints \eqref{eq:lin} can be written in the form
 \end{equation}
 
 where $E_k$ a matrix with $p_k := 1 + \#\mathcal{I}_k$ rows and $n_k := \#\mathcal{S}_k$ columns whose entries are either $-1$, $0$, or $1$, and $e_k$ is $p_k$-dimensional vector of the form $(1, 0, ..., 0)$.
-
-A realization plan $z$ for a player $k$ induces a behavioral strategy $\beta_k$ defined by
-\begin{equation}
-  \beta_k(c) := z(\sigma_hc)/z(\sigma_h)
-\end{equation}
-where $h \in \mathcal{I}_k$ and $c \in \mathcal{C}_h$, and $\beta_k(c)$ is the probability to play $c$ given that the player is at information set $h$.
 
 The \textit{strategy profile} of player $k$ is then the $n_k$-dimensional polytope
 
@@ -138,17 +143,17 @@ The \textit{strategy profile} of player $k$ is then the $n_k$-dimensional polyto
 
 Player $k$'s \textit{pure} strategies correspond to their sequences $\mathcal{S}_k$, and a realization plan is simply a randomization on these pure strategies.
 
-\item $A$, an $n_1$-by-$n_2$ matrix, is the \textit{payoff matrix} from player 1's perspective of the game. Formally $A = (A_{\sigma,\tau})$, where
+$A$, an $n_1$-by-$n_2$ matrix, is the \textit{payoff matrix} from player 1's perspective of the game. Formally $A = (A_{\sigma,\tau})$, where
   \begin{equation}
     A_{\sigma,\tau} := \sum_{\text{leafs }t\text{ : } \sigma_1(t) = \sigma\text{ and } \sigma_2(t) = \tau}{\beta_0(t)a(t)}, \forall (\sigma, \tau) \in \mathcal{S}_1 \times \mathcal{S}_2
   \end{equation}
 
 If player 1 plays strategy $x \in Q_1$ and player 2 plays strategy $y \in Q_2$ then player 1 gets $x^TAy$ units of money; that the game is ``zero-sum'' means that player 2 gets $-x^TAy$.
 
-\end{itemize}
+The nanuplet $(\mathcal{I}_1, \mathcal{I}_2, \mathcal{S}_1, \mathcal{S}_2, A, E_1, E_2, e_1, e_2)$ completely specifies a game in sequence-form. However, since were are only interested in computing Nash equilibria, the quintuplet $(A, E_1, E_2, e_1, e_2)$ conveys all required information, as we will see in the next section.
 
 \paragraph{Nash equilibrium problem in sequence-form representaion}
-In sequence-form representation, the Nash equilibrium problem is
+In sequence-form representation, the Nash equilibrium problem is (see \cite{von1996efficient})
 \begin{equation}
   \underset{y \in Q_2}{minimize}\text{ }\underset{x \in Q_1}{maximize}\text{ }{x^TAy}
   \label{eq:opt_pb}
@@ -160,7 +165,7 @@ As usual, the ``minimax'' notation in problem \eqref{eq:opt_pb} means that a pai
 Such pairs $(x^*, y^*)$ correspond to the Nash equilibria of the game, and ${x^*}^TAy^*$ is the \textit{value}
 \footnote{This value is the same for every equilibrium pair $(x^*, y^*)$.} of the game.
   
-Even though problem \eqref{eq:opt_pb} is, in theory, amendable to classical tools like LCP (\textit{Linear Constraint Programming}), at least for sequential games with imcomplete information the game (e.g Texas Hold'em Poker) is exceedingly larger than what such programs can handle.
+Even though problem \eqref{eq:opt_pb} is in theory, amendable to classical tools like LCP (\textit{Linear Constraint Programming}), at least for sequential games with imcomplete information the game (e.g Texas Hold'em Poker) is exceedingly larger than what such programs can handle (see \cite{hoda2010smoothing}).
 
 %% Though \textit{Nash equilibrium} has become a novel way for solving two-person zero-sum games, the problem of computing Nash equilibria for large-scale two-person zero-sum games is still largely unsolved. Even though this problem is, in theory, amendable to classical tools like LCP (\textit{Linear Constraint Programming}), at least for sequential games with imcomplete information the game (e.g Texas Hold'em Poker) is exceedingly larger than what such programs can handle.
 %% We will be needing the following notation: %%  The reader should lookup any standard textbook
@@ -241,9 +246,9 @@ $E_2 = \left[\begin{array}{ccc}
   The matrices $A$, $E_1$, and $E_2$ are very large (can have upto billions of rows and columns) but very sparse too.
 %% : $A$ will be sparse because a concrete sequential game will
 %% typically have very few\footnote{Few, relative to the size of the game tree.} leafs, and only a few
-%% combinations of sequences of moves of the players, will actually lead to a leaf (i.e. end the game);
-%% $E$ and $F$ will be sparse because the kinks of possible sequences of moves of each player will
-%% zig-zag between only a limited number of the player's information sets so that a move at an information set will
+%% combinations of sequences of choices of the players, will actually lead to a leaf (i.e. end the game);
+%% $E$ and $F$ will be sparse because the kinks of possible sequences of choices of each player will
+%% zig-zag between only a limited number of the player's information sets so that a choice at an information set will
 %% rarely\footnote{Relative to the number of information sets for the player.}  extend another information set.
 This sparsity should be thoroughly exploited by a solver for problem \eqref{eq:opt_pb}.
 \end{remark}
@@ -267,7 +272,14 @@ For example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The \textit
 denoted $\|K\|$, is defined to be the largest \textit{singular value} of $K$, i.e the largest \textit{eigen-value} of $K^TK$ (or equivalently, of $KK^T$).
 
 Given a \textit{convex subset} $C$ of $\mathbb{R}^n$, $i_C$ denotes its \textit{indicator function} defined by
-$i_C(x) = 0$ if $x \in C$ and $i_C(x) = +\infty$ otherwise. Note that $i_{C \cap D} = i_C + i_D$. The \textit{euclidean projection operator} onto $C$, denoted $\Pi_C$ is the function
+\begin{equation}
+  i_C(x) = \begin{cases}
+    0, &\mbox{if } x \in C\\
+    +\infty, &\mbox{otherwise}.
+    \end{cases}
+  \end{equation}
+
+Note that $i_{C \cap D} = i_C + i_D$. The \textit{euclidean projection operator} onto $C$, denoted $\Pi_C$ is the function
 $\Pi: \mathbb{R}^n \mapsto C$, which maps a point $x \in \mathbb{R}^n$ to the (necessarily unique) point $\Pi_C(x)$ of $C$ which is closed to $x$. Precisely,
 \begin{equation}
   \Pi_C(x) := \underset{c \in C}{argimin}\text{ }\|c - x\|^2
@@ -477,6 +489,7 @@ One observes that this problem is an instance of problem \eqref{eq:opt_pb} with
 $Q_2 = \{y_0\} = \{z \in C_2| E_2z = e_2\text\}$ and $C_2 = \{y_0\}$. Of course the metric projection on $C_2$ is simply the constant map $y \mapsto y_0$.
 
 As another motivating example, suppose we know the support ...
+
 We have the following generalization of Theorem \ref{thm:pd}.
 
 \begin{theorem}
