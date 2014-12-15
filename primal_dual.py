@@ -75,6 +75,8 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         # update y and v
         y -= sigma * (A.T.dot(x) + E2.T.dot(u))
         y = proj_C2(y)
+        if len(y) > 10:
+            y[[2, 8, 9]] = 0
         v -= sigma * (e1 - E1.dot(x))
 
         # update ytilde and vtilde
