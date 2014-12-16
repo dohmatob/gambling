@@ -443,8 +443,9 @@ class Game(object):
             self.payoff_matrix[i, j] += data['payoff'] * data['proba']
         return self.payoff_matrix
 
-    def draw(self):
+    def draw(self, figsize=None):
         """Draw game tree."""
+        plt.figure(figsize=figsize)
         pos = nx.graphviz_layout(self.tree, prog='dot')
 
         # leaf (terminal) nodes
@@ -464,6 +465,8 @@ class Game(object):
         nx.draw_networkx_edges(self.tree, pos, arrows=False)
         nx.draw_networkx_edge_labels(self.tree, pos,
                                      edge_labels=self.edge_labels)
+
+        # plt.axis("off")
 
 
 class Kuhn3112(Game):
@@ -929,6 +932,8 @@ if __name__ == "__main__":
         #         game.__class__.__name__))
         plt.tick_params(axis='both', which='major', labelsize=20)
         plt.savefig("%s_NE.pdf" % game.__class__.__name__)
+        game.draw(figsize=(13.5, 7))
+        plt.savefig("%s_gt.pdf" % game.__class__.__name__)
 
         # tmpfig = plt.figure(figsize=(13.5, 10))
         # plt.matshow(game.payoff_matrix, fignum=tmpfig.number)
