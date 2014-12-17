@@ -99,7 +99,10 @@ The game consists of three players: player 1 (Alice), player 2 (Bob), and player
 The players take turns to play according to the rules of the game, until a terminal node (aka \textit{leaf}) is reached upon which the game automatically stops. %% The sequence-form is similar to the \textit{extensive-form} except that in the latter, pure strategies are defined on edges, whilst they're defined on paths (sequences of ordered choices) in the former.
 At each node $t$ of the \textit{game tree}, a unique player \textit{acts} (ie take their turn), referred to as the \textit{player to act} at the given node. This way, the nodes of the game tree are partitioned into three classes: the nodes at which the chance player acts (e.g the root node), the nodes at which Alice acts, and the nodes at which Bob acts. Due to imcompleted information, each player's nodes are grouped into equivalent classes of \textit{strategically indistinguishable} nodes called \textit{information sets}; $\mathcal{I}_k$ is the set of all information sets of player $k$. If each information set is a singleton, then the game reduces to a game complete information.
 
-$a(t)$ is the payoff received by player $1$ at node $t$. That the game is zero-sum means that player 2 receives a payoff of $-a(t)$. Note that $a(t)$ is $0$ for all non-leaf nodes.
+$a(t)$ is the \textit{payoff} received by player $1$ at node $t$. That the game is zero-sum means that player 2
+receives a payoff of $-a(t)$. Note that $a(t)$ is $0$ for all non-leaf nodes, since the game must continue.
+The goal of a \textit{rational} player is that the game should end at a node for which her payoff is as large as possible.
+We will assume implicitly that each (non-chance) player is rational.
 
 A \textit{mixed-strategy} for a player is specified by a prescription of the probability of making a given choice from a given node at which the player acts. The chance player plays a publicly known \textit{mixed strategy} $\beta_0$.
 
@@ -127,7 +130,7 @@ where $E_k$ is a matrix with $p_k := 1 + \#\mathcal{I}_k$ rows and $n_k := \#\ma
   \label{eq:poly}
 \end{equation}
 
-Each point $z \in Q_k$ are called \textit{realization plan} and induces a \textit{behavioural-strategy} $\beta_k$ such that for each information set $h \in \mathcal{I}_k$ the probability for player $k$ to make a choice $c \in \mathcal{C}_h$ from any node in $h$ is
+Each point $z \in Q_k$ is called a \textit{realization plan} and induces a \textit{behavioural-strategy} $\beta_k$ such that for each information set $h \in \mathcal{I}_k$ and each choice $c \in C_h$, the probability for player $k$ to make a choice $c \in \mathcal{C}_h$ from any node in $h$ is
 \begin{equation}
   \beta_k(h, c) := \begin{cases}
     z(\sigma_hc)/z(\sigma_h), é\mbox{if } z(\sigma_h) > 0\\
@@ -146,6 +149,44 @@ The \textit{payoff matrix} from player 1's perspective is the the $n_1$-by-$n_2$
 If player 1 plays strategy $x \in Q_1$ and player 2 plays strategy $y \in Q_2$ then player 1 gets $x^TAy$ units of money; that the game is ``zero-sum'' means that player 2 gets $-x^TAy$.
 
 The nanuplet $(\mathcal{I}_1, \mathcal{I}_2, \mathcal{S}_1, \mathcal{S}_2, A, E_1, E_2, e_1, e_2)$ completely specifies a game in sequence-form. However, since are only interested in computing Nash equilibria, the quintuplet $(A, E_1, E_2, e_1, e_2)$ conveys all the needed data.
+
+\paragraph{Example: Sequence-form representation of Kuhn Poker}
+\label{sec:kuhn_sf}
+The Kuhn 3-card Poker has sequence-form specification given by (not showing zero entries)\\
+$A = \left[\begin{array}{ccccccccccccc}
+  &   &   &   &   &   &   &   &   &   &   &   &  \\
+  &   &   &   &   &   &   & -1 / 6 &   &   &   & -1 / 6 &  \\
+  &   &   &   &   &   &   &   & -1 / 6 &   &   &   & -1 / 6\\
+  &   &   &   &   &   &   &   & -1 / 3 &   &   &   & -1 / 3\\
+  &   &   &   &   & 1 / 6 & -1 / 3 &   &   & 1 / 6 & -1 / 3 &   &  \\
+  &   &   & 1 / 6 &   &   &   &   &   &   &   & -1 / 6 &  \\
+  &   &   &   & -1 / 6 &   &   &   &   &   &   &   & -1 / 6\\
+  &   &   &   & 1 / 3 &   &   &   &   &   &   &   & -1 / 3\\
+  & 1 / 6 & 1 / 3 &   &   &   &   &   &   & 1 / 6 & -1 / 3 &   &  \\
+  &   &   & 1 / 6 &   &   &   & 1 / 6 &   &   &   &   &  \\
+  &   &   &   & -1 / 6 &   &   &   & -1 / 6 &   &   &   &  \\
+  &   &   &   & 1 / 3 &   &   &   & 1 / 3 &   &   &   &  \\
+  & 1 / 6 & 1 / 3 &   &   & 1 / 6 & 1 / 3 &   &   &   &   &   &  
+\end{array}\right]$,\\
+$E_1 = \left[\begin{array}{ccccccccccccc}
+1 &   &   &   &   &   &   &   &   &   &   &   &  \\
+-1 &   &   &   &   &   &   &   &   & 1 &   &   & 1\\
+-1 & 1 &   &   & 1 &   &   &   &   &   &   &   &  \\
+-1 &   &   &   &   & 1 &   &   & 1 &   &   &   &  \\
+  & -1 & 1 & 1 &   &   &   &   &   &   &   &   &  \\
+  &   &   &   &   & -1 & 1 & 1 &   &   &   &   &  \\
+  &   &   &   &   &   &   &   &   & -1 & 1 & 1 &  
+\end{array}\right]$, $e_1 = e_2 = [1, 0, 0, 0, 0, 0, 0]^T$,\\
+and $E_2 = \left[\begin{array}{ccccccccccccc}
+1 &   &   &   &   &   &   &   &   &   &   &   &  \\
+-1 &   &   &   &   &   &   & 1 & 1 &   &   &   &  \\
+-1 &   &   &   &   &   &   &   &   & 1 & 1 &   &  \\
+-1 &   &   &   &   & 1 & 1 &   &   &   &   &   &  \\
+-1 &   &   &   &   &   &   &   &   &   &   & 1 & 1\\
+-1 & 1 & 1 &   &   &   &   &   &   &   &   &   &  \\
+-1 &   &   & 1 & 1 &   &   &   &   &   &   &   &  
+\end{array}\right]$.\\
+
 
 \paragraph{Statement of the problem: Nash equilibrium problem in sequence-form}
 In sequence-form representation, the Nash equilibrium problem is (see \cite{von1996efficient})
@@ -217,25 +258,25 @@ Even though problem \eqref{eq:opt_pb} is in theory, amendable to classical tools
 %% entries are $-1$, $0$, or $+1$, and $e_k := (1, 0, 0, ..., 0)$. We also recall that $E_1$ and $e_1$ (resp. $E_2$ and $e_2$)
 %% encode linear constraints player 1's (resp. player 2's)  ``admissible'' \textit{realization plans} $x$ (resp. $y$).
 
-\paragraph{Example of Nash equilibirum}
-As an illustration, the pair $(x^*, y^*)$ given by
-$x^* = [1, .478, .522, .174, .826]^T$ and
-$y^* = [1, 1/2, 1/2]^T$ is a Nash equilibrium for the sequence-form game given by (not showing zero entries)\\
-$A = \left[\begin{array}{ccc}
-  &   &  \\
-  &   &  \\
-  & 1 & -1\\
-  & -2 & 4\\
-1 &   &  
-\end{array}\right]$, $E_1 = \left[\begin{array}{ccccc}
-  1 &   &   &   &  \\
-  -1 & 1 & 1 &   &  \\
-  -1 &   &   & 1 & 1
-\end{array}\right]$,
-$E_2 = \left[\begin{array}{ccc}
-  1 &   &  \\
-  -1 & 1 & 1
-\end{array}\right]$, $e_1 = [1, 0, 0]^T$, and $e_2 = [1, 0]^T$.
+%% \paragraph{Example of Nash equilibirum}
+%% As an illustration, the pair $(x^*, y^*)$ given by
+%% $x^* = [1, .478, .522, .174, .826]^T$ and
+%% $y^* = [1, 1/2, 1/2]^T$ is a Nash equilibrium for the sequence-form game given by (not showing zero entries)\\
+%% $A = \left[\begin{array}{ccc}
+%%   &   &  \\
+%%   &   &  \\
+%%   & 1 & -1\\
+%%   & -2 & 4\\
+%% 1 &   &  
+%% \end{array}\right]$, $E_1 = \left[\begin{array}{ccccc}
+%%   1 &   &   &   &  \\
+%%   -1 & 1 & 1 &   &  \\
+%%   -1 &   &   & 1 & 1
+%% \end{array}\right]$,
+%% $E_2 = \left[\begin{array}{ccc}
+%%   1 &   &  \\
+%%   -1 & 1 & 1
+%% \end{array}\right]$, $e_1 = [1, 0, 0]^T$, and $e_2 = [1, 0]^T$.
 
 \begin{remark}
   The matrices $A$, $E_1$, and $E_2$ are very large (can have upto billions of rows and columns) but very sparse too.
@@ -279,10 +320,14 @@ $\Pi: \mathbb{R}^n \mapsto C$, which maps a point $x \in \mathbb{R}^n$ to the (n
 \begin{equation}
   \Pi_C(x) := \underset{c \in C}{argimin}\text{ }\|c - x\|^2
 \end{equation}
-For example, $\Pi_{\mathbb{R}^n_+}(x) = (x)_+, \forall x \in \mathbb{R}^n$.
+For example, the metric projections onto the nonnegative orthant and the closed unit-disk $\bar{\Delta}$
+% := \{x|\|x\| \le 1\}$
+are $\Pi_{\mathbb{R}^n_+}(x) \equiv (x)_+$ and $\Pi_{\bar{\Delta}}(z) \equiv \dfrac{z}{max(\|z\|, 1)}$ respectively.
 
-Let $f : \mathbb{R}^n \rightarrow [0, +\infty]$ be a \textit{proper convex lower semi-continous function} (\textit{p.c.l.s.c} for short), and $\tau$ a positive real number. The \textit{proximal operator} of $f$ of rank $\tau$,
-denoted $\text{prox}_{\tau f}$ is the function which maps a point $x \in \mathbb{R}^n$ to the (necessarily unique) solution of the problem
+Let $f : \mathbb{R}^n \rightarrow [0, +\infty]$ be a \textit{proper convex lower semi-continous function}
+(\textit{p.c.l.s.c} for short), and $\tau$ a positive real number. The \textit{proximal operator} of $f$ of rank
+$\tau$, denoted $\text{prox}_{\tau f}$ is the function which maps a point $x \in \mathbb{R}^n$ to the (necessarily
+unique) solution of the problem
 \begin{equation}
   \underset{z \in \mathbb{R}^n}{argmin}\text{ }\frac{1}{2}\|z - x\|^2 + \tau f(z)
 \end{equation}
@@ -350,13 +395,14 @@ It should be noted that the difficulty of applying the general primal-dual Algor
 
 %% Theorem \ref{thm:pd}, can be interpreted as follows: 2 players $x$ (player 1)  and $y$ (player 2) go heads-on in a zero-sum game with payoff matrix $A$. Their strategy, profiles are $Q_1$ and $Q_2$ respectively, meaning that if player $j$ players a strategy which is outside $Q_k$ then they are panalized by inflicting an infinite loss yupon them. To remedy this, they recruit assistants $u$ and $v$, whose sole goal is to preven the ...
 \begin{proof} First observe that $\forall (x, y) \in \mathbb{R}^{n_1} \times \mathbb{R}^{n_2}$, we have
-  \begin{eqnarray*}
-   -i_{Q_1}(x) = -i_{\mathbb{R}^{n_1}_+}(x) + \underset{v \in \mathbb{R}^{p_1}}{min}\text{}{v^T(e_1 - E_1x)},
-      \end{eqnarray*}
-  and
-\begin{eqnarray*}
-  i_{Q_2}(y) = i_{\mathbb{R}^{n_2}_+}(y) + \underset{u \in \mathbb{R}^{p_2}}{max}\text{}{u^T(E_2y - e_2)}
-\end{eqnarray*}
+  \begin{eqnarray}
+    \left.
+    \begin{split}
+      -i_{Q_1}(x) = -i_{\mathbb{R}^{n_1}_+}(x) + \underset{v \in \mathbb{R}^{p_1}}{min}\text{}{v^T(e_1 - E_1x)}\\
+      i_{Q_2}(y) = i_{\mathbb{R}^{n_2}_+}(y) + \underset{u \in \mathbb{R}^{p_2}}{max}\text{}{u^T(E_2y - e_2)}
+      \end{split}
+    \right\}
+  \end{eqnarray}
   Thus,% problem \eqref{eq:opt_pb} is equivalent to
   \begin{eqnarray*}
     \begin{split}
@@ -418,43 +464,9 @@ Now applying Algorithm 39 of \cite{chambolle2010} with $F := H^*$ (the \textit{c
 
 \section{Application to Poker: Kuhn Poker}
 \label{sec:kuhn}
-The Kuhn 3-card Poker has sequence-form specification given by (not showing zero entries)\\
-$A = \left[\begin{array}{ccccccccccccc}
-  &   &   &   &   &   &   &   &   &   &   &   &  \\
-  &   &   &   &   &   &   & -1 / 6 &   &   &   & -1 / 6 &  \\
-  &   &   &   &   &   &   &   & -1 / 6 &   &   &   & -1 / 6\\
-  &   &   &   &   &   &   &   & -1 / 3 &   &   &   & -1 / 3\\
-  &   &   &   &   & 1 / 6 & -1 / 3 &   &   & 1 / 6 & -1 / 3 &   &  \\
-  &   &   & 1 / 6 &   &   &   &   &   &   &   & -1 / 6 &  \\
-  &   &   &   & -1 / 6 &   &   &   &   &   &   &   & -1 / 6\\
-  &   &   &   & 1 / 3 &   &   &   &   &   &   &   & -1 / 3\\
-  & 1 / 6 & 1 / 3 &   &   &   &   &   &   & 1 / 6 & -1 / 3 &   &  \\
-  &   &   & 1 / 6 &   &   &   & 1 / 6 &   &   &   &   &  \\
-  &   &   &   & -1 / 6 &   &   &   & -1 / 6 &   &   &   &  \\
-  &   &   &   & 1 / 3 &   &   &   & 1 / 3 &   &   &   &  \\
-  & 1 / 6 & 1 / 3 &   &   & 1 / 6 & 1 / 3 &   &   &   &   &   &  
-\end{array}\right]$,\\
-$E_1 = \left[\begin{array}{ccccccccccccc}
-1 &   &   &   &   &   &   &   &   &   &   &   &  \\
--1 &   &   &   &   &   &   &   &   & 1 &   &   & 1\\
--1 & 1 &   &   & 1 &   &   &   &   &   &   &   &  \\
--1 &   &   &   &   & 1 &   &   & 1 &   &   &   &  \\
-  & -1 & 1 & 1 &   &   &   &   &   &   &   &   &  \\
-  &   &   &   &   & -1 & 1 & 1 &   &   &   &   &  \\
-  &   &   &   &   &   &   &   &   & -1 & 1 & 1 &  
-\end{array}\right]$, $e_1 = e_2 = [1, 0, 0, 0, 0, 0, 0]^T$,\\
-and $E_2 = \left[\begin{array}{ccccccccccccc}
-1 &   &   &   &   &   &   &   &   &   &   &   &  \\
--1 &   &   &   &   &   &   & 1 & 1 &   &   &   &  \\
--1 &   &   &   &   &   &   &   &   & 1 & 1 &   &  \\
--1 &   &   &   &   & 1 & 1 &   &   &   &   &   &  \\
--1 &   &   &   &   &   &   &   &   &   &   & 1 & 1\\
--1 & 1 & 1 &   &   &   &   &   &   &   &   &   &  \\
--1 &   &   & 1 & 1 &   &   &   &   &   &   &   &  
-\end{array}\right]$.\\
 The pair $(x^*, y^*)$ of realization plans given by\\
 $x^* = [1, 0.759, 0.759, 0, 0.241, 1, 0.425, 0.575, 0, 0.275, 0, 0.275, 0.725]^T$ and
-$y^* = [1, 1, 0, 0.667, 0.333, 0.667, 0.333, 1, 0, 0, 1, 0, 1]^T$ is a Nash equlibrium for the game, computed using Algorithm  \ref{Tab:algo_simplified}. The convergence curve is shown in Fig \ref{Tab:conv_curves}. One easy checks that this equilibrium is feasible. Indeed,  $E_1x^* - e_1 = [4.76 \times 10^{-5}, -1.91 \times 10^{-5}, 5.67 \times 10^{-5}, 8.23 \times 10^{-6}, 2.90 \times 10^{-5}, -8.62 \times 10^{-7}, -1.96 \times 10^{-5}]^T$ and $E_2y^* - e_2 = [-7.04 \times 10^{-7}, 2.27 \times 10^{-6}, -3.29 \times 10^{-6}, -1.50 \times 10^{-6}, 2.92 \times 10^{-6}, -4.97 \times 10^{-7}, -5.85 \times 10^{-7}]^T$. Finally, $x^*TAy^* = -0.055593685705289997$, which agrees to 4 d.p with the value of $-1 / 18$ computed analytically by Kuhn in his 1954 paper.
+$y^* = [1, 1, 0, 0.667, 0.333, 0.667, 0.333, 1, 0, 0, 1, 0, 1]^T$ is a Nash equlibrium for the Kuhn Poker presented in \ref{sec:kuhn_sf}, computed using Algorithm  \ref{Tab:algo_simplified}. The convergence curve is shown in Fig \ref{Tab:conv_curves}. One easy checks that this equilibrium is feasible. Indeed,  $E_1x^* - e_1 = [4.76 \times 10^{-5}, -1.91 \times 10^{-5}, 5.67 \times 10^{-5}, 8.23 \times 10^{-6}, 2.90 \times 10^{-5}, -8.62 \times 10^{-7}, -1.96 \times 10^{-5}]^T$ and $E_2y^* - e_2 = [-7.04 \times 10^{-7}, 2.27 \times 10^{-6}, -3.29 \times 10^{-6}, -1.50 \times 10^{-6}, 2.92 \times 10^{-6}, -4.97 \times 10^{-7}, -5.85 \times 10^{-7}]^T$. Finally, $x^*TAy^* = -0.055593685705289997$, which agrees to 4 d.p with the value of $-1 / 18$ computed analytically by Kuhn in his 1954 paper.
 
 \begin{figure}
   \includegraphics[width=1\linewidth]{Kuhn3112_NE.pdf}
