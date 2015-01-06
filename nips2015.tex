@@ -540,7 +540,7 @@ So, applying Algorithm 39 of \cite{chambolle2010} with $F := H^*$
   $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 < 1$ (for example take $\tau = \sigma = .99/\|K\|$); $k = 0$.\\
   \While{
 %$\dfrac{\| x^{(k+1)} - x^{(k)}\|^2 + \|v^{(k+1)}- v^{(k)}\|^2}{\sigma} + \dfrac{\|y^{(k+1)}- y^{(k)}\|^2 + \|u^{(k+1)}- u^{(k)}\|^2}{\tau} < \epsilon$
-$|e_1^Tp^{(k)} - e_2^Tq^{(k)}| \geq \epsilon$}{
+$|e_1^Tp^{(k)} + e_2^Tq^{(k)}| \geq \epsilon$}{
     \begin{eqnarray*}
       x^{(k+1)} &\leftarrow& \left(x^{(k)} + \tau \left(A\tilde{y}^{(k)} - E_1^T\tilde{p}^{(k)}\right)\right)_+\\
       q^{(k+1)} &\leftarrow& q^{(k)} + \tau \left(E_2\tilde{y}^{(k)} - e_2\right)\\

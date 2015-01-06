@@ -949,7 +949,7 @@ if __name__ == "__main__":
         plt.loglog(np.abs(dgaps), label="Primal-Dual", linewidth=4)
         plt.xlabel("$k$", fontsize=25)
         plt.ylabel(
-            "Duality gap $|e_1^Tp^{(k)} - e_2^Tq^{(k)}|$",
+            "Duality gap $|e_1^Tp^{(k)} + e_2^Tq^{(k)}|$",
             fontsize=25)
         plt.legend(loc="best", prop=dict(size=25))
         plt.tick_params(axis='both', which='major', labelsize=20)
