@@ -5,8 +5,7 @@ from nose.tools import assert_equal, assert_true
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-# from sequential_games import compute_ne
-from primal_dual import primal_dual_ne
+from primal_dual import primal_dual_ne, primal_dual_sg_ne
 
 
 class Game(object):
@@ -451,7 +450,7 @@ class Game(object):
         # leaf (terminal) nodes
         leaf_nodes = [node for node in self.tree.nodes() if self.is_leaf(node)]
         nx.draw_networkx_nodes(self.tree, pos, nodelist=leaf_nodes,
-                               node_shape='s', node_color="k")
+                               enode_shape='s', node_color="k")
 
         # decision nodes
         dec_nodes = [node
@@ -906,16 +905,26 @@ def test_nash_player():
 
 
 if __name__ == "__main__":
-    for game_cls in [SimplifiedPoker, Kuhn3112]:
-        game = game_cls()
-        E1, e1 = game.constraints[1]
-        E2, e2 = game.constraints[2]
-        A = game.payoff_matrix
-        x, y, values = primal_dual_ne(A, E1, E2, e1, e2)
+    for game_cls in [SimplifiedPoker, Kuhn3112, "simplex"][1:]:
+        if game_cls == "simplex":
+            game = None
+            name = game_cls
+            A = np.random.uniform(-1, 1, size=(1000, 1000))
+            x, y, values, dgaps = primal_dual_sg_ne(A)
+        else:
+            game = game_cls()
+            name = game.__class__.__name__
+            E1, e1 = game.constraints[1]
+            E2, e2 = game.constraints[2]
+            A = game.payoff_matrix
+            args = (A, E1, E2, e1, e2)
+            x, y, values, dgaps = primal_dual_ne(A, E1, E2, e1, e2)
         print
         print "Nash Equilibrium:"
         print "x* = ", x
         print "y* =", y
+
+        # plot evoluation of game value
         plt.figure(figsize=(13.5, 10))
         plt.semilogx(values, linewidth=4)
         value = values[-1]
@@ -931,9 +940,25 @@ if __name__ == "__main__":
         # plt.title("%s: Sequence-form NE computation" % (
         #         game.__class__.__name__))
         plt.tick_params(axis='both', which='major', labelsize=20)
-        plt.savefig("%s_NE.pdf" % game.__class__.__name__)
-        game.draw(figsize=(13.5, 7))
-        plt.savefig("%s_gt.pdf" % game.__class__.__name__)
+        plt.savefig("%s_NE.pdf" % name)
+
+        # plot evolution of gual gap
+        plt.figure(figsize=(13.5, 10))
+        plt.loglog(1. / np.arange(1, len(dgaps) + 1),
+                   label="$\\mathcal{O}(1/k)$", linewidth=4, color="k")
+        plt.loglog(np.abs(dgaps), label="Primal-Dual", linewidth=4)
+        plt.xlabel("$k$", fontsize=25)
+        plt.ylabel(
+            "Duality gap $|e_1^Tp^{(k)} - e_2^Tq^{(k)}|$",
+            fontsize=25)
+        plt.legend(loc="best", prop=dict(size=25))
+        plt.tick_params(axis='both', which='major', labelsize=20)
+        plt.savefig("%s_dgap.pdf" % name)
+
+        # draw game tree
+        if not game is None:
+            game.draw(figsize=(13.5, 7))
+            plt.savefig("%s_gt.pdf" % name)
 
         # tmpfig = plt.figure(figsize=(13.5, 10))
         # plt.matshow(game.payoff_matrix, fignum=tmpfig.number)
@@ -944,4 +969,4 @@ if __name__ == "__main__":
         # game.draw()
         # plt.title("Game tree (T) for %s" % game.__class__.__name__)
 
-    plt.show()
+    # plt.show()

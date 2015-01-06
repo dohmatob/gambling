@@ -3,9 +3,11 @@
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{amsmath,amsfonts,amsthm}
+\usepackage{qtree}
 
 \usepackage{graphicx}
 %\documentstyle[nips14submit_09,times,art10]{article} % For LaTeX 2.09
+
 
 \usepackage{bm}
 \def\B#1{\bm{#1}}
@@ -51,7 +53,8 @@ sequential games with imcomplete information
 
 \usepackage{hyperref}
 
-\usepackage[ruled,vlined]{algorithm2e} \usepackage{framed}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{framed}
 \newtheorem{theorem}{Theorem} \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
@@ -66,7 +69,7 @@ sequential games with imcomplete information
 \maketitle
 
 \begin{abstract}
-We present a simple $\mathcal{O}(1/\epsilon)$ primal-dual algorithm with a low cost per iteration, for computing Nash equilibria in two-person zero-sum sequential games like Texas Hold'em Poker. %% Our algorithm is applicable to a broad class of two-person zero-sum games including simultaneous games and sequential games with imcomplete information and perfect recall. The applicability to the latter kind of games is thanks to the sequence-form representation von Stengel's \cite{von1996efficient}
+We present a simple primal-dual algorithm with a low cost per iteration, for computing Nash $\epsilon$-equilibria for two-person zero-sum sequential games like Texas Hold'em Poker, in $\mathcal{O}(1/\epsilon)$ iterations. %% Our algorithm is applicable to a broad class of two-person zero-sum games including simultaneous games and sequential games with imcomplete information and perfect recall. The applicability to the latter kind of games is thanks to the sequence-form representation von Stengel's \cite{von1996efficient}
 Our algorithm derives from the general primal-dual algorithm developed
 % by Chambolle and Pock
 in \cite{chambolle2010}, which has received considerable interest in the signal processing community, but is not directly applicable to the saddle-point problem corresponding to Nash equilibria since the strategy profiles (polytopes) of players are so complex that it is not possible
@@ -81,78 +84,494 @@ Our technique is to dualize the linear constraints that form part of the player'
 and nonnegative clipping.
 % (taking point-wise max of a vector and 0)
 The $\mathcal{O}(1/\epsilon)$ convergence rate of our algorithm derives explicitly from the general primal-dual algorithm in \cite{chambolle2010}. Unlike the EGT (Excessive Gap Technique) recently used in \cite{hoda2010smoothing}, our algorithm has a cheap and constant cost per iteration. As proof of concept, we apply our algorithm to solve Kuhn Poker.
-We conclude by extending our results to tackle Nash equilibrium problems with even more general strategy profiles, where the nonnegativity constraints on realization plans are replaced with general convex sets.
+%% We conclude by extending our results to tackle Nash equilibrium problems with even more general strategy profiles, where the nonnegativity constraints on realization plans are replaced with more general convex sets.
 \end{abstract}
 
 \section{Introduction}
 \label{sec:intro}
 For sequential games with imcomplete information and perfect recall like Texas Hold'em Poker, von Stengel and co-workers have developed the \textit{sequence-form} representation (see \cite{von1996efficient} and references therewithin), whose size is linear in the size of the game tree, in contrast with the \textit{strategic-form} representation which is exponential. The goal of this paper is to develop a fast and simple primal-dual algorithm for computing Nash equilibria for such games, using this representation.
 
-\paragraph{Plan}
-We first briefly introduce the sequence-form representation, and contrast it to the strategic-form representation. Then we state the Nash equilibrium problem for the sequence-form representation. In section \ref{sec:algo} we derive the proposed algorithm for solving this problem and prove its $\mathcal{O}(1/\epsilon)$ convergence rate.  This is followed by a demonstration on Kuhn Poker in section \ref{sec:kuhn}. In section \ref{sec:algo_gen}, we extend  the algorithm to problems with more general strategy profiles, and exhibit thesame convergence properties.
+\paragraph{Nash equilibrium problem in sequence-form}
+In \cite{von1996efficient, vonequilibrium}, it was established that for sequential two-person zero-sum games with imcomplete information and perfect recall, there exists sparse matrices $A \in \mathbb{R}^{n_1 \times n_2}, E_1 \in \mathbb{R}^{l_1 \times n_1}, E_2 \in \mathbb{R}^{l_2 \times n_2}$, and vectors $e_1 \in \mathbb{R}^{l_1}, e_2 \in \mathbb{R}^{l_2}$ such that $n_1$, $n_2$, $l_1$, and $l_2$ are all linear in the size of the game tree (number of states in the game) and such that Nash equilibria correspond to points $(x, y)$ which solve the primal LCP (Linear Constrained Programming) problem
+\begin{equation}
+  \begin{aligned}
+    & \underset{y,p}{\text{minimize}}
+    & & e_1^Tp \\
+    & \text{subject to}
+    & & -Ay + E_1^Tp \geq 0,\\
+    &&& E_2y = e_2,\\
+    &&& y \ge 0
+  \end{aligned}
+  \label{eq:primal_pb}
+\end{equation}
 
-%% It is now known, thanks to the \textit{sequence-form representaion}, that the Nash equilibrium problem for such games takes the form \eqref{eq:opt_pb}.
+and the dual LCP problem
+\begin{equation}
+  \begin{aligned}
+    & \underset{x,q}{\text{maximize}}
+    & & -e_2^Tq \\
+    & \text{subject to}
+    & & -A^Tx + E_2^Tq \leq 0,\\
+    &&& E_1x = e_1,\\
+    &&& x \ge 0
+  \end{aligned}
+  \label{eq:dual_pb}
+\end{equation}
+
+with duality gap given by
+\begin{equation}
+  \mathcal{G}(p, q) := e_1^Tp - (-e_2^Tq) = e_1^Tp + e_2^Tq
+  \label{eq:dgap}
+\end{equation}
+
+$A$ is the \textit{payoff matrix} and each $E_k$ is a matrix whose entries are $-1$, $0$ or $1$, and $e_k$ is a vector of the form $[1, 0, ..., 0]$. In this representation (called the \textit{sequence-form}), the strategy profile of player $k$ is the polytope
+\begin{equation}
+  Q_k := \{z \ge 0\text{ }|\text{ }E_kz = e_k\} \subseteq \mathbb{R}^{n_k}
+\end{equation}
+
+Of course by \textit{weak duality} in problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb},, it holds that
+\begin{equation}
+  \mathcal{G}(p, q) \geq 0
+\end{equation}
+for any fixed pair $(x, y)$ of realization plans and admissible dual pair $(p,q)$ in problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb}.
+
+It was also shown (for example, Theorem 3.14 of \cite{vonequilibrium}) that a $(x, y)$ is a solution to the primal-dual problem \eqref{eq:primal_pb} and \eqref{eq:dual_pb} iff there exists vectors $p$ and $q$ such that
+\begin{equation}
+  \begin{split}
+    E_1x = e_1,\text{ }x \geq 0,\hspace{1em} E_2y = e_2,\text{ }y \geq 0\\
+    -Ay + E_1^Tp \geq 0,\hspace{1em}-A^Tx + E_2^Tq \leq 0
+    \end{split}
+\end{equation}
+
+Moreover, in this case \textit{strong duality} holds and the value of the game equals $e_1^Tp = -e_2^Tq$,
+In this case, the duality gap defined in \eqref{eq:dgap} vanishes.
+
+%% As usual, the ``minimax'' notation in problem \eqref{eq:primal_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution if (and only if)
+%% \begin{equation}
+%%   x^TAy^* \le x^TAy \le {x^*}^TAy, \forall (x, y) \in Q_1 \times Q_2
+%% \label{eq:nash_ineq}
+%% \end{equation}
+%% Such pairs $(x^*, y^*)$ correspond to the Nash equilibria of the game, and ${x^*}^TAy^*$ is the \textit{value}
+%% \footnote{This value is the same for every equilibrium pair $(x^*, y^*)$.} of the game.
+
+\begin{remark}  
+  Even though problem \eqref{eq:primal_pb} is in theory, amendable to classical tools like LCP (\textit{Linear Constraint Programming}), at least for sequential games with imcomplete information the game (e.g Texas Hold'em Poker) is exceedingly larger than what such programs can handle (see \cite{hoda2010smoothing}).
+\end{remark}
+
+% For the purpose of completeness we will cover the sequence-form representation in \ref{sec:rep}.
+
+%% Though \textit{Nash equilibrium} has become a novel way for solving two-person zero-sum games, the problem of computing Nash equilibria for large-scale two-person zero-sum games is still largely unsolved. Even though this problem is, in theory, amendable to classical tools like LCP (\textit{Linear Constraint Programming}), at least for sequential games with imcomplete information the game (e.g Texas Hold'em Poker) is exceedingly larger than what such programs can handle.
+%% We will be needing the following notation: %%  The reader should lookup any standard textbook
+%% %% (for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions.
+%% Viz,
+%% \begin{itemize}
+%% \item $\mathbb{R}^n$: $n$-dimensional real vector space;
+%% \item $\mathbb{R}^{m \times n}$: \quad space of all $m$-by-$n$ real matrices;
+%% \item $0_{m,n}$: $m$-by-$n$ matrix of zeros;
+%% \item $(x)_+$: \quad component-wise maximum of a vector $x$ and 0;
+%% \item $\mathbb{R}^n_+$: \quad $\{x \in \mathbb{R}^n|x = (x)_+\}$, the $n$-dimensional nonnegative orthant 
+%% \item $i_C$: \quad indicator function of a convex set $C$;
+%% % \item $\Pi_C$: \quad euclidean projection operator onto a convex set $C$;
+%% \item $\|K\|_2$: \quad spectral norm of a matrix $K$
+%% % \item $F^*$: the convex conjugate of a convex function $F$.
+%% %% \item \textit{l.s.c.p.c}: \quad acronym for adjective \textit{lower semi-continuous proper convex};
+%% %% \item $f^*$: \quad Fenchel transform (a.k.a convex conjugate) of a \textit{l.s.c.p.c} function $f$;
+%% \end{itemize}
+
+%% \section{Statement of the problem}
+%% The Nash equilibrium problem for a two-person zero-sum sequential game with imcomplete information and perfect recall is a the saddle-point problem
+%% \begin{equation}
+%%   \underset{y \in Q_2}{minimize}\text{ }\underset{x \in Q_1}{maximize}\text{ }{x^TAy}
+%%   \label{eq:primal_pb}
+%% \end{equation}
+
+%% where player $k$'s \textit{strategy profile} $Q_k$ is the polytope
+%% \begin{equation}
+%%   Q_k := \{z \in \mathbb{R}^{n_k}| E_kz = e_k\text{ and } z_j \ge 0 \text{ }\forall j\}
+%% \end{equation}
+%% for %% some convex subset $C_k$ of a euclidean space $\mathbb{R}^{n_k}$, and 
+%% some $l_k$-by-$n_k$ matrix $E_k$ and $l_k$-dimensional vector $e_k$. $A$ is the \textit{payoff matrix} from player 1's perspective of the game: if player 1 players strategy
+%% $x \in Q_1$ and player 2 plays strategy $y \in Q_2$ then player 1 gets $x^TAy$ units of money; that the game is ``zero-sum'' means that player 2 gets $-x^TAy$.
+%% %% We will assume that the convex sets $C_k$ are simple enough so that the eucliean projection operators $\Pi_{C_k}$ can be cheaply computed.
+%% Typically, $C_k = \mathbb{R}^{l_k}_+ := \{x \in \mathbb{R}^n|x_k \ge 0\}$, the \textit{the nonnegative orthant}, and encodes a nonnegativity constraint. %% in this case, $\Pi_{C_k}(z) \equiv (z)_+$ as seen in subsection \ref{sec:notation}.
+%% As usual, the ``minimax'' notation in problem \eqref{eq:primal_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution iff
+%% \begin{equation}
+%%   x^TAy^* \le x^TAy \le {x^*}^TAy, \forall (x, y) \in Q_1 \times Q_2
+%% \end{equation}
+%% Such pairs $(x^*, y^*)$ correspond to the Nash equilibria of the game, and ${x^*}^TAy^*$ is the \textit{value}
+%% \footnote{This value is the same for every equilibrium pair $(x^*, y^*)$.} of the game.
+
+%% We can distinguish two categories of such games, in terms of (non-)simultaneity of play.
+%% \paragraph{Simultaneous two-person zero-sum games}
+%% \label{subsec:example_games}
+%% Here, the Nash equilibrium problem takes the form \eqref{eq:primal_pb} with $l_k = 1$, $C_k = \mathbb{R}^{l_k}_+$, $E_k = 1_{1, n_k}$,
+%%   and $e_k = 1$, so that $Q_k$ is simply the probabability $n_k$-simplex $\Delta_{n_k}$. Each point in $\Delta_{n_k}$ corresponds to a \textit{mixed-strategy} for player $j$,
+%% and represents a randomization on their \textit{pure-strategies} (corresponding to the vertices of their propability simplex $\Delta_{n_k}$).
+
+%% \paragraph{Two-person zero-sum sequential games with imcomplete information and perfect recall}
+%% It is now known, thanks to the \textit{sequence-form representaion}, that the Nash equilibrium problem for such games takes the form \eqref{eq:primal_pb}.
+
+%% We recall that in the sequence-form representation of such games,  $E_k$ is a matrix whose
+%% entries are $-1$, $0$, or $+1$, and $e_k := (1, 0, 0, ..., 0)$. We also recall that $E_1$ and $e_1$ (resp. $E_2$ and $e_2$)
+%% encode linear constraints player 1's (resp. player 2's)  ``admissible'' \textit{realization plans} $x$ (resp. $y$).
+
+%% \paragraph{Example of Nash equilibirum}
+%% As an illustration, the pair $(x^*, y^*)$ given by
+%% $x^* = [1, .478, .522, .174, .826]^T$ and
+%% $y^* = [1, 1/2, 1/2]^T$ is a Nash equilibrium for the sequence-form game given by (not showing zero entries)\\
+%% $A = \left[\begin{array}{ccc}
+%%   &   &  \\
+%%   &   &  \\
+%%   & 1 & -1\\
+%%   & -2 & 4\\
+%% 1 &   &  
+%% \end{array}\right]$, $E_1 = \left[\begin{array}{ccccc}
+%%   1 &   &   &   &  \\
+%%   -1 & 1 & 1 &   &  \\
+%%   -1 &   &   & 1 & 1
+%% \end{array}\right]$,
+%% $E_2 = \left[\begin{array}{ccc}
+%%   1 &   &  \\
+%%   -1 & 1 & 1
+%% \end{array}\right]$, $e_1 = [1, 0, 0]^T$, and $e_2 = [1, 0]^T$.
+
+Solving problem \eqref{eq:primal_pb} exactly is impossible in practice, and such a precision doesn't have any fundamental advantage. Instead, it is customary compute so-called Nash $\epsilon$-equlibria
+
+\begin{definition}(\textbf{Nash $\epsilon$-equilibria})
+Given a margin $\epsilon > 0$, a Nash $\epsilon$-equilibrium is a pair $(x^*, y^*)$ of realization plans such that there exists admissible vectors $p^*$ and $q^*$ for problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb} satisfying
+\begin{equation}
+  0 \le \mathcal{G}(p^*, q^*) \le \epsilon
+\label{eq:approx_pb}
+\end{equation}
+\end{definition}
+
+\paragraph{Outline of article}
+The goal of this article is to device a simple algorithm which produces a Nash $\epsilon$-equilibrium after $\mathcal{O}(1/\epsilon)$ iterations%We first briefly introduce the sequence-form representation, and contrast it to the strategic-form representation. Then we state the Nash equilibrium problem for the sequence-form representation. Then in
+In section \ref{sec:related_work}, we give a brief overview of existing methods for solving \eqref{eq:approx_pb}. In section \ref{sec:algo} we derive the proposed algorithm for solving this problem and prove its $\mathcal{O}(1/\epsilon)$ convergence rate.  This is followed by a demonstration on Kuhn Poker in section \ref{sec:kuhn}. In section \ref{sec:algo_gen}, we extend  the algorithm to problems with more general strategy profiles, and exhibit thesame convergence properties.
+
+%% It is now known, thanks to the \textit{sequence-form representaion}, that the Nash equilibrium problem for such games takes the form \eqref{eq:primal_pb}.
 
 %%%
-\paragraph{Extensive-form representation}
-The game consists of three players: player 1 (Alice), player 2 (Bob), and player 0, a special player called \textit{chance}. All three players are treated symmetrically.
-The players take turns to play according to the rules of the game, until a terminal node (aka \textit{leaf}) is reached upon which the game automatically stops. %% The sequence-form is similar to the \textit{extensive-form} except that in the latter, pure strategies are defined on edges, whilst they're defined on paths (sequences of ordered choices) in the former.
-At each node $t$ of the \textit{game tree}, a unique player \textit{acts} (ie take their turn), referred to as the \textit{player to act} at the given node. This way, the nodes of the game tree are partitioned into three classes: the nodes at which the chance player acts (e.g the root node), the nodes at which Alice acts, and the nodes at which Bob acts. Due to imcompleted information, each player's nodes are grouped into equivalent classes of \textit{strategically indistinguishable} nodes called \textit{information sets}; $\mathcal{I}_k$ is the set of all information sets of player $k$. If each information set is a singleton, then the game reduces to a game complete information.
+%% \section{The sequence-form representation}
+%% \label{sec:rep}
+%% \paragraph{Recap: Extensive-form representation} The game tree $\mathcal{T}$ is defined as follows. There are three players: player 1 (Alice), player 2 (Bob), and player 0, a special player called \textit{chance}. All three players are treated symmetrically. Nodes of the game tree $\mathcal{T}$ are identified with states of the game, and actions taken by players correspond to edges of $\mathcal{T}$.
+%% The players take turns to play according to the rules of the game, until a terminal node (aka \textit{leaf}) is reached upon which the game automatically stops. %% The sequence-form is similar to the \textit{extensive-form} except that in the latter, pure strategies are defined on edges, whilst they're defined on paths (sequences of ordered choices) in the former.
+%% At each node $t$ of $\mathcal{T}$, a unique player \textit{acts} (ie take their turn), referred to as the \textit{player to act} at the given node. This way, the nodes of the game tree are partitioned into three classes: the nodes at which the chance player acts (e.g the root node), the nodes at which Alice acts, and the nodes at which Bob acts. Due to imcompleted information, each player's nodes are grouped into equivalent classes of \textit{strategically indistinguishable} nodes called \textit{information sets}; $\mathcal{I}_k$ is the set of all information sets of player $k$. If each information set is a singleton, then the game reduces to a game complete information.
 
-$a(t)$ is the \textit{payoff} received by player $1$ at node $t$. That the game is zero-sum means that player 2
-receives a payoff of $-a(t)$. Note that $a(t)$ is $0$ for all non-leaf nodes, since the game must continue.
-The goal of a \textit{rational} player is that the game should end at a node for which her payoff is as large as possible.
-We will assume implicitly that each (non-chance) player is rational.
+%% $a(t)$ is the \textit{payoff} received by player $1$ at node $t$. That the game is zero-sum means that player 2
+%% receives a payoff of $-a(t)$. Note that $a(t)$ is $0$ for all non-leaf nodes, since the game must continue.
+%% The goal of a \textit{rational} player is that the game should end at a node for which her payoff is as large as possible.
+%% We will assume implicitly that each (non-chance) player is rational.
 
-A \textit{mixed-strategy} for a player is specified by a prescription of the probability of making a given choice from a given node at which the player acts. The chance player plays a publicly known \textit{mixed strategy} $\beta_0$.
 
-\paragraph{From extensive-form to sequence-form representation}
-For each information set $h$ of player $k$, $\sigma_h$ is the sequence of choices from the root node, to --any node of-- $h$, ignoring the choices of the other players. $C_h$ is the set of choices at $h$. \textit{Perfect recall} means that a player cannot get additional information on the game tree by remembering their earlier choices. The set of \textit{sequences} of player $k$, denoted $\mathcal{S}_k$, is defined by 
+%% A \textit{mixed-strategy} for a player is specified by a prescription of the probability of making a given choice from a given node at which the player acts. The chance player plays a publicly known \textit{mixed strategy} $\beta_0$.
+
+%% \paragraph{From extensive-form to sequence-form representation}
+%% For each information set $h$ of player $k$, $\sigma_h$ (unique and well-defined, by the  is the sequence of choices from the root node, to --any node of-- $h$, ignoring the choices of the other players. \textit{perfect recall} means that a player cannot get additional information on the game tree by remembering their earlier choices, and so $\sigma_h$ is well-defined. $C_h$ is the set of choices at $h$. The set of \textit{sequences} of player $k$, denoted $\mathcal{S}_k$, is defined by 
+%% \begin{equation}
+%% \mathcal{S}_k := \{\emptyset\} \cup \{\sigma_h c\text{ } |\text{ } h \in I_k, c \in C_h\}
+%% \end{equation}
+%% Each element $\sigma$ of $\mathcal{S}_k$ is a path joining the root node to a leaf in the game tree, with the choices of all other players deleted, and represents a possible sequence of choices made by player $k$ in the game, from start to finish. $\sigma_k(t)$ is the unique sequence in $\mathcal{S}_k$ which can be extended to the path from root to node $t$, by including the choices of the other players;
+%% $\beta_0(t)$ is the product of the probabilities of the choices made by the chance player along $\sigma_0(t)$.
+
+%% Player $k$'s \textit{pure-strategies} correspond to points in $\prod_{h \in \mathcal{I}_k}{\mathcal{C}_h}$, and their \textit{mixed-strategies} are randomizations on these pure-strategies. In sequence-form, the strategy profile $Q_k$ of player $k \ge 1$ is the polytope of $n_k$-dimensional nonnegative vectors satisying
+%% % Besides nonnegativity, the \textit{realization plans} $z$ of each play $k>0$ must obey linear contraints of the form
+%% \begin{equation}
+%%     z(\emptyset) = 1 \text{ and }
+%%     z(\sigma_h) - \sum_{c \in C_h}{z(\sigma_h c)} = 0\text{, } \forall h \in \mathcal{I}_k
+%%   \label{eq:lin}
+%% \end{equation}
+
+%% These linear constraints \eqref{eq:lin} can be succinctly written as $E_k z = e_k$,
+%% where $E_k$ is a matrix with $l_k := 1 + \#\mathcal{I}_k$ rows and $n_k := \#\mathcal{S}_k$ columns whose entries are either $-1$, $0$, or $1$, and $e_k$ is $l_k$-dimensional vector of the form $(1, 0, ..., 0)$. Thus we can re-write
+
+%% \begin{equation}
+%%   Q_k := \{z \in \mathbb{R}^{n_k}| z \ge 0\text{ and }E_kz = e_k\}
+%%   \label{eq:poly}
+%% \end{equation}
+
+%% Each point $z \in Q_k$ is called a \textit{realization plan} and induces a \textit{behavioural-strategy} $\beta_k$ such that for each information set $h \in \mathcal{I}_k$ and each choice $c \in C_h$, the probability for player $k$ to make a choice $c \in \mathcal{C}_h$ from any node in $h$ is
+%% \begin{equation}
+%%   \beta_k(h, c) := \begin{cases}
+%%     z(\sigma_hc)/z(\sigma_h), é\mbox{if } z(\sigma_h) > 0\\
+%%     0, &\mbox{Otherwise}.
+%%   \end{cases}
+%% \end{equation}
+
+%% From this definition, it is clear that each behavioural-strategy is equivalent to a mixed-strategy.
+
+%% The payoff matrix from player 1's perspective is the the $n_1$-by-$n_2$ matrix $A = (A_{\sigma,\tau})$ defined by
+%% \begin{equation}
+%%     A_{\sigma,\tau} := \sum_{\text{leafs }t\text{ : } \sigma_1(t) = \sigma\text{ and } \sigma_2(t) = \tau}{\beta_0(t)a(t)}, \forall (\sigma, \tau) \in \mathcal{S}_1 \times \mathcal{S}_2
+%%   \end{equation}
+
+%% If player 1 plays strategy $x \in Q_1$ and player 2 plays strategy $y \in Q_2$ then player 1 gets $x^TAy$ units of money; that the game is ``zero-sum'' means that player 2 gets $-x^TAy$.
+
+%% The nanuplet $(\mathcal{I}_1, \mathcal{I}_2, \mathcal{S}_1, \mathcal{S}_2, A, E_1, E_2, e_1, e_2)$ completely specifies a game in sequence-form. However, since are only interested in computing Nash equilibria, the quintuplet $(A, E_1, E_2, e_1, e_2)$ conveys all the needed data.
+
+%% \paragraph{Example: Sequence-form representation of Kuhn Poker}
+%% \label{sec:kuhn_sf}
+%% The Kuhn 3-card Poker has sequence-form specification given by (not showing zero entries)\\
+%% $A = \left[\begin{array}{ccccccccccccc}
+%%   &   &   &   &   &   &   &   &   &   &   &   &  \\
+%%   &   &   &   &   &   &   & -1 / 6 &   &   &   & -1 / 6 &  \\
+%%   &   &   &   &   &   &   &   & -1 / 6 &   &   &   & -1 / 6\\
+%%   &   &   &   &   &   &   &   & -1 / 3 &   &   &   & -1 / 3\\
+%%   &   &   &   &   & 1 / 6 & -1 / 3 &   &   & 1 / 6 & -1 / 3 &   &  \\
+%%   &   &   & 1 / 6 &   &   &   &   &   &   &   & -1 / 6 &  \\
+%%   &   &   &   & -1 / 6 &   &   &   &   &   &   &   & -1 / 6\\
+%%   &   &   &   & 1 / 3 &   &   &   &   &   &   &   & -1 / 3\\
+%%   & 1 / 6 & 1 / 3 &   &   &   &   &   &   & 1 / 6 & -1 / 3 &   &  \\
+%%   &   &   & 1 / 6 &   &   &   & 1 / 6 &   &   &   &   &  \\
+%%   &   &   &   & -1 / 6 &   &   &   & -1 / 6 &   &   &   &  \\
+%%   &   &   &   & 1 / 3 &   &   &   & 1 / 3 &   &   &   &  \\
+%%   & 1 / 6 & 1 / 3 &   &   & 1 / 6 & 1 / 3 &   &   &   &   &   &  
+%% \end{array}\right]$,\\
+%% $E_1 = \left[\begin{array}{ccccccccccccc}
+%% 1 &   &   &   &   &   &   &   &   &   &   &   &  \\
+%% -1 &   &   &   &   &   &   &   &   & 1 &   &   & 1\\
+%% -1 & 1 &   &   & 1 &   &   &   &   &   &   &   &  \\
+%% -1 &   &   &   &   & 1 &   &   & 1 &   &   &   &  \\
+%%   & -1 & 1 & 1 &   &   &   &   &   &   &   &   &  \\
+%%   &   &   &   &   & -1 & 1 & 1 &   &   &   &   &  \\
+%%   &   &   &   &   &   &   &   &   & -1 & 1 & 1 &  
+%% \end{array}\right]$, $e_1 = e_2 = [1, 0, 0, 0, 0, 0, 0]^T$,\\
+%% and $E_2 = \left[\begin{array}{ccccccccccccc}
+%% 1 &   &   &   &   &   &   &   &   &   &   &   &  \\
+%% -1 &   &   &   &   &   &   & 1 & 1 &   &   &   &  \\
+%% -1 &   &   &   &   &   &   &   &   & 1 & 1 &   &  \\
+%% -1 &   &   &   &   & 1 & 1 &   &   &   &   &   &  \\
+%% -1 &   &   &   &   &   &   &   &   &   &   & 1 & 1\\
+%% -1 & 1 & 1 &   &   &   &   &   &   &   &   &   &  \\
+%% -1 &   &   & 1 & 1 &   &   &   &   &   &   &   &  
+%% \end{array}\right]$.\\
+
+
+
+\section{Related work}
+\label{sec:related_work}
+EGT used in \cite{hoda2010smoothing}...
+
+\section{Useful convex analysis}
+\label{sec:notation}
+We will need the following notations and definitions in the sequel. Given positive integers $m$ and $n$, $\mathbb{R}^{m \times n}$ denotes
+the space of all $m$-by-$n$ real matrices. $0_{m,n}$ denotes the $m$-by-$n$ matrix of zeros and $1_{m,n}$ denotes the $m$-by-$n$ matrix of ones.
+%% $\mathbb{R}^n_+$ := $\{x \in \mathbb{R}^n|x_k \ge 0 \text{ }  \forall j\}$ is the $n$-dimensional \textit{nonnegative orthant}.
+
+For a vector $x \in \mathbb{R}^n$, $\|x\|$ denotes the $2$-\textit{norm} of $x$ defined by $\|x\| := \sqrt{x^Tx}$.
+$(x)_+$ denotes its point-wise maximum with 0. Note that $(x)_+ \in \mathbb{R}^n_+$.
+For example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The \textit{spectral norm} of a matrix $K$,
+denoted $\|K\|$, is defined to be the largest \textit{singular value} of $K$, i.e the largest \textit{eigen-value} of $K^TK$ (or equivalently, of $KK^T$).
+
+Given a \textit{convex subset} $C$ of $\mathbb{R}^n$, $i_C$ denotes its \textit{indicator function} defined by
 \begin{equation}
-\mathcal{S}_k := \{\emptyset\} \cup \{\sigma_h c\text{ } |\text{ } h \in I_k, c \in C_h\}
-\end{equation}
-Each element $\sigma$ of $\mathcal{S}_k$ is a path joining the root node to a leaf in the game tree, with the choices of all other players deleted, and represents a possible sequence of choices made by player $k$ in the game, from start to finish. $\sigma_k(t)$ is the unique sequence in $\mathcal{S}_k$ which can be extended to the path from root to node $t$, by including the choices of the other players;
-$\beta_0(t)$ is the product of the probabilities of the choices made by the chance player along $\sigma_0(t)$.
-
-Player $k$'s \textit{pure-strategies} correspond to points in $\prod_{h \in \mathcal{I}_k}{\mathcal{C}_h}$, and their \textit{mixed-strategies} are randomizations on these pure-strategies. In sequence-form, the strategy profile $Q_k$ of player $k \ge 1$ is the polytope of $n_k$-dimensional nonnegative vectors satisying
-% Besides nonnegativity, the \textit{realization plans} $z$ of each play $k>0$ must obey linear contraints of the form
-\begin{equation}
-    z(\emptyset) = 1 \text{ and }
-    z(\sigma_h) - \sum_{c \in C_h}{z(\sigma_h c)} = 0\text{, } \forall h \in \mathcal{I}_k
-  \label{eq:lin}
-\end{equation}
-
-These linear constraints \eqref{eq:lin} can be succinctly written as $E_k z = e_k$,
-where $E_k$ is a matrix with $p_k := 1 + \#\mathcal{I}_k$ rows and $n_k := \#\mathcal{S}_k$ columns whose entries are either $-1$, $0$, or $1$, and $e_k$ is $p_k$-dimensional vector of the form $(1, 0, ..., 0)$. Thus we can re-write
-
-\begin{equation}
-  Q_k := \{z \in \mathbb{R}^{n_k}| z \ge 0\text{ and }E_kz = e_k\}
-  \label{eq:poly}
-\end{equation}
-
-Each point $z \in Q_k$ is called a \textit{realization plan} and induces a \textit{behavioural-strategy} $\beta_k$ such that for each information set $h \in \mathcal{I}_k$ and each choice $c \in C_h$, the probability for player $k$ to make a choice $c \in \mathcal{C}_h$ from any node in $h$ is
-\begin{equation}
-  \beta_k(h, c) := \begin{cases}
-    z(\sigma_hc)/z(\sigma_h), é\mbox{if } z(\sigma_h) > 0\\
-    0, &\mbox{Otherwise}.
-  \end{cases}
-\end{equation}
-
-From this definition, it is clear that each behavioural-strategy is equivalent to a mixed-strategy.
-
-
-The \textit{payoff matrix} from player 1's perspective is the the $n_1$-by-$n_2$ matrix $A = (A_{\sigma,\tau})$ defined by
-\begin{equation}
-    A_{\sigma,\tau} := \sum_{\text{leafs }t\text{ : } \sigma_1(t) = \sigma\text{ and } \sigma_2(t) = \tau}{\beta_0(t)a(t)}, \forall (\sigma, \tau) \in \mathcal{S}_1 \times \mathcal{S}_2
+  i_C(x) = \begin{cases}
+    0, &\mbox{if } x \in C\\
+    +\infty, &\mbox{otherwise}.
+    \end{cases}
   \end{equation}
 
-If player 1 plays strategy $x \in Q_1$ and player 2 plays strategy $y \in Q_2$ then player 1 gets $x^TAy$ units of money; that the game is ``zero-sum'' means that player 2 gets $-x^TAy$.
+Note that $i_{C \cap D} = i_C + i_D$. The \textit{euclidean projection operator} onto $C$, denoted $\Pi_C$ is the function
+$\Pi: \mathbb{R}^n \mapsto C$, which maps a point $x \in \mathbb{R}^n$ to the (necessarily unique) point $\Pi_C(x)$ of $C$ which is closed to $x$. Precisely,
+\begin{equation}
+  \Pi_C(x) := \underset{c \in C}{argimin}\text{ }\|c - x\|^2
+\end{equation}
+For example, the metric projections onto the nonnegative orthant and the closed unit-disk $\bar{\Delta}$
+% := \{x|\|x\| \le 1\}$
+are $\Pi_{\mathbb{R}^n_+}(x) \equiv (x)_+$ and $\Pi_{\bar{\Delta}}(z) \equiv \dfrac{z}{max(\|z\|, 1)}$ respectively.
 
-The nanuplet $(\mathcal{I}_1, \mathcal{I}_2, \mathcal{S}_1, \mathcal{S}_2, A, E_1, E_2, e_1, e_2)$ completely specifies a game in sequence-form. However, since are only interested in computing Nash equilibria, the quintuplet $(A, E_1, E_2, e_1, e_2)$ conveys all the needed data.
+Let $f : \mathbb{R}^n \rightarrow [-\infty, +\infty]$ be a \textit{proper convex lower semi-continous function}
+(\textit{p.c.l.s.c} for short). The \textit{convex conjugate} of $f$ is the function $f^*: \mathbb{R}^n \rightarrow [-\infty, +\infty]$ is defined by
+\begin{equation}
+  f^*(x) := \underset{z \in \mathbb{R}^n}{\text{max}}\text{ }z^Tx - f(x)
+\end{equation}
 
-\paragraph{Example: Sequence-form representation of Kuhn Poker}
-\label{sec:kuhn_sf}
-The Kuhn 3-card Poker has sequence-form specification given by (not showing zero entries)\\
+Given $\tau > 0$, the \textit{proximal operator} of $f$ of rank
+$\tau$, denoted $\text{prox}_{\tau f}$, is the function which maps a point $x \in \mathbb{R}^n$ to the (necessarily
+unique) solution of the problem
+\begin{equation}
+  \underset{z \in \mathbb{R}^n}{argmin}\text{ }\frac{1}{2}\|z - x\|^2 + \tau f(z)
+\end{equation}
+
+It is easy to see that if $f$ is the indicator function of a convex set $C$, then $\text{prox}_{\tau f} = \Pi_C, \forall \tau > 0$. In this sense, proximal operators can be seen
+as a generalization of euclidean projection operators.
+
+\section{The proposed algorithm}
+\label{sec:algo}
+We now derive our primal-dual algorithm for solving the Nash equilibrium problem \eqref{eq:primal_pb}. The algorithm is derived from the general primal-dual Algorithm 39 proposed in \cite{chambolle2010}. Though this scheme has recently gained considerable popularity in the signal processing community
+%\cite{gramfort-etal:2013a}
+, to the best of our knowledge, this is the first time it is being applied to compute Nash equilibria.
+
+It should be noted that the difficulty of applying the general primal-dual Algorithm 39 proposed in \cite{chambolle2010} directly to problem \eqref{eq:primal_pb} lies in the difficulty of effectively computing the metric projections $\Pi_{Q_k}$. Theorem \ref{thm:pd} provides a trick to effectively evade this difficulty.
+
+\begin{theorem}
+  The Nash equilibrium LCP problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb} can be re-written in the saddle-point form
+  
+  \begin{equation}
+    \underset{y, v}{minimize}\text{ }\underset{x, u}{maximize}
+           {\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + G(y, v) - H(x, u)}
+           \label{eq:unconstrained_pb}
+  \end{equation}
+
+  where
+  \begin{equation}
+    \left .
+    \begin{split}
+      K :=
+      \left[
+        \begin{array}{c|c}
+          A & -E_1^T \\ \hline
+          E_2 & 0_{l_2, l_1}
+        \end{array}
+        \right] \in \mathbb{R}^{(n_1 + l_2) \times (n_2 + l_1)} \\
+      %%\begin{bmatrix}A \text{ } E_1^T\\ E_2 \text{ } 0\end{bmatrix} \in \mathbb{R}^{(n_2 + l_1) \times (n_1 + l_2)}\\
+      G: \mathbb{R}^{n_2} \times \mathbb{R}^{l_1} \rightarrow [0, +\infty], (y, v) \mapsto i_{\mathbb{R}^{n_2}_+}(y) + e_1^Tv\\
+      H: \mathbb{R}^{n_1} \times \mathbb{R}^{l_2} \rightarrow [0, +\infty], (x, u) \mapsto i_{\mathbb{R}^{n_1}_+}(x) + e_2^Tu
+    \end{split}
+    \right\}
+    \label{eq:things}
+  \end{equation}
+  
+  %% Moreover, if $\mathcal{G}'$ denotes the dual-gap function of problem $\eqref{eq:unconstrained_pb}$ and as before, $\mathcal{G}$ denotes the dual-gap function of problem \eqref{eq:primal_pb}, then we have the bound
+  %% \begin{equation}
+  %%   \mathcal{G}(x, y) \le \mathcal{G}'(x, u, y, v), \forall (x, u, y, v) \in \mathbb{R}^{n_1} \times \mathbb{R}^{l_2} \times \mathbb{R}^{n_2} \times \mathbb{R}^{l_1}
+  %%   \end{equation}
+
+  \label{thm:pd}
+\end{theorem}
+
+%% Theorem \ref{thm:pd}, can be interpreted as follows: 2 players $x$ (player 1)  and $y$ (player 2) go heads-on in a zero-sum game with payoff matrix $A$. Their strategy, profiles are $Q_1$ and $Q_2$ respectively, meaning that if player $j$ players a strategy which is outside $Q_k$ then they are panalized by inflicting an infinite loss yupon them. To remedy this, they recruit assistants $u$ and $v$, whose sole goal is to preven the ...
+\begin{proof}
+  The LCP problem \eqref{eq:primal_pb} simplified as follows
+\begin{equation}
+  \begin{aligned}
+    \underset{y,p}{\text{min}}\text{ }e_1^Tp + i_{\mathbb{R}^{n_1}_+}(-Ay + E_1^Tp) + i_{\{0\}}(E_2y - e_2) + i_{\mathbb{R}^{n_2}_+}(y)\\
+    = \underset{y,p}{\text{min}}\text{ }G(y,p) + i_{\mathbb{R}^{n_1}_+}(-Ay + E_1^Tp) + i_{\{0\}}(E_2y - e2)
+  \end{aligned}
+  \label{eq:a}
+\end{equation}
+
+Now,
+\begin{equation}
+  \begin{split}
+    H^*\left(K\begin{bmatrix}y\\p\end{bmatrix}\right) := \underset{x,q}{\text{max}}\text{ }\begin{bmatrix}x\\q\end{bmatrix}^TK\begin{bmatrix}y\\p\end{bmatrix} - H(x, q) &= \underset{x, q}{\text{max}}\text{ }x^T(Ay - E_1^Tp) - i_{\mathbb{R}^{n_1}_+}(x) + q^TE_2y - f^Tq\\
+      &= \underset{x \geq 0}{\text{max}}\text{ }x^T(Ay - E_1^Tp) + \underset{q}{\text{max}}\text{ }q^TE_2y - f^Tq\\
+      &= i_{\mathbb{R}^{n_1}_+}(-Ay + E_1^Tp) + i_{\{0\}}(E_2y - e_2)
+  \end{split}
+  \label{eq:b}
+\end{equation}
+Combining equations \eqref{eq:a} and \eqref{eq:b}, it follows that the LCP problem \eqref{eq:primal_pb} can be written as 
+\begin{equation}
+  \underset{y,p}{\text{minimize}}\text{ }G(y,p) + H^*\left(K\begin{bmatrix}y\\p\end{bmatrix}\right)
+\end{equation}
+
+Similarly, one shows that the LCP problem \eqref{eq:dual_pb} is equivalent to
+\begin{equation}
+  \underset{x,q}{\text{minimize}}\text{ }-G^*\left(-K^T\begin{bmatrix}x\\q\end{bmatrix}\right) - H(x, q)\
+\end{equation}
+
+But this two last equations are simply the primal and dual formulations of the saddle-point problem \eqref{eq:unconstrained_pb}, and we are done.
+
+%% For the dual-gap bound, note that $\forall (x', u', y', v') \in \mathbb{R}^{n_1}_+ \times \mathbb{R}^{l_2} \times \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$, one has
+%% \begin{eqnarray*}
+%%   \begin{split}
+%%     \underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{l_2}}{max}\text{ }\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y'\\v'\end{bmatrix} + G(y', v') - H(x, u)
+%%       &= \underset{x \in \mathbb{R}^{n_1}_+, u \in \mathbb{R}^{l_2}}{max}\text{ }x^TAy' - v'^T(E_1x - e_1) + u^T(E_2y' - e_2)\\
+%%       &\ge \underset{x \in \mathbb{R}^{n_1}_+}{max}\text{ }x^TAy' - v'^T(E_1x - e_1) + \underset{u \in \mathbb{R}^{l_2}}{max}\text{ }u^T(E_2y' - e_2)\\
+%%       &\ge \underset{x \in Q_1}{max}\text{ }x^TAy + \underset{u \in \mathbb{R}^{l_2}}{max}\text{ }u^T(E_2y' - e_2)
+%%   \end{split}
+%% \end{eqnarray*}
+
+%% and
+%% \begin{eqnarray*}
+%%   \begin{split}
+%%     \underset{y \in \mathbb{R}^{n_2}, v \in \mathbb{R}^{l_1}}{min}\text{ }\begin{bmatrix}x'\\u'\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + G(y, v) - H(x', u')
+%%       &= \underset{y \in \mathbb{R}^{n_2}_+, v \in \mathbb{R}^{l_1}}{min}\text{ }x'^TAy - v^T(E_1x' - e_1) + u'^T(E_2y - e_2)\\
+%%       &\le \underset{y \in \mathbb{R}^{n_2}_+}{min}\text{ }x'^TAy + u'^T(E_2y - e_2) - v^T(E_1x' - e_1)
+%%   \end{split}
+%% \end{eqnarray*}
+\end{proof}
+
+The rest of this section is concerned with applying Algorithm 39 of \cite{chambolle2010} to solve problem
+\eqref{eq:unconstrained_pb} and therefore by Theorem \ref{thm:pd}, the Nash equilibrium problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb}.
+
+Now,
+$G$ and $H$ are \textit{p.c.l.s.c} and their proximal operators are given by
+  \begin{equation}
+    \left .
+    \begin{split}
+      \text{prox}_{\tau G} : \mathbb{R}^{n_2} \times \mathbb{R}^{l_1} &\rightarrow \mathbb{R}^{n_2} \times \mathbb{R}^{l_1}\\
+      (y, v) &\mapsto ((y)_+, v - \tau e_1)\\
+    \end{split}
+    \right\}
+  \end{equation}
+
+  and
+  \begin{equation}
+    \left .
+    \begin{split}
+      \text{prox}_{\sigma H}: \mathbb{R}^{n_1} \times \mathbb{R}^{l_2} &\rightarrow \mathbb{R}^{n_1} \times \mathbb{R}^{l_2}\\
+      (x, u) &\mapsto ((x)_+, u - \sigma e_2)
+    \end{split}
+    \right\}
+  \end{equation}
+
+Indeed both $G$ and $F$ are separable sums of the indicator function of a convex set, whose prox is simply the euclidean projection operator onto the set,  and a linear transformation $z \mapsto a^Tz$ whose prox, at rank $\tau$, is simply $z \mapsto z - \tau a$.
+
+So, applying Algorithm 39 of \cite{chambolle2010} with $F := H^*$
+ to problem \eqref{eq:unconstrained_pb}, we obtain Algorithm \ref{Tab:algo_simplified} for solving the original problem \eqref{eq:primal_pb}. The $\mathcal{O}(1/\epsilon)$ convergence rate of Algorothm \ref{Tab:algo_simplified} hails directly from Theorem 1 of \cite{chambolle2010}.
+\begin{remark}
+  Note that the convergence rate of $\mathcal{O}(1/\epsilon)$ cannot be improved in the framework of \cite{chambolle2010}, since neither $G$ nor $H$ is \textit{uniformly convex}.
+\end{remark}
+
+%% \subsection{Special case: $C_k = \mathbb{R}^{n_k}_+$} As discussed in subsection \ref{subsec:example_games},
+%% the Nash equilibrium problem for two-person zero-sum simultaneous games and two-person zero-sum sequential games with imcomplete
+%% information and perfect recall admits the formulation \eqref{eq:primal_pb}, with $C_k = \mathbb{R}^{n_k}_+$ (coding for nonnegativity constraints).
+%% In such situations, $\Pi_{C_k}(z) \equiv (z)_+$ as already mentioned in \ref{sec:notation}, and Algorithm \ref{Tab:algo} reduces to the simpler Algorithm \ref{Tab:algo_simplified}.
+
+\begin{algorithm}[H]
+  \caption{$\mathcal{O}(1/\epsilon)$ Primal-dual algorithm for finding a Nash $\epsilon$-equilibrium for a sequential two-person zero-sum game with imcomplete information and perfect recall}
+  \KwIn{sequence-form specification of the game: $(A, E_1, E_2, e_1, e_2)$, where $A \in \mathbb{R}^{n_1 \times n_2}$,
+  $E_1 \in \mathbb{R}^{l_1 \times n_1}$, $E_2 \in \mathbb{R}^{l_2 \times n_2}$, $e_1 \in \mathbb{R}^{l_1}$, $e_2 \in \mathbb{R}^{l_2}$}
+  \KwOut{Nash $\epsilon-$equilibrium pair $(x^{(k)}$, $y^{(k)})$ of realization plans}
+  \textbf{Precompute}: $\|K\|^2$, where $K$ is constructed as in equations \eqref{eq:unconstrained_pb}. $\|K\|^2$ can be computed via a \textit{power iteration} on $K^TK$, for example.\\
+  \textbf{Initialize}:
+  $x^{(0)} \in \mathbb{R}^{n_1}$; $\tilde{y^{(0)}}, y^{(0)} \in \mathbb{R}^{n_2}$; $p \in \mathbb{R}^{l_1}$; $q^{(0)} \in \mathbb{R}^{l_2}$; 
+  $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 < 1$ (for example take $\tau = \sigma = .99/\|K\|$); $k = 0$.\\
+  \While{
+%$\dfrac{\| x^{(k+1)} - x^{(k)}\|^2 + \|v^{(k+1)}- v^{(k)}\|^2}{\sigma} + \dfrac{\|y^{(k+1)}- y^{(k)}\|^2 + \|u^{(k+1)}- u^{(k)}\|^2}{\tau} < \epsilon$
+$|e_1^Tp^{(k)} - e_2^Tq^{(k)}| \geq \epsilon$}{
+    \begin{eqnarray*}
+      x^{(k+1)} &\leftarrow& \left(x^{(k)} + \tau \left(A\tilde{y}^{(k)} - E_1^T\tilde{p}^{(k)}\right)\right)_+\\
+      q^{(k+1)} &\leftarrow& q^{(k)} + \tau \left(E_2\tilde{y}^{(k)} - e_2\right)\\
+      y^{(k+1)} &\leftarrow& \left(y^{(k)} - \sigma \left(A^Tx^{(k + 1)} + E_2^Tq^{(k + 1)}\right)\right)_+\\
+      p^{(k+1)} &\leftarrow& p^{(k)} - \sigma \left(e_1 - E_1x^{(k+1)}\right)\\
+      \tilde{y}^{(k+1)} &\leftarrow& 2y^{(k+1)} - y^{(k)}\\
+      \tilde{q}^{(k+1)} &\leftarrow& 2q^{(k+1)} - q^{(k)}\\
+      k &\leftarrow& k + 1
+    \end{eqnarray*}
+  }
+  \label{Tab:algo_simplified}
+\end{algorithm}
+
+\begin{remark}
+It's possible to do over-relaxation and inertial iterates...
+\end{remark}
+
+\section{Results}
+\paragraph{Simulated game}
+See Figure \ref{Tab:sim_dgap_curve}.
+
+\begin{figure}
+  \includegraphics[width=1\linewidth]{simplex_dgap.pdf}
+  \includegraphics[width=1\linewidth]{simplex_NE.pdf}
+  \caption{Convergence curves of Algorithm \ref{Tab:algo_simplified} random $1000 \times 1000$ matrix game (on simplexes)}
+  \label{Tab:sim_dgap_curve}
+\end{figure}
+
+
+\paragraph{Real-world game: Kuhn 3-card Poker}
+For this game, the sequence-form representation is given by (not showing zero entries)\\
 $A = \left[\begin{array}{ccccccccccccc}
   &   &   &   &   &   &   &   &   &   &   &   &  \\
   &   &   &   &   &   &   & -1 / 6 &   &   &   & -1 / 6 &  \\
@@ -187,410 +606,133 @@ and $E_2 = \left[\begin{array}{ccccccccccccc}
 -1 &   &   & 1 & 1 &   &   &   &   &   &   &   &  
 \end{array}\right]$.\\
 
-
-\paragraph{Statement of the problem: Nash equilibrium problem in sequence-form}
-In sequence-form representation, the Nash equilibrium problem is (see \cite{von1996efficient})
-\begin{equation}
-  \underset{y \in Q_2}{minimize}\text{ }\underset{x \in Q_1}{maximize}\text{ }{x^TAy}
-  \label{eq:opt_pb}
-\end{equation}
-As usual, the ``minimax'' notation in problem \eqref{eq:opt_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution if (and only if)
-\begin{equation}
-  x^TAy^* \le x^TAy \le {x^*}^TAy, \forall (x, y) \in Q_1 \times Q_2
-\end{equation}
-Such pairs $(x^*, y^*)$ correspond to the Nash equilibria of the game, and ${x^*}^TAy^*$ is the \textit{value}
-\footnote{This value is the same for every equilibrium pair $(x^*, y^*)$.} of the game.
-  
-Even though problem \eqref{eq:opt_pb} is in theory, amendable to classical tools like LCP (\textit{Linear Constraint Programming}), at least for sequential games with imcomplete information the game (e.g Texas Hold'em Poker) is exceedingly larger than what such programs can handle (see \cite{hoda2010smoothing}).
-
-%% Though \textit{Nash equilibrium} has become a novel way for solving two-person zero-sum games, the problem of computing Nash equilibria for large-scale two-person zero-sum games is still largely unsolved. Even though this problem is, in theory, amendable to classical tools like LCP (\textit{Linear Constraint Programming}), at least for sequential games with imcomplete information the game (e.g Texas Hold'em Poker) is exceedingly larger than what such programs can handle.
-%% We will be needing the following notation: %%  The reader should lookup any standard textbook
-%% %% (for example \cite{boyd2004}) on convex optimization for a tutorial introduction to these notions.
-%% Viz,
-%% \begin{itemize}
-%% \item $\mathbb{R}^n$: $n$-dimensional real vector space;
-%% \item $\mathbb{R}^{m \times n}$: \quad space of all $m$-by-$n$ real matrices;
-%% \item $0_{m,n}$: $m$-by-$n$ matrix of zeros;
-%% \item $(x)_+$: \quad component-wise maximum of a vector $x$ and 0;
-%% \item $\mathbb{R}^n_+$: \quad $\{x \in \mathbb{R}^n|x = (x)_+\}$, the $n$-dimensional nonnegative orthant 
-%% \item $i_C$: \quad indicator function of a convex set $C$;
-%% % \item $\Pi_C$: \quad euclidean projection operator onto a convex set $C$;
-%% \item $\|K\|_2$: \quad spectral norm of a matrix $K$
-%% % \item $F^*$: the convex conjugate of a convex function $F$.
-%% %% \item \textit{l.s.c.p.c}: \quad acronym for adjective \textit{lower semi-continuous proper convex};
-%% %% \item $f^*$: \quad Fenchel transform (a.k.a convex conjugate) of a \textit{l.s.c.p.c} function $f$;
-%% \end{itemize}
-
-%% \section{Statement of the problem}
-%% The Nash equilibrium problem for a two-person zero-sum sequential game with imcomplete information and perfect recall is a the saddle-point problem
-%% \begin{equation}
-%%   \underset{y \in Q_2}{minimize}\text{ }\underset{x \in Q_1}{maximize}\text{ }{x^TAy}
-%%   \label{eq:opt_pb}
-%% \end{equation}
-
-%% where player $k$'s \textit{strategy profile} $Q_k$ is the polytope
-%% \begin{equation}
-%%   Q_k := \{z \in \mathbb{R}^{n_k}| E_kz = e_k\text{ and } z_j \ge 0 \text{ }\forall j\}
-%% \end{equation}
-%% for %% some convex subset $C_k$ of a euclidean space $\mathbb{R}^{n_k}$, and 
-%% some $p_k$-by-$n_k$ matrix $E_k$ and $p_k$-dimensional vector $e_k$. $A$ is the \textit{payoff matrix} from player 1's perspective of the game: if player 1 players strategy
-%% $x \in Q_1$ and player 2 plays strategy $y \in Q_2$ then player 1 gets $x^TAy$ units of money; that the game is ``zero-sum'' means that player 2 gets $-x^TAy$.
-%% %% We will assume that the convex sets $C_k$ are simple enough so that the eucliean projection operators $\Pi_{C_k}$ can be cheaply computed.
-%% Typically, $C_k = \mathbb{R}^{p_k}_+ := \{x \in \mathbb{R}^n|x_k \ge 0\}$, the \textit{the nonnegative orthant}, and encodes a nonnegativity constraint. %% in this case, $\Pi_{C_k}(z) \equiv (z)_+$ as seen in subsection \ref{sec:notation}.
-%% As usual, the ``minimax'' notation in problem \eqref{eq:opt_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution iff
-%% \begin{equation}
-%%   x^TAy^* \le x^TAy \le {x^*}^TAy, \forall (x, y) \in Q_1 \times Q_2
-%% \end{equation}
-%% Such pairs $(x^*, y^*)$ correspond to the Nash equilibria of the game, and ${x^*}^TAy^*$ is the \textit{value}
-%% \footnote{This value is the same for every equilibrium pair $(x^*, y^*)$.} of the game.
-
-%% We can distinguish two categories of such games, in terms of (non-)simultaneity of play.
-%% \paragraph{Simultaneous two-person zero-sum games}
-%% \label{subsec:example_games}
-%% Here, the Nash equilibrium problem takes the form \eqref{eq:opt_pb} with $p_k = 1$, $C_k = \mathbb{R}^{p_k}_+$, $E_k = 1_{1, n_k}$,
-%%   and $e_k = 1$, so that $Q_k$ is simply the probabability $n_k$-simplex $\Delta_{n_k}$. Each point in $\Delta_{n_k}$ corresponds to a \textit{mixed-strategy} for player $j$,
-%% and represents a randomization on their \textit{pure-strategies} (corresponding to the vertices of their propability simplex $\Delta_{n_k}$).
-
-%% \paragraph{Two-person zero-sum sequential games with imcomplete information and perfect recall}
-%% It is now known, thanks to the \textit{sequence-form representaion}, that the Nash equilibrium problem for such games takes the form \eqref{eq:opt_pb}.
-
-%% We recall that in the sequence-form representation of such games,  $E_k$ is a matrix whose
-%% entries are $-1$, $0$, or $+1$, and $e_k := (1, 0, 0, ..., 0)$. We also recall that $E_1$ and $e_1$ (resp. $E_2$ and $e_2$)
-%% encode linear constraints player 1's (resp. player 2's)  ``admissible'' \textit{realization plans} $x$ (resp. $y$).
-
-%% \paragraph{Example of Nash equilibirum}
-%% As an illustration, the pair $(x^*, y^*)$ given by
-%% $x^* = [1, .478, .522, .174, .826]^T$ and
-%% $y^* = [1, 1/2, 1/2]^T$ is a Nash equilibrium for the sequence-form game given by (not showing zero entries)\\
-%% $A = \left[\begin{array}{ccc}
-%%   &   &  \\
-%%   &   &  \\
-%%   & 1 & -1\\
-%%   & -2 & 4\\
-%% 1 &   &  
-%% \end{array}\right]$, $E_1 = \left[\begin{array}{ccccc}
-%%   1 &   &   &   &  \\
-%%   -1 & 1 & 1 &   &  \\
-%%   -1 &   &   & 1 & 1
-%% \end{array}\right]$,
-%% $E_2 = \left[\begin{array}{ccc}
-%%   1 &   &  \\
-%%   -1 & 1 & 1
-%% \end{array}\right]$, $e_1 = [1, 0, 0]^T$, and $e_2 = [1, 0]^T$.
-
-\begin{remark}
-  The matrices $A$, $E_1$, and $E_2$ are very large (can have upto billions of rows and columns) but very sparse too.
-%% : $A$ will be sparse because a concrete sequential game will
-%% typically have very few\footnote{Few, relative to the size of the game tree.} leafs, and only a few
-%% combinations of sequences of choices of the players, will actually lead to a leaf (i.e. end the game);
-%% $E$ and $F$ will be sparse because the kinks of possible sequences of choices of each player will
-%% zig-zag between only a limited number of the player's information sets so that a choice at an information set will
-%% rarely\footnote{Relative to the number of information sets for the player.}  extend another information set.
-This sparsity should be thoroughly exploited by a solver for problem \eqref{eq:opt_pb}.
-\end{remark}
-
-%% In section \ref{sec:related_work}, we give a brief overview of existing methods for solving \eqref{eq:opt_pb}.
-%% We elaborate our proposed algorithm in section \ref{sec:algo}.
-
-\section{Related work}
-\label{sec:related_work}
-EGT used in \cite{hoda2010smoothing}...
-
-\section{Useful convex analysis}
-\label{sec:notation}
-We will need the following notations and definitions in the sequel. Given positive integers $m$ and $n$, $\mathbb{R}^{m \times n}$ denotes
-the space of all $m$-by-$n$ real matrices. $0_{m,n}$ denotes the $m$-by-$n$ matrix of zeros and $1_{m,n}$ denotes the $m$-by-$n$ matrix of ones.
-%% $\mathbb{R}^n_+$ := $\{x \in \mathbb{R}^n|x_k \ge 0 \text{ }  \forall j\}$ is the $n$-dimensional \textit{nonnegative orthant}.
-
-For a vector $x \in \mathbb{R}^n$, $\|x\|$ denotes the $2$-\textit{norm} of $x$ defined by $\|x\| := \sqrt{x^Tx}$.
-$(x)_+$ denotes its point-wise maximum with 0. Note that $(x)_+ \in \mathbb{R}^n_+$.
-For example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The \textit{spectral norm} of a matrix $K$,
-denoted $\|K\|$, is defined to be the largest \textit{singular value} of $K$, i.e the largest \textit{eigen-value} of $K^TK$ (or equivalently, of $KK^T$).
-
-Given a \textit{convex subset} $C$ of $\mathbb{R}^n$, $i_C$ denotes its \textit{indicator function} defined by
-\begin{equation}
-  i_C(x) = \begin{cases}
-    0, &\mbox{if } x \in C\\
-    +\infty, &\mbox{otherwise}.
-    \end{cases}
-  \end{equation}
-
-Note that $i_{C \cap D} = i_C + i_D$. The \textit{euclidean projection operator} onto $C$, denoted $\Pi_C$ is the function
-$\Pi: \mathbb{R}^n \mapsto C$, which maps a point $x \in \mathbb{R}^n$ to the (necessarily unique) point $\Pi_C(x)$ of $C$ which is closed to $x$. Precisely,
-\begin{equation}
-  \Pi_C(x) := \underset{c \in C}{argimin}\text{ }\|c - x\|^2
-\end{equation}
-For example, the metric projections onto the nonnegative orthant and the closed unit-disk $\bar{\Delta}$
-% := \{x|\|x\| \le 1\}$
-are $\Pi_{\mathbb{R}^n_+}(x) \equiv (x)_+$ and $\Pi_{\bar{\Delta}}(z) \equiv \dfrac{z}{max(\|z\|, 1)}$ respectively.
-
-Let $f : \mathbb{R}^n \rightarrow [0, +\infty]$ be a \textit{proper convex lower semi-continous function}
-(\textit{p.c.l.s.c} for short), and $\tau$ a positive real number. The \textit{proximal operator} of $f$ of rank
-$\tau$, denoted $\text{prox}_{\tau f}$ is the function which maps a point $x \in \mathbb{R}^n$ to the (necessarily
-unique) solution of the problem
-\begin{equation}
-  \underset{z \in \mathbb{R}^n}{argmin}\text{ }\frac{1}{2}\|z - x\|^2 + \tau f(z)
-\end{equation}
-
-It is easy to see that if $f$ is the indicator function of a convex set $C$, then $\text{prox}_{\tau f} = \Pi_C, \forall \tau > 0$. In this sense, proximal operators can be seen
-as a generalization of euclidean projection operators.
-
-\section{The algorithm}
-\label{sec:algo}
-We now derive our primal-dual algorithm for solving the Nash equilibrium problem \eqref{eq:opt_pb}. The algorithm is derived from the general primal-dual Algorithm 39 proposed in \cite{chambolle2010}. Though this scheme has recently gained considerable popularity in the signal processing community
-%\cite{gramfort-etal:2013a}
-, to the best of our knowledge, this is the first time it is being applied to compute Nash equilibria.
-
-It should be noted that the difficulty of applying the general primal-dual Algorithm 39 proposed in \cite{chambolle2010} directly to problem \eqref{eq:opt_pb} lies in the difficulty of effectively computing the metric projections $\Pi_{Q_k}$. Theorem \ref{thm:pd} provides a trick to effectively evade this difficulty.
-
-\begin{theorem}
-  The Nash equilibrium problem \eqref{eq:opt_pb} can be re-written in the equivalent unconstrained form
-  
-  \begin{equation}
-    \underset{y \in \mathbb{R}^{n_2}, v\in \mathbb{R}^{p_1}}{minimize}\text{ }\underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{p_2}}{maximize}
-           {\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + G(y, v) - H(x, u)}
-           \label{eq:unconstrained_pb}
-  \end{equation}
-
-  where $v \in \mathbb{R}^{p_1}$ and $u \in \mathbb{R}^{p_2}$ are auxiliary variables and 
-  \begin{equation}
-    \left .
-    \begin{split}
-      K :=
-      \left[
-        \begin{array}{c|c}
-          A & -E_1^T \\ \hline
-          E_2 & 0_{p_2, p_1}
-        \end{array}
-        \right] \in \mathbb{R}^{(n_1 + p_2) \times (n_2 + p_1)} \\
-      %%\begin{bmatrix}A \text{ } E_1^T\\ E_2 \text{ } 0\end{bmatrix} \in \mathbb{R}^{(n_2 + p_1) \times (n_1 + p_2)}\\
-      G: \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} \rightarrow [0, +\infty], (y, v) \mapsto i_{\mathbb{R}^{n_2}_+}(y) + e_1^Tv\\
-      H: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} \rightarrow [0, +\infty], (x, u) \mapsto i_{\mathbb{R}^{n_1}_+}(x) + e_2^Tu
-    \end{split}
-    \right\}
-    \label{eq:things}
-  \end{equation}
-  
-  Moreover, $G$ and $H$ are \textit{p.c.l.s.c} and their proximal operators are given by
-  \begin{equation}
-    \left .
-    \begin{split}
-      \text{prox}_{\tau G} : \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} &\rightarrow \mathbb{R}^{n_2} \times \mathbb{R}^{p_1}\\
-      (y, v) &\mapsto ((y)_+, v - \tau e_1)\\
-    \end{split}
-    \right\}
-  \end{equation}
-
-  and
-  \begin{equation}
-    \left .
-    \begin{split}
-      \text{prox}_{\sigma F}: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} &\rightarrow \mathbb{R}^{n_1} \times \mathbb{R}^{p_2}\\
-      (x, u) &\mapsto ((x)_+, u - \sigma e_2)
-    \end{split}
-    \right\}
-  \end{equation}
-  \label{thm:pd}
-\end{theorem}
-
-%% Theorem \ref{thm:pd}, can be interpreted as follows: 2 players $x$ (player 1)  and $y$ (player 2) go heads-on in a zero-sum game with payoff matrix $A$. Their strategy, profiles are $Q_1$ and $Q_2$ respectively, meaning that if player $j$ players a strategy which is outside $Q_k$ then they are panalized by inflicting an infinite loss yupon them. To remedy this, they recruit assistants $u$ and $v$, whose sole goal is to preven the ...
-\begin{proof} First observe that $\forall (x, y) \in \mathbb{R}^{n_1} \times \mathbb{R}^{n_2}$, we have
-  \begin{eqnarray}
-    \left.
-    \begin{split}
-      -i_{Q_1}(x) = -i_{\mathbb{R}^{n_1}_+}(x) + \underset{v \in \mathbb{R}^{p_1}}{min}\text{}{v^T(e_1 - E_1x)}\\
-      i_{Q_2}(y) = i_{\mathbb{R}^{n_2}_+}(y) + \underset{u \in \mathbb{R}^{p_2}}{max}\text{}{u^T(E_2y - e_2)}
-      \end{split}
-    \right\}
-  \end{eqnarray}
-  Thus,% problem \eqref{eq:opt_pb} is equivalent to
-  \begin{eqnarray*}
-    \begin{split}
-  \underset{y \in Q_2}{min}\text{ }\underset{x \in Q_1}{max}\text{ }{x^TAy} &=
-  \underset{y \in \mathbb{R}^{n_2}}{min}\text{ }\left(\underset{x \in \mathbb{R}^{n_1}}{max}\text{ }
-x^TAy - i_{Q_1}(x)\right) + i_{Q_2}(y) \\
-&= \underset{y \in \mathbb{R}^{n_2}}{min}\text{ }\underset{x \in \mathbb{R}^{n_1}}{max}\text{ }x^TAy -i_{\mathbb{R}^{n_1}_+}(x) + \underset{v \in \mathbb{R}^{p_1}}{min}\text{}{v^T(e_1 - E_1x)} + i_{\mathbb{R}^{n_2}_+}(y) + \underset{u \in \mathbb{R}^{p_2}}{max}\text{}{u^T(E_2y - e_2)}\\
-      &= \underset{y \in \mathbb{R}^{n_2}}{min}\text{ }\underset{x \in \mathbb{R}^{n_1}}{max}\text{ }\underset{v \in \mathbb{R}^{p_1}}{min}\text{ }\underset{u \in \mathbb{R}^{p_2}}{min}\text{ }x^TAy - x^TE_1^Tv + u^TE_2y + i_{\mathbb{R}^{n_2}_+}(y) + e_1^Tv -(i_{\mathbb{R}^{n_1}_+}(x) + e_2^Tu)\\
-      &= \underset{y \in \mathbb{R}^{n_2}}{min}\text{ }\underset{x \in \mathbb{R}^{n_1}}{max}\text{ } \underset{v\in \mathbb{R}^{p_1}}{min}\text{ }\underset{u \in \mathbb{R}^{p_2}}{max}
-      {\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + G(y, v) - H(x, u)}\\
-      &= \underset{y \in \mathbb{R}^{n_2}}{min}\text{ }\underset{v\in \mathbb{R}^{p_1}}{min}\text{ }\underset{x \in \mathbb{R}^{n_1}}{max}\text{ }
-\underset{u \in \mathbb{R}^{p_2}}{max}
-      {\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + G(y, v) - H(x, u)}\\
-      &=     \underset{y \in \mathbb{R}^{n_2}, v\in \mathbb{R}^{p_1}}{min}\text{ }\underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{p_2}}{max}
-           {\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + G(y, v) - H(x, u)}
-    \end{split}
-  \end{eqnarray*}
-where $K$, $G$, and $H$ are as given in \eqref{eq:things}. Thus problem \eqref{eq:opt_pb} is equivalent to problem \eqref{eq:unconstrained_pb} as claimed.
-
-About the proximal operators, indeed both $G$ and $F$ are separable sums of the indicator function of a convex set, whose prox is simply the euclidean projection operator onto the set,  and a linear transformation $z \mapsto a^Tz$ whose prox, at rank $\tau$, is simply $z \mapsto z - \tau a$.
-\end{proof}
-Now applying Algorithm 39 of \cite{chambolle2010} with $F := H^*$ (the \textit{convex conjugate} of $H$)
- to problem \eqref{eq:unconstrained_pb}, we obtain Algorithm \ref{Tab:algo_simplified} for solving the original problem \eqref{eq:opt_pb}. The $\mathcal{O}(1/\epsilon)$ convergence rate of Algorothm \ref{Tab:algo_simplified} hails directly from Theorem 1 of \cite{chambolle2010}.
-\begin{remark}
-  Note that the convergence rate of $\mathcal{O}(1/\epsilon)$ cannot be improved in the framework of \cite{chambolle2010}, since neither $G$ nor $H$ is \textit{uniformly convex}.
-\end{remark}
-
-%% \subsection{Special case: $C_k = \mathbb{R}^{n_k}_+$} As discussed in subsection \ref{subsec:example_games},
-%% the Nash equilibrium problem for two-person zero-sum simultaneous games and two-person zero-sum sequential games with imcomplete
-%% information and perfect recall admits the formulation \eqref{eq:opt_pb}, with $C_k = \mathbb{R}^{n_k}_+$ (coding for nonnegativity constraints).
-%% In such situations, $\Pi_{C_k}(z) \equiv (z)_+$ as already mentioned in \ref{sec:notation}, and Algorithm \ref{Tab:algo} reduces to the simpler Algorithm \ref{Tab:algo_simplified}.
-
-\begin{algorithm}[htb]
-  \caption{$\mathcal{O}(1/\epsilon)$ Primal-dual algorithm for solving the Nash equilibrium problem \eqref{eq:opt_pb}}
-  \textbf{require}
-  \begin{itemize}
-    \item the specification of a game $(A, E_1, E_2, e_1, e_2)$, where $A \in \mathbb{R}^{n_1 \times n_2}$,
-  $E_1 \in \mathbb{R}^{p_1 \times n_1}$, $E_2 \in \mathbb{R}^{p_2 \times n_2}$, $e_1 \in \mathbb{R}^{p_1}$, $e_2 \in \mathbb{R}^{p_2}$;
-      \item a tolerance level $\epsilon > 0$
-  \end{itemize}
-  \textbf{precompute} $\|K\|^2$, where $K$ is constructed as in equations \eqref{eq:unconstrained_pb}. $\|K\|^2$ can be computed via a \textit{power iteration} on $K^TK$, for example.\\
-  \textbf{initialize}
-  $x^{(0)} \in \mathbb{R}^{n_1}$; $v \in \mathbb{R}^{p_1}$; $\tilde{y^{(0)}}, y^{(0)} \in \mathbb{R}^{n_2}$; $u^{(0)} \in \mathbb{R}^{p_2}$; 
-  $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 < 1$ (for example take $\tau = \sigma = .99/\|K\|$); $k = 0$.\\
-  \Repeat{$\dfrac{\| x^{(k+1)} - x^{(k)}\|^2 + \|v^{(k+1)}- v^{(k)}\|^2}{\sigma} + \dfrac{\|y^{(k+1)}- y^{(k)}\|^2 + \|u^{(k+1)}- u^{(k)}\|^2}{\tau} < \epsilon$}{
-    \begin{eqnarray*}
-      x^{(k+1)} &\leftarrow& \left(x^{(k)} + \tau \left(A\tilde{y}^{(k)} - E_1^T\tilde{v}^{(k)}\right)\right)_+\\
-      u^{(k+1)} &\leftarrow& u^{(k)} + \tau \left(E_2\tilde{y}^{(k)} - e_2\right)\\
-      y^{(k+1)} &\leftarrow& \left(y^{(k)} - \sigma \left(A^Tx^{(k + 1)} + E_2^Tu^{(k + 1)}\right)\right)_+\\
-      v^{(k+1)} &\leftarrow& v^{(k)} - \sigma \left(e_1 - E_1x^{(k+1)}\right)\\
-      \tilde{y}^{(k+1)} &\leftarrow& 2y^{(k+1)} - y^{(k)}\\
-      \tilde{u}^{(k+1)} &\leftarrow& 2u^{(k+1)} - u^{(k)}\\
-      k &\leftarrow& k + 1
-    \end{eqnarray*}
-  } \Return $x^{(k)}$, $y^{(k)}$
-  \label{Tab:algo_simplified}
-\end{algorithm}
-
-
-\section{Application to Poker: Kuhn Poker}
-\label{sec:kuhn}
+\paragraph{Solution}
 The pair $(x^*, y^*)$ of realization plans given by\\
 $x^* = [1, 0.759, 0.759, 0, 0.241, 1, 0.425, 0.575, 0, 0.275, 0, 0.275, 0.725]^T$ and
-$y^* = [1, 1, 0, 0.667, 0.333, 0.667, 0.333, 1, 0, 0, 1, 0, 1]^T$ is a Nash equlibrium for the Kuhn Poker presented in \ref{sec:kuhn_sf}, computed using Algorithm  \ref{Tab:algo_simplified}. The convergence curve is shown in Fig \ref{Tab:conv_curves}. One easy checks that this equilibrium is feasible. Indeed,  $E_1x^* - e_1 = [4.76 \times 10^{-5}, -1.91 \times 10^{-5}, 5.67 \times 10^{-5}, 8.23 \times 10^{-6}, 2.90 \times 10^{-5}, -8.62 \times 10^{-7}, -1.96 \times 10^{-5}]^T$ and $E_2y^* - e_2 = [-7.04 \times 10^{-7}, 2.27 \times 10^{-6}, -3.29 \times 10^{-6}, -1.50 \times 10^{-6}, 2.92 \times 10^{-6}, -4.97 \times 10^{-7}, -5.85 \times 10^{-7}]^T$. Finally, $x^*TAy^* = -0.055593685705289997$, which agrees to 4 d.p with the value of $-1 / 18$ computed analytically by Kuhn in his 1954 paper.
+$y^* = [1, 1, 0, 0.667, 0.333, 0.667, 0.333, 1, 0, 0, 1, 0, 1]^T$ is a Nash $10^{-4}$-equlibrium.
+computed by Algorithm  \ref{Tab:algo_simplified}. The convergence curve is shown in Fig \ref{Tab:dgap_curve}. One easy checks that this equilibrium is feasible. Indeed,  $E_1x^* - e_1 = [4.76 \times 10^{-5}, -1.91 \times 10^{-5}, 5.67 \times 10^{-5}, 8.23 \times 10^{-6}, 2.90 \times 10^{-5}, -8.62 \times 10^{-7}, -1.96 \times 10^{-5}]^T$ and $E_2y^* - e_2 = [-7.04 \times 10^{-7}, 2.27 \times 10^{-6}, -3.29 \times 10^{-6}, -1.50 \times 10^{-6}, 2.92 \times 10^{-6}, -4.97 \times 10^{-7}, -5.85 \times 10^{-7}]^T$. Finally, $x^*TAy^* = -0.055593685705289997$, which agrees to 4 d.p with the value of $-1 / 18$ computed analytically by Kuhn in his 1954 paper.
+
+The evolution of the dual gap and the expected value of the game across iterations is shown in Figure \ref{Tab:dgap_curve}. These figures validates the theoritically established $\mathcal{O}(1/\epsilon)$ convergence rate of the Algorithm.
 
 \begin{figure}
+  \includegraphics[width=1\linewidth]{Kuhn3112_dgap.pdf}
   \includegraphics[width=1\linewidth]{Kuhn3112_NE.pdf}
-  % \includegraphics[width=.5\linewidth]{SimplifiedPoker_NE.pdf}
-  \caption{Convergence curves of Algorithm \ref{Tab:algo_simplified} on Kuhn Poker}
-  \label{Tab:conv_curves}
+  \caption{Convergence curves of Algorithm \ref{Tab:algo_simplified} on Kuhn 3-card Poker}
+  \label{Tab:dgap_curve}
 \end{figure}
 
-\section{Extending to games with more general strategy profiles}
-\label{sec:algo_gen}
-Notice tha in \eqref{eq:poly}, the strategy profile of player $k$ can be factored as
-\begin{equation}
-  Q_k := \{z \in \mathbb{R}^{n_k}_+| E_kz = e_k\text\}
-\end{equation}
+%% \section{Extending to games with more general strategy profiles}
+%% \label{sec:algo_gen}
+%% Notice tha in \eqref{eq:poly}, the strategy profile of player $k$ can be factored as
+%% \begin{equation}
+%%   Q_k := \{z \in \mathbb{R}^{n_k}_+| E_kz = e_k\text\}
+%% \end{equation}
 
-The framework presented sofar only demanded we be able to efficiently compute metric projections onto the nonnegative orthant $\mathbb{R}^{n_k}_+$, namely nonnegative clipping. This opens perspectives to envisage general two-person zero sum games for which the players' strategy profiles are of the form
-\begin{equation}
-  Q_k := \{z \in C_k| E_kz = e_k\text\}
-  \label{eq:q_gen}
-\end{equation}
-where the $C_k$ are arbitrary convex sets for which the metric projections $\Pi_{C_k}$ can be effectively computed.
-% \paragraph{Example: Computing best response strategies}
+%% The framework presented sofar only demanded we be able to efficiently compute metric projections onto the nonnegative orthant $\mathbb{R}^{n_k}_+$, namely nonnegative clipping. This opens perspectives to envisage general two-person zero sum games for which the players' strategy profiles are of the form
+%% \begin{equation}
+%%   Q_k := \{z \in C_k| E_kz = e_k\text\}
+%%   \label{eq:q_gen}
+%% \end{equation}
+%% where the $C_k$ are arbitrary convex sets for which the metric projections $\Pi_{C_k}$ can be effectively computed.
+%% % \paragraph{Example: Computing best response strategies}
 
-As a motivating example, suppose Alice knows a priori that Bob is playing a given realization plan $y_0 \in Q_2$ (for example, take $y_0 = [1, 0, ..., 0]^T \in \mathbb{R}^{n_2}$). Alice seeks a \textit{best response strategy}, namely a strategy $x^* \in Q_1$ such that
-\begin{equation}
-  x^TAy_0 \le {x^*}^TAy_0,\text{ } \forall x \in Q_1
-\end{equation}
+%% As a motivating example, suppose Alice knows a priori that Bob is playing a given realization plan $y_0 \in Q_2$ (for example, take $y_0 = [1, 0, ..., 0]^T \in \mathbb{R}^{n_2}$). Alice seeks a \textit{best response strategy}, namely a strategy $x^* \in Q_1$ such that
+%% \begin{equation}
+%%   x^TAy_0 \le {x^*}^TAy_0,\text{ } \forall x \in Q_1
+%% \end{equation}
 
-One observes that this problem is an instance of problem \eqref{eq:opt_pb} with
-$Q_2 = \{y_0\} = \{z \in C_2| E_2z = e_2\text\}$ and $C_2 = \{y_0\}$. Of course the metric projection on $C_2$ is simply the constant map $y \mapsto y_0$.
+%% One observes that this problem is an instance of problem \eqref{eq:primal_pb} with
+%% $Q_2 = \{y_0\} = \{z \in C_2| E_2z = e_2\text\}$ and $C_2 = \{y_0\}$. Of course the metric projection on $C_2$ is simply the constant map $y \mapsto y_0$.
 
-As another motivating example, suppose we know the support ...
+%% As another motivating example, suppose we know the support ...
 
-We have the following generalization of Theorem \ref{thm:pd}.
-
-\begin{theorem}
-  The Nash equilibrium problem \eqref{eq:opt_pb} with strategy profiles given by  equation \eqref{eq:q_gen}, can be re-written in the equivalent unconstrained form
+%% Indeed we have the following generalization of Theorem \ref{thm:pd} for Nash equilibrium problems in which the strategy  profiles have the generic form \eqref{eq:q_gen}.
+%% \begin{theorem}
+%%   The Nash equilibrium problem \eqref{eq:primal_pb} with strategy profiles given by  equation \eqref{eq:q_gen}, can be re-written in the equivalent unconstrained form
   
-  \begin{equation}
-    \underset{y \in \mathbb{R}^{n_2}, v\in \mathbb{R}^{p_1}}{minimize}\text{ }\underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{p_2}}{maximize}
-           {\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + G(y, v) - H(x, u)}
-           \label{eq:unconstrained_pb}
-  \end{equation}
+%%   \begin{equation}
+%%     \underset{y \in \mathbb{R}^{n_2}, v\in \mathbb{R}^{l_1}}{minimize}\text{ }\underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{l_2}}{maximize}
+%%            {\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + G(y, v) - H(x, u)}
+%%            \label{eq:unconstrained_gen_pb}
+%%   \end{equation}
 
-  where $v \in \mathbb{R}^{p_1}$ and $u \in \mathbb{R}^{p_2}$ are auxiliary variables and 
-  \begin{equation}
-    \left .
-    \begin{split}
-      K :=
-      \left[
-        \begin{array}{c|c}
-          A & -E_1^T \\ \hline
-          E_2 & 0_{p_2, p_1}
-        \end{array}
-        \right] \in \mathbb{R}^{(n_1 + p_2) \times (n_2 + p_1)} \\
-      %%\begin{bmatrix}A \text{ } E_1^T\\ E_2 \text{ } 0\end{bmatrix} \in \mathbb{R}^{(n_2 + p_1) \times (n_1 + p_2)}\\
-      G: \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} \rightarrow [-\infty, +\infty], (y, v) \mapsto i_{C_2}(y) + e_1^Tv\\
-      H: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} \rightarrow [-\infty, +\infty], (x, u) \mapsto i_{C_1}(x) + e_2^Tu
-    \end{split}
-    \right\}
-    \label{eq:things}
-  \end{equation}
+%%   where $v \in \mathbb{R}^{l_1}$ and $u \in \mathbb{R}^{l_2}$ are auxiliary variables and 
+%%   \begin{equation}
+%%     \left .
+%%     \begin{split}
+%%       K :=
+%%       \left[
+%%         \begin{array}{c|c}
+%%           A & -E_1^T \\ \hline
+%%           E_2 & 0_{l_2, l_1}
+%%         \end{array}
+%%         \right] \in \mathbb{R}^{(n_1 + l_2) \times (n_2 + l_1)} \\
+%%       %%\begin{bmatrix}A \text{ } E_1^T\\ E_2 \text{ } 0\end{bmatrix} \in \mathbb{R}^{(n_2 + l_1) \times (n_1 + l_2)}\\
+%%       G: \mathbb{R}^{n_2} \times \mathbb{R}^{l_1} \rightarrow [-\infty, +\infty], (y, v) \mapsto i_{C_2}(y) + e_1^Tv\\
+%%       H: \mathbb{R}^{n_1} \times \mathbb{R}^{l_2} \rightarrow [-\infty, +\infty], (x, u) \mapsto i_{C_1}(x) + e_2^Tu
+%%     \end{split}
+%%     \right\}
+%%     \label{eq:things}
+%%   \end{equation}
   
-  Moreover, $G$ and $H$ are \textit{p.c.l.s.c} and their proximal operators are given by
-  \begin{equation}
-    \left .
-    \begin{split}
-      \text{prox}_{\tau G} : \mathbb{R}^{n_2} \times \mathbb{R}^{p_1} &\rightarrow \mathbb{R}^{n_2} \times \mathbb{R}^{p_1}\\
-      (y, v) &\mapsto (\Pi_{C_2}(y), v - \tau e_1)\\
-    \end{split}
-    \right\}
-  \end{equation}
+%%   Moreover, $G$ and $H$ are \textit{p.c.l.s.c} and their proximal operators are given by
+%%   \begin{equation}
+%%     \left .
+%%     \begin{split}
+%%       \text{prox}_{\tau G} : \mathbb{R}^{n_2} \times \mathbb{R}^{l_1} &\rightarrow \mathbb{R}^{n_2} \times \mathbb{R}^{l_1}\\
+%%       (y, v) &\mapsto (\Pi_{C_2}(y), v - \tau e_1)\\
+%%     \end{split}
+%%     \right\}
+%%   \end{equation}
 
-  and
-  \begin{equation}
-    \left .
-    \begin{split}
-      \text{prox}_{\sigma F}: \mathbb{R}^{n_1} \times \mathbb{R}^{p_2} &\rightarrow \mathbb{R}^{n_1} \times \mathbb{R}^{p_2}\\
-      (x, u) &\mapsto (\Pi_{C_1}(x), u - \sigma e_2)
-    \end{split}
-    \right\}
-  \end{equation}
-  \label{thm:pd_gen}
-\end{theorem}
+%%   and
+%%   \begin{equation}
+%%     \left .
+%%     \begin{split}
+%%       \text{prox}_{\sigma F}: \mathbb{R}^{n_1} \times \mathbb{R}^{l_2} &\rightarrow \mathbb{R}^{n_1} \times \mathbb{R}^{l_2}\\
+%%       (x, u) &\mapsto (\Pi_{C_1}(x), u - \sigma e_2)
+%%     \end{split}
+%%     \right\}
+%%   \end{equation}
+%%   \label{thm:pd_gen}
+%% \end{theorem}
 
-\begin{proof}
-Totally analogous to the proof of Theorem \ref{thm:pd} with $\mathbb{R}^{n_k}_+$ replaced with $C_k$,
-$i_{\mathbb{R}^{n_k}_+}$ replaced with $i_{C_k}$, and $\Pi_{\mathbb{R}^{n_k}_+}$ (nonnegative clipping) replaced with $\Pi_{C_k}$.
-\end{proof}
+%% \begin{proof}
+%% Totally analogous to the proof of Theorem \ref{thm:pd} with $\mathbb{R}^{n_k}_+$ replaced with $C_k$,
+%% $i_{\mathbb{R}^{n_k}_+}$ replaced with $i_{C_k}$, and $\Pi_{\mathbb{R}^{n_k}_+}$ (nonnegative clipping) replaced with $\Pi_{C_k}$.
+%% \end{proof}
 
-%\paragraph{$\mathcal{O}(1/\epsilon)$ primal-dual algorithm for general problems}
-Analogous to Algorithm \ref{Tab:algo_simplified}, we obtain Algorithm \ref{Tab:algo} for solving the Nash equilibrium problem \ref{eq:opt_pb} with the general strategy profiles $Q_k$ defined in \eqref{eq:q_gen}. Just like Algorithm \ref{Tab:algo_simplified}, Algorithm \ref{Tab:algo} has a $\mathcal{O}(1/\epsilon)$ convergence rate.
+%% %\paragraph{$\mathcal{O}(1/\epsilon)$ primal-dual algorithm for general problems}
+%% Analogous to Algorithm \ref{Tab:algo_simplified}, we obtain Algorithm \ref{Tab:algo} for solving the Nash equilibrium problem \ref{eq:primal_pb} with the general strategy profiles $Q_k$ defined in \eqref{eq:q_gen}. Just like Algorithm \ref{Tab:algo_simplified}, Algorithm \ref{Tab:algo} has a $\mathcal{O}(1/\epsilon)$ convergence rate.
 
-\begin{algorithm}[htb]
-  \caption{$\mathcal{O}(1/\epsilon)$ Primal-dual algorithm for solving the Nash equilibrium problem \eqref{eq:opt_pb}, with general strategy profiles as defined in \eqref{eq:q_gen}}
-  \textbf{require}
-  \begin{itemize}
-    \item the specification of a game $(A, E_1, E_2, e_1, e_2, C_1, C_2)$, where $A \in \mathbb{R}^{n_1 \times n_2}$,
-  $E_1 \in \mathbb{R}^{p_1 \times n_1}$, $E_2 \in \mathbb{R}^{p_2 \times n_2}$, $e_1 \in \mathbb{R}^{p_1}$, $e_2 \in \mathbb{R}^{p_2}$, each $C_k$ is a convex subset of $\mathbb{R}^{n_k}$, as in the definition of the strategy profiles $Q_k$ in equation \eqref{eq:q_gen};
-      \item a tolerance level $\epsilon > 0$
-  \end{itemize}
-  \textbf{precompute} $\|K\|^2$, where $K$ is constructed as in equations \eqref{eq:unconstrained_pb}. $\|K\|^2$ can be computed via a \textit{power iteration} on $K^TK$, for example.\\
-  \textbf{initialize}
-  $x^{(0)} \in \mathbb{R}^{n_1}$; $v \in \mathbb{R}^{p_1}$; $\tilde{y^{(0)}}, y^{(0)} \in \mathbb{R}^{n_2}$; $u^{(0)} \in \mathbb{R}^{p_2}$; 
-  $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 < 1$ (for example take $\tau = \sigma = .99/\|K\|$); $k = 0$.\\
-  \Repeat{$\dfrac{\| x^{(k+1)} - x^{(k)}\|^2 + \|v^{(k+1)}- v^{(k)}\|^2}{\sigma} + \dfrac{\|y^{(k+1)}- y^{(k)}\|^2 + \|u^{(k+1)}- u^{(k)}\|^2}{\tau} < \epsilon$}{
-    \begin{eqnarray*}
-      x^{(k+1)} &\leftarrow& \Pi_{C_1}\left(x^{(k)} + \tau \left(A\tilde{y}^{(k)} - E_1^T\tilde{v}^{(k)}\right)\right)\\
-      u^{(k+1)} &\leftarrow& u^{(k)} + \tau \left(E_2\tilde{y}^{(k)} - e_2\right)\\
-      y^{(k+1)} &\leftarrow& \Pi_{C_2}\left(y^{(k)} - \sigma \left(A^Tx^{(k + 1)} + E_2^Tu^{(k + 1)}\right)\right)\\
-      v^{(k+1)} &\leftarrow& v^{(k)} - \sigma \left(e_1 - E_1x^{(k+1)}\right)\\
-      \tilde{y}^{(k+1)} &\leftarrow& 2y^{(k+1)} - y^{(k)}\\
-      \tilde{u}^{(k+1)} &\leftarrow& 2u^{(k+1)} - u^{(k)}\\
-      k &\leftarrow& k + 1
-    \end{eqnarray*}
-  } \Return $x^{(k)}$, $y^{(k)}$
-  \label{Tab:algo}
-\end{algorithm}
+%% \begin{algorithm}[H]
+%%   \caption{$\mathcal{O}(1/\epsilon)$ Primal-dual algorithm for solving the Nash equilibrium problem \eqref{eq:primal_pb}, with general strategy profiles as defined in \eqref{eq:q_gen}}
+%%   \KwIn{specification of a game $(A, E_1, E_2, e_1, e_2, C_1, C_2)$, where $A \in \mathbb{R}^{n_1 \times n_2}$,
+%%       $E_1 \in \mathbb{R}^{l_1 \times n_1}$, $E_2 \in \mathbb{R}^{l_2 \times n_2}$, $e_1 \in \mathbb{R}^{l_1}$, $e_2 \in \mathbb{R}^{l_2}$, each $C_k$ is a convex subset of $\mathbb{R}^{n_k}$, as in the definition of the strategy profiles $Q_k$ in equation \eqref{eq:q_gen}}
+%%   \KwOut{Nash $\epsilon-$equilibrium pair $x^{(k)}$, $y^{(k)}$}
+%%   \textbf{Precompute}: $\|K\|^2$, where $K$ is constructed as in equations \eqref{eq:unconstrained_pb}. $\|K\|^2$ can be computed via a \textit{power iteration} on $K^TK$, for example.\\
+%%   \textbf{Initialize}:
+%%   $x^{(0)} \in \mathbb{R}^{n_1}$; $v \in \mathbb{R}^{l_1}$; $\tilde{y^{(0)}}, y^{(0)} \in \mathbb{R}^{n_2}$; $u^{(0)} \in \mathbb{R}^{l_2}$; 
+%%   $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 < 1$ (for example take $\tau = \sigma = .99/\|K\|$); $k = 0$.\\
+%%   \While{
+%% %$\dfrac{\| x^{(k+1)} - x^{(k)}\|^2 + \|v^{(k+1)}- v^{(k)}\|^2}{\sigma} + \dfrac{\|y^{(k+1)}- y^{(k)}\|^2 + \|u^{(k+1)}- u^{(k)}\|^2}{\tau} < \epsilon$
+%% $|e_1^Tp^{(k)} - e_2^Tq^{(k)}| \geq \epsilon$}{
+%%     \begin{eqnarray*}
+%%       x^{(k+1)} &\leftarrow& \Pi_{C_1}\left(x^{(k)} + \tau \left(A\tilde{y}^{(k)} - E_1^T\tilde{v}^{(k)}\right)\right)\\
+%%       u^{(k+1)} &\leftarrow& u^{(k)} + \tau \left(E_2\tilde{y}^{(k)} - e_2\right)\\
+%%       y^{(k+1)} &\leftarrow& \Pi_{C_2}\left(y^{(k)} - \sigma \left(A^Tx^{(k + 1)} + E_2^Tu^{(k + 1)}\right)\right)\\
+%%       v^{(k+1)} &\leftarrow& v^{(k)} - \sigma \left(e_1 - E_1x^{(k+1)}\right)\\
+%%       \tilde{y}^{(k+1)} &\leftarrow& 2y^{(k+1)} - y^{(k)}\\
+%%       \tilde{u}^{(k+1)} &\leftarrow& 2u^{(k+1)} - u^{(k)}\\
+%%       k &\leftarrow& k + 1
+%%     \end{eqnarray*}
+%%   }
+%%   \label{Tab:algo}
+%% \end{algorithm}
 
 \section{Conclusion}
 \medskip \noindent
 \textbf{Acknowledgments:}
-Pending...
-
 \small
 \bibliographystyle{ieeetr}
 \bibliography{bib}
