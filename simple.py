@@ -969,4 +969,4 @@ if __name__ == "__main__":
         # game.draw()
         # plt.title("Game tree (T) for %s" % game.__class__.__name__)
 
-    # plt.show()
+    plt.show()
