@@ -264,7 +264,7 @@ We will assume implicitly that each (non-chance) player is rational.
 A \textit{mixed-strategy} for a player is specified by a prescription of the probability of making a given choice from a given node at which the player acts. The chance player plays a publicly known \textit{mixed strategy} $\beta_0$.
 
 \subsection{From extensive-form to sequence-form representation}
-For each information set $h$ of player $k$, denote by $\sigma_h$  the sequence of choices ((unique and well-defined, by the the ongoing perfect-recall asumption) from the root node, to --any node of-- $h$, ignoring the choices of the other players. \textit{perfect recall} means that a player cannot get additional information on the game tree by remembering their earlier choices, and so $\sigma_h$ is well-defined. $C_h$ is the set of choices at $h$. The set of \textit{sequences} of player $k$, denoted $\mathcal{S}_k$, is defined by 
+For each information set $h$ of player $k$, denote by $\sigma_h$  the sequence of choices from the root node, to $h$ (i.e to any node in $h$), ignoring the choices of the other players. \textit{perfect recall} means that a player cannot get additional information on the game tree by remembering their earlier choices, and so $\sigma_h$ is well-defined. $C_h$ is the set of choices at $h$. The set of \textit{sequences} of player $k$, denoted $\mathcal{S}_k$, is defined by 
 \begin{equation}
 \mathcal{S}_k := \{\emptyset\} \cup \{\sigma_h c\text{ } |\text{ } h \in I_k, c \in C_h\}
 \end{equation}
@@ -280,7 +280,7 @@ Player $k$'s \textit{pure-strategies} correspond to points in $\prod_{h \in \mat
 \end{equation}
 
 These linear constraints \eqref{eq:lin} can be succinctly written as $E_k z = e_k$,
-where $E_k$ is a matrix with $l_k := 1 + \#\mathcal{I}_k$ rows and $n_k := \#\mathcal{S}_k$ columns whose entries are either $-1$, $0$, or $1$, and $e_k$ is $l_k$-dimensional vector of the form $(1, 0, ..., 0)$. The polytopes $Q_k$ defined already in \eqref{eq:polytope} coincide with the constraints \eqref{eq:lin}. Given a player $k$, each realization plan $z \in Q_k$ induces a \textit{behavioural-strategy} $\beta_k$ such that for each information set $h \in \mathcal{I}_k$ and each choice $c \in C_h$, the probability for player $k$ to make choice $c$ from any node in $h$ is
+where $E_k$ is a matrix with $l_k := 1 + \#\mathcal{I}_k$ rows and $n_k := \#\mathcal{S}_k$ columns whose entries are either $-1$, $0$, or $1$, and $e_k$ is $l_k$-dimensional vector of the form $(1, 0, ..., 0)$. The polytopes $Q_k$ defined already in \eqref{eq:polytope} coincide with the constraints \eqref{eq:lin}. Given a player $k$, each realization plan $z \in Q_k$ induces a \textit{behavioral-strategy} $\beta_k$ such that for each information set $h \in \mathcal{I}_k$ and each choice $c \in C_h$, the probability for player $k$ to make choice $c$ from any node in $h$ is
 \begin{equation}
   \beta_k(h, c) := \begin{cases}
     z(\sigma_hc)/z(\sigma_h), é\mbox{if } z(\sigma_h) > 0\\
@@ -288,7 +288,7 @@ where $E_k$ is a matrix with $l_k := 1 + \#\mathcal{I}_k$ rows and $n_k := \#\ma
   \end{cases}
 \end{equation}
 
-From this definition, it is clear that each behavioural-strategy is equivalent to a mixed-strategy.
+From this definition, it is clear that each behavioral-strategy is equivalent to a mixed-strategy.
 
 The payoff matrix from player 1's perspective is the the $n_1$-by-$n_2$ matrix $A = (A_{\sigma,\tau})$ defined by
 \begin{equation}
