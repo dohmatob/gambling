@@ -162,7 +162,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         x *= tau
         x += c
         x = proj_C1(x)
-        q = (E2.dot(ytilde) - e2)
+        q = E2.dot(ytilde) - e2
         q *= tau
         q += d
 
