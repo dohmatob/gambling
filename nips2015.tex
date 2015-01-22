@@ -85,10 +85,10 @@ Our technique is to dualize the linear constraints that form the player's strate
 
 \section{Introduction}
 \label{sec:intro}
-A game-theoretic aproach to playing games strategically optimally consists in computing Nash-equilibria (infact, approximations thereof) offline, and playing one's part of the equilibrium online. This technique is the driving-force behind solution concepts like CFR \cite{lanctot2009monte}, $\text{CFR}^{+}$, and other variants, which have recently found profound success in Poker: equilibria are computed offline (with tremendous computation resources, and the component optimal strategies are played on line by a bot, without any a posteriori computation). However, solving for equilibria remains a mathematical and computational challenge, especially in sequential games with imperfect information. Under the assumption of \textit{perfect recall}, \cite{von1996efficient} and co-workers have developed the \textit{sequence-form} representation, whose size is linear in the size of the game tree, in contrast with the \textit{strategic-form} representation which is exponential. The goal of this paper is to develop a fast and simple primal-dual algorithm for computing  Nash $\epsilon$-equilibria for such games, using this representation.
+A game-theoretic aproach to playing games strategically optimally consists in computing Nash-equilibria (infact, approximations thereof) offline, and playing one's part of the equilibrium online. This technique is the driving-force behind solution concepts like CFR \cite{lanctot2009monte}, $\text{CFR}^{+}$, and other variants, which have recently found profound success in Poker: equilibria are computed offline (with tremendous computation resources, and the component optimal strategies are played on line by a bot, without any a posteriori computation). However, solving for equilibria remains a mathematical and computational challenge, especially in sequential games with imperfect information. This paper proposes an algorithm for solving for such equilibria approximately, in a sense which will be made clear shortly.
 
-\subsection{Background}
-In \cite{von1996efficient, vonequilibrium}, it was established that for sequential two-person zero-sum games with imcomplete information and perfect recall, there exist sparse matrices $A \in \mathbb{R}^{n_1 \times n_2}, E_1 \in \mathbb{R}^{l_1 \times n_1}, E_2 \in \mathbb{R}^{l_2 \times n_2}$, and vectors $e_1 \in \mathbb{R}^{l_1}, e_2 \in \mathbb{R}^{l_2}$ such that $n_1$, $n_2$, $l_1$, and $l_2$ are all linear in the size of the game tree (number of states in the game) and such that Nash equilibria correspond to pairs $(x, y)$ of \textit{realization plans} which solve the primal LCP (Linear Constrained Programming) problem
+\subsection{Context}
+The sequence-form for two-person zero-sum games was introduced in \cite{koller1992complexity}, and the theory was further developed in \cite{von1996efficient, vonequilibrium}, where it was established that for sequential two-person zero-sum games with imcomplete information and perfect recall, there exist sparse matrices $A \in \mathbb{R}^{n_1 \times n_2}, E_1 \in \mathbb{R}^{l_1 \times n_1}, E_2 \in \mathbb{R}^{l_2 \times n_2}$, and vectors $e_1 \in \mathbb{R}^{l_1}, e_2 \in \mathbb{R}^{l_2}$ such that $n_1$, $n_2$, $l_1$, and $l_2$ are all linear in the size of the game tree (number of states in the game) and such that Nash equilibria correspond to pairs $(x, y)$ of \textit{realization plans} which solve the primal LCP (Linear Constrained Programming) problem
 \begin{equation}
   \begin{aligned}
     & \underset{y,p}{\text{minimize}}
@@ -126,7 +126,7 @@ $A$ is the \textit{payoff matrix} and each $E_k$ is a matrix whose entries are $
 \label{eq:polytope}
 \end{equation}
 
-It was also shown (for example, Theorem 3.14 of \cite{vonequilibrium}) that a $(x, y)$ is a solution to the LCP problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb} iff there exist vectors $p$ and $q$ such that
+It was also shown (see Theorem 3.14 of \cite{vonequilibrium}) that a $(x, y)$ is a solution to the LCP problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb} iff there exist vectors $p$ and $q$ such that
 \begin{equation}
   \begin{split}
     E_1x = e_1,\text{ }x \geq 0,\hspace{1em} E_2y = e_2,\text{ }y \geq 0\\
@@ -389,11 +389,6 @@ as a generalization of euclidean projections. The passionate reader will find mo
 
 
 \section{Related work}
-\label{sec:related_work}
-\subsection{Interior-point methods}
-...
-
-\subsection{Smoothing methods}
 In \cite{hoda2010smoothing}, a nested iterative procedure using the Excessive Gap Technique \cite{nesterov2005excessive} was used to to solve the LCP problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb} in the following equivalent saddle-point form
 
 \begin{equation}
@@ -408,15 +403,16 @@ It should be noted however that though the authors in \cite{gilpinfirst} proved 
 
 %% It should be noted that the EGT and its precursors have had considerable success in the signal processing communities, as can be seen in \cite{NestaCandès, eduard, etc.} and the references therein.
 
-\subsection{CounterFactual Regret minimization}
-More recently, the primal-dual algorithm was applied to matrix games (on simplexes) in \cite{chambolle2014ergodic}. Sampling techniques like the CFR (CounterFactual Regret minimization) and its many variants \cite{MartinZinkevichNIPS2007, lanctot2009monte} are also becoming popular...
+Sampling techniques like the CFR (CounterFactual Regret minimization) and its many variants \cite{MartinZinkevichNIPS2007, lanctot2009monte, Bowling09012015} are also becoming popular.
+
+More recently, \cite{chambolle2014ergodic} employs the primal-dual algorithm was applied to matrix games on simplexes. It should be stressed that such matrix games are considerably simpler than the games considered here. Indeed, the authors in \cite{chambolle2014ergodic} use the fact that computing the euclidean projection of a point unto a simplex can be done in linear time \cite{duchi2008efficient}, in contrast to the polytopes $Q_k$ defined in \eqref{eq:polytope} for which no such efficient algorithm is known nor is likely to exist. Note that computing the euclidean projection of a point unto the polytope $Q_k$ can still be done iteratively using the algorithm in proposition 4.2 of \cite{combettes2010dualization}, for example. However, the authors didn't provide a convergence rate for their algorithm, and as with any nested iterative scheme, one would have to solve this sub-problem with finer and finer precision.
 
 \section{The proposed algorithm}
 \label{sec:algo}
 We now present our main contribution, namely an $\mathcal{O}(1/\epsilon)$ primal-dual algorithm for computing Nash $\epsilon$-equilibria for sequential two-person zero-sum games with imcomplete information and perfect recall. The algorithm is obtained from the general primal-dual Algorithm 39 proposed in \cite{chambolle2010}.
 
 \subsection{Unconstrained minimax reformulation of the problem}
-It should be noted that the difficulty of applying the general primal-dual Algorithm 39 proposed in \cite{chambolle2010} directly to problem \eqref{eq:primal_pb} lies in the difficulty of effectively computing\footnote{However, this computation can be done iteratively using the algorithm in proposition 4.2 of \cite{combettes2010dualization}, for example.} the euclidean projections $\Pi_{Q_k}$. Theorem \ref{thm:pd} provides a trick to effectively evade this difficulty.
+It should be noted that the difficulty of applying the general primal-dual Algorithm 39 proposed in \cite{chambolle2010} directly to problem \eqref{eq:primal_pb} lies in the difficulty of effectively computing the euclidean projections $\Pi_{Q_k}$. Theorem \ref{thm:pd} provides a trick to effectively evade this difficulty.
 
 \begin{theorem}
   The Nash equilibrium LCP problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb} can be re-written in the saddle-point convex-concove form
@@ -526,10 +522,7 @@ $G_1$ and $G_2$. Now, both functions are \textit{p.c.l.s.c} and their proximal o
 
 Indeed both $G_1$ and $F$ are separable sums of the indicator function of a convex set, whose prox is simply the euclidean projection onto the set,  and a linear transformation $z \mapsto a^Tz$ whose prox, at rank $\tau$, is simply $z \mapsto z - \tau a$.
 
-Applying Algorithm 39 of \cite{chambolle2010} to problem \eqref{eq:unconstrained_pb}, we obtain Algorithm \ref{Tab:algo_simplified} for solving the original problem \eqref{eq:primal_pb}. The $\mathcal{O}(1/\epsilon)$ convergence rate of Algorothm \ref{Tab:algo_simplified} hails directly from Theorem 1 of \cite{chambolle2010}.
-
-Note that the convergence rate of $\mathcal{O}(1/\epsilon)$ cannot be improved in the framework of \cite{chambolle2010}, since neither $G_1$ nor $G_2$ is \textit{uniformly convex}.
-However, it's possible to do over-relaxation and inertial iterates...
+Applying Algorithm 39 of \cite{chambolle2010} to problem \eqref{eq:unconstrained_pb}, we obtain Algorithm \ref{Tab:algo_simplified} for solving the original problem \eqref{eq:primal_pb}. The $\mathcal{O}(1/\epsilon)$ convergence rate of Algorothm \ref{Tab:algo_simplified} hails directly from Theorem 1 of \cite{chambolle2010}. Note however that this convergence rate cannot be improved in the framework of \cite{chambolle2010}, since neither $G_1$ nor $G_2$ is \textit{uniformly convex}.
 
 
 %% \subsection{Special case: $C_k = \mathbb{R}^{n_k}_+$} As discussed in subsection \ref{subsec:example_games},
