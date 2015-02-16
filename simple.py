@@ -918,7 +918,8 @@ if __name__ == "__main__":
             E2, e2 = game.constraints[2]
             A = game.payoff_matrix
             args = (A, E1, E2, e1, e2)
-            x, y, values, dgaps = primal_dual_ne(A, E1, E2, e1, e2)
+            x, y, values, dgaps = primal_dual_ne(A, E1, E2, e1, e2,
+                                                 max_iter=2000)
         print
         print "Nash Equilibrium:"
         print "x* = ", x
@@ -934,7 +935,7 @@ if __name__ == "__main__":
                         "-1 / 18" if isinstance(game, Kuhn3112) else
                         ("-1 / 4" if isinstance(game, SimplifiedPoker)
                          else "%.2e" % value)), linewidth=4, color="k")
-        plt.xlabel("$k$", fontsize=25)
+        plt.xlabel("$k$ (iteration count)", fontsize=25)
         plt.ylabel("value of game after $k$ iterations", fontsize=25)
         plt.legend(loc="best", prop=dict(size=25))
         # plt.title("%s: Sequence-form NE computation" % (
@@ -947,7 +948,7 @@ if __name__ == "__main__":
         plt.loglog(1. / np.arange(1, len(dgaps) + 1),
                    label="$\\mathcal{O}(1/k)$", linewidth=4, color="k")
         plt.loglog(np.abs(dgaps), label="Primal-Dual", linewidth=4)
-        plt.xlabel("$k$", fontsize=25)
+        plt.xlabel("$k$ (iteration count)", fontsize=25)
         plt.ylabel(
             "Duality gap $|e_1^Tp^{(k)} + e_2^Tq^{(k)}|$ after $k$ iterations",
             fontsize=25)

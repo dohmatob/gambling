@@ -56,7 +56,7 @@ def evil(L, r, z, proj_C=lambda v: np.maximum(v, 0.), L_norm=None,
 
 def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
                    proj_C2=lambda y: np.maximum(y, 0.), init=None,
-                   tol=1e-8, max_iter=10000, inertia=None, rho=None,
+                   tol=1e-8, max_iter=1000, inertia=None, rho=None,
                    good_init=False):
     """Primal-Dual algorithm for computing Nash equlibrium for two-person
     zero-sum game with payoff matrix A and contraint sets
