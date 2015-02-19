@@ -927,20 +927,23 @@ if __name__ == "__main__":
 
         # plot evoluation of game value
         plt.figure(figsize=(13.5, 10))
-        plt.semilogx(values, linewidth=4)
+        ax = plt.subplot("111")
+        ax.semilogx(values, linewidth=4)
         value = values[-1]
-        plt.axhline(-1. / 18. if isinstance(game, Kuhn3112) else value,
-                    linestyle="--",
-                    label="true value of the game: $%s$" % (
-                        "-1 / 18" if isinstance(game, Kuhn3112) else
-                        ("-1 / 4" if isinstance(game, SimplifiedPoker)
-                         else "%.2e" % value)), linewidth=4, color="k")
-        plt.xlabel("$k$ (iteration count)", fontsize=25)
-        plt.ylabel("value of game after $k$ iterations", fontsize=25)
-        plt.legend(loc="best", prop=dict(size=25))
+        ax.axhline(-1. / 18. if isinstance(game, Kuhn3112) else value,
+                   linestyle="--",
+                   label="true value of the game: $%s$" % (
+                       "-1 / 18" if isinstance(game, Kuhn3112) else
+                       ("-1 / 4" if isinstance(game, SimplifiedPoker)
+                    else "%.2e" % value)), linewidth=4, color="k")
+        ax.set_xlabel("$k$ (iteration count)", fontsize=30)
+        ax.set_ylabel("value of game after $k$ iterations", fontsize=30)
+        plt.legend(loc="best", prop=dict(size=30))
         # plt.title("%s: Sequence-form NE computation" % (
         #         game.__class__.__name__))
-        plt.tick_params(axis='both', which='major', labelsize=20)
+        plt.tick_params(axis='both', which='major', labelsize=35)
+        ax.ticklabel_format(axis="y", style="sci")
+        plt.tight_layout()
         plt.savefig("%s_NE.pdf" % name)
 
         # plot evolution of gual gap
@@ -948,12 +951,12 @@ if __name__ == "__main__":
         plt.loglog(1. / np.arange(1, len(dgaps) + 1),
                    label="$\\mathcal{O}(1/k)$", linewidth=4, color="k")
         plt.loglog(np.abs(dgaps), label="Primal-Dual", linewidth=4)
-        plt.xlabel("$k$ (iteration count)", fontsize=25)
+        plt.xlabel("$k$ (iteration count)", fontsize=30)
         plt.ylabel(
-            "Duality gap $|e_1^Tp^{(k)} + e_2^Tq^{(k)}|$ after $k$ iterations",
+            "Duality gap $\\bf{|e_1^Tp^{(k)} + e_2^Tq^{(k)}|}$ after $k$ iterations",
             fontsize=25)
-        plt.legend(loc="best", prop=dict(size=25))
-        plt.tick_params(axis='both', which='major', labelsize=20)
+        plt.legend(loc="best", prop=dict(size=30))
+        plt.tick_params(axis='both', which='major', labelsize=35)
         plt.savefig("%s_dgap.pdf" % name)
 
         # draw game tree
