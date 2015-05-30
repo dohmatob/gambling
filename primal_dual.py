@@ -15,6 +15,7 @@ def power(A, p, max_iter=100, **kwargs):
     for _ in xrange(max_iter):
         b = A(b, **kwargs)
         d = sqrt(np.dot(b, b))
+        print d
         if d == 0:
             return d
         b /= d
@@ -187,7 +188,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
             print "\tConverged after %i iterations." % (k + 1)
             break
 
-    return x, y, values, dgaps
+    return x, y, p, q, values, dgaps
 
 
 def primal_dual_sg_ne(A, **kwargs):

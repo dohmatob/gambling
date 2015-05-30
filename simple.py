@@ -4,8 +4,17 @@ import re
 from nose.tools import assert_equal, assert_true
 import networkx as nx
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
-from primal_dual import primal_dual_ne, primal_dual_sg_ne
+from sklearn.utils import check_random_state
+# from primal_dual import primal_dual_ne, primal_dual_sg_ne
+from tseng_bd import primal_dual_ne, primal_dual_sg_ne
+
+# matplotlib confs
+matplotlib.rcParams['text.latex.preamble'] = ['\\boldmath']
+matplotlib.rc('font', family='serif', serif='cm10')
+matplotlib.rc('text', usetex=True)
+plt.rc('font', size=50)  # make the power in sci notation bigger
 
 
 class Game(object):
@@ -680,7 +689,7 @@ class NashPlayer(Player):
         E, e = self.game.constraints[1]
         F, f = self.game.constraints[2]
         A = self.game.payoff_matrix
-        x, y, _ = primal_dual_ne(A, E, F, e, f)
+        x, y, _, _, _, _, _ = primal_dual_ne(A, E, F, e, f)
         self.rplan = np.array([x, y][self.player - 1])
 
     def choice(self, choices):
@@ -905,12 +914,16 @@ def test_nash_player():
 
 
 if __name__ == "__main__":
-    for game_cls in [SimplifiedPoker, Kuhn3112, "simplex"][1:]:
+    rng = check_random_state(42)
+    max_iter = 10000
+    game_clses = ["simplex", SimplifiedPoker, Kuhn3112]
+    for cnt, game_cls in enumerate(game_clses):
         if game_cls == "simplex":
             game = None
             name = game_cls
-            A = np.random.uniform(-1, 1, size=(1000, 1000))
-            x, y, values, dgaps = primal_dual_sg_ne(A)
+            A = rng.uniform(-1, 1, size=(1000, 1000))
+            x, y, p, q, init, values, dgaps = primal_dual_sg_ne(
+                A, max_iter=max_iter)
         else:
             game = game_cls()
             name = game.__class__.__name__
@@ -918,45 +931,61 @@ if __name__ == "__main__":
             E2, e2 = game.constraints[2]
             A = game.payoff_matrix
             args = (A, E1, E2, e1, e2)
-            x, y, values, dgaps = primal_dual_ne(A, E1, E2, e1, e2,
-                                                 max_iter=2000)
+            x, y, p, q, init, values, dgaps = primal_dual_ne(A, E1, E2, e1, e2,
+                                                             max_iter=max_iter)
+
+        # estimate constant in bound (4.1) of Yunlong He's Theorem 3.5
+        aux = np.concatenate((y, p, x, q))
+        cst = 2. * np.dot(aux, aux) / init["lambd"]
+
+        # misc
+        value = values[-1]
         print
         print "Nash Equilibrium:"
         print "x* = ", x
         print "y* =", y
+        print "< x*, Ay* > =", value
 
         # plot evoluation of game value
         plt.figure(figsize=(13.5, 10))
         ax = plt.subplot("111")
+        plt.grid("on")
         ax.semilogx(values, linewidth=4)
-        value = values[-1]
-        ax.axhline(-1. / 18. if isinstance(game, Kuhn3112) else value,
-                   linestyle="--",
-                   label="true value of the game: $%s$" % (
-                       "-1 / 18" if isinstance(game, Kuhn3112) else
-                       ("-1 / 4" if isinstance(game, SimplifiedPoker)
-                    else "%.2e" % value)), linewidth=4, color="k")
-        ax.set_xlabel("$k$ (iteration count)", fontsize=30)
-        ax.set_ylabel("value of game after $k$ iterations", fontsize=30)
-        plt.legend(loc="best", prop=dict(size=30))
-        # plt.title("%s: Sequence-form NE computation" % (
-        #         game.__class__.__name__))
-        plt.tick_params(axis='both', which='major', labelsize=35)
-        ax.ticklabel_format(axis="y", style="sci")
+        value_ = "%.0e" % value
+        m, e = re.search("(.+?)e(.+)", value_).groups()
+        m = float(m)
+        m = "" if m >= 0 else "-"
+        e = re.sub("\-0*", "-", e)
+        value_ = "%s10^{%s}" % (m, e)
+        ax.axhline(
+            -1. / 18. if isinstance(game, Kuhn3112) else value,
+            linestyle="--", dashes=(10, 10), color="k",
+            label="$\\langle x^*,Ay^*\\rangle$ = $%s$" % (
+                "-1 / 18}" if isinstance(game, Kuhn3112) else
+                ("-1 / 4" if isinstance(game, SimplifiedPoker)
+                 else value_)), linewidth=4)
+        plt.xlabel("\\textbf{$k$ (iteration count)}", fontsize=50)
+        if cnt == 0:
+            ax.set_ylabel(("\\textbf{$\\langle x^{(k)}, Ay^{(k)} "
+                           "\\rangle$"), fontsize=50)
+        plt.legend(loc="best", prop=dict(size=45), handlelength=1.5)
+        ax.ticklabel_format(axis="y", style="sci", scilimits=(0., 0.))
+        ax.tick_params(axis='both', which='major', labelsize=50)
         plt.tight_layout()
         plt.savefig("%s_NE.pdf" % name)
 
         # plot evolution of gual gap
         plt.figure(figsize=(13.5, 10))
-        plt.loglog(1. / np.arange(1, len(dgaps) + 1),
-                   label="$\\mathcal{O}(1/k)$", linewidth=4, color="k")
-        plt.loglog(np.abs(dgaps), label="Primal-Dual", linewidth=4)
-        plt.xlabel("$k$ (iteration count)", fontsize=30)
-        plt.ylabel(
-            "Duality gap $\\bf{|e_1^Tp^{(k)} + e_2^Tq^{(k)}|}$ after $k$ iterations",
-            fontsize=25)
-        plt.legend(loc="best", prop=dict(size=30))
-        plt.tick_params(axis='both', which='major', labelsize=35)
+        plt.grid("on")
+        plt.loglog(cst / np.arange(1, len(dgaps) + 1), linestyle="--",
+                   dashes=(10, 10), label="$\\mathcal{O}(1/k)$", linewidth=4,
+                   color="k")
+        plt.loglog(np.abs(dgaps), label="\\textbf{Algorithm 1}", linewidth=4)
+        if cnt == 0:
+            plt.ylabel("\\textbf{$||\\tilde{v}^{a}_k||$}", fontsize=50)
+            plt.legend(loc="best", prop=dict(size=45), handlelength=1.5)
+        plt.tick_params(axis='both', which='major', labelsize=50)
+        plt.tight_layout()
         plt.savefig("%s_dgap.pdf" % name)
 
         # draw game tree
