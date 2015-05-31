@@ -1,14 +1,17 @@
 \documentclass{article} % For LaTeX2e
-\usepackage{nips14submit_e}%,times}
+\usepackage{nips14submit_e,times}
 %\usepackage{hyperref}
 \usepackage{url}
 \usepackage{amsmath,amsfonts,amsthm}
 \usepackage{bbm}
-\usepackage{algorithm,algorithmic}
+\usepackage{algorithm,algorithmicx}
 \usepackage{graphicx}
 \usepackage{bm}
 \usepackage{bbm}
 \usepackage[titletoc]{appendix}
+
+\usepackage{algpseudocode}
+\usepackage{pifont}
 
 %\usepackage[section]{placeins}
 \usepackage{subfigure}
@@ -27,8 +30,9 @@
 \newtheorem{remark}{Remark}
 \newtheorem{fact}{Fact}
 
+\DeclareMathOperator{\dom}{dom}
 \DeclareMathOperator{\proj}{proj}
-\DeclareMathOperator{\prox}{Prox}
+\DeclareMathOperator{\prox}{prox}
 
 \author{
 Elvis DOHMATOB
@@ -180,7 +184,7 @@ and such that Nash equilibria correspond to pairs $(x, y)$ of
 \textit{realization plans} which solve the primal LCP
 \begin{equation}
   \begin{aligned}
-     \text{minimize }p_0, \hspace{.5em}\text{ subject to }(y,p) \in
+     \text{minimize }e_1^Tp, \hspace{.5em}\text{ subject to }(y,p) \in
      \mathbb{R}^{n_2} \times \mathbb{R}^{l_1}, -Ay +
     E_1^Tp \geq 0, E_2y = e_2, y \ge 0.
   \end{aligned}
@@ -190,7 +194,7 @@ and such that Nash equilibria correspond to pairs $(x, y)$ of
 and the dual LCP
 \begin{equation}
   \begin{aligned}
-    \text{maximize}-q_0,\hspace{.5em}\text{subject to }(y,q) \in
+    \text{maximize}-e_2^Tq,\hspace{.5em}\text{subject to }(y,q) \in
     \mathbb{R}^{n_1} \times \mathbb{R}^{l_2}, -A^Tx - E_2^Tq \leq 0,
     E_1x = e_1, x \ge 0.
   \end{aligned}
@@ -314,132 +318,176 @@ also become state-of-the-art.
 
 \section{Our contributions}
 \label{sec:algo}
-\subsection{Primal-dual algorithm}
-It should be noted that the difficulty of applying the general
-primal-dual Algorithm 39 proposed in \cite{chambolle2010} directly to
-problem \eqref{eq:primal_pb} lies in the difficulty of effectively
-computing the euclidean projections $\proj_{Q_k}$ (which are the
-proximal operators here). Theorem \ref{thm:pd} provides a trick to
-effectively evade this difficulty, by re-writting the problem into an
-equivalent saddle-point convex-concave problem for which the
-associated proximal operators are simple.
+\subsection{Reformulation as a Generalized Saddle-point Problem (GSP)}
+One cannot directly attack the LCPs \eqref{eq:primal_pb} and
+\eqref{eq:dual_pb} via a traditional primal-dual algorithm
+(for example \cite{chambolle2010,chambolle2014ergodic}) because
+computing the euclidean projections $\proj_{Q_k}$ is very difficult
+(in fact, such subproblems would have to be solved
+iteratively\footnote{An ``exception to the rule'' is the case where
+  the $Q_k's$ are simplexes, so that the projections can be computed
+  exactly using \cite{duchi2008efficient}.}). Also,
+the primal-dual gap might explode even at ``nearly feasible'' points,
+leaving a primal-dual algorithm with no clear on whether progress is
+being made or not. So need to way to
+\begin{itemize}
+\item avoid having to compute the projections $\proj_{Q_k}$, and
+\item cope  with infinite primal-dual gaps.
+\end{itemize}
 
-
+In the next theorem, we show that the said LCP problems can be
+conveniently written as a \textit{Generalized Saddle-point Problem
+  (GSP)} in the sense of \cite{he2013accelerating}.
 \begin{theorem}
-  The Nash equilibrium LCPs \eqref{eq:primal_pb} and
-  \eqref{eq:dual_pb} are equivalent to the following convex-concave
-  saddle-point problems
-  
-  \begin{equation}
-    \underset{y, p}{\text{minimize}}\text{ }\underset{x, q}{\text{maximize}}
-           {\begin{bmatrix}x\\q\end{bmatrix}^TK\begin{bmatrix}y\\p\end{bmatrix} + G_2(y, p) - G_2(x, q)}
-           \label{eq:unconstrained_pb}
-  \end{equation}
+Define two proper closed convex functions
+  \begin{eqnarray}
+    \left.
+    \begin{aligned}
+      g_1: \mathbb{R}^{n_2} &\times \mathbb{R}^{l_1} \rightarrow
+      (-\infty, +\infty], \hspace{1em} g_1(y, p) :=
+        i_{\mathbb{R}^{n_2}_+}(y) + e_1^Tp\\
+        g_2: \mathbb{R}^{n_1} &\times \mathbb{R}^{l_2} \rightarrow
+        (-\infty, +\infty],\hspace{1em} g_2(x, q) :=
+          i_{\mathbb{R}^{n_1}_+}(x) + e_2^Tq.
+    \end{aligned}
+    \right\}
+    \label{eq:things}
+  \end{eqnarray}
 
-  where the $(n_1 + l_2)$-by-$(n_2 + l_1)$ matrix $K$ is defined by
+Also, define two bilinear forms $\Psi_1$, $\Psi_2: \mathbb{R}^{n_2}
+\times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
+\mathbb{R}^{l_2} \rightarrow \mathbb{R}$ by letting
   \begin{equation}
-    K :=
-    \left[
-      \begin{array}{cc}
-        A & -E_1^T \\
-        E_2 & 0_{l_2, l_1}
-      \end{array}
-      \right]
+      K :=
+      \left[
+        \begin{array}{cc}
+          A & -E_1^T \\
+          E_2 & 0_{l_2, l_1}
+        \end{array}
+        \right],\hspace{.5em}
+    \Psi_1(y, p, x, q)
+    := \begin{bmatrix}x\\q\end{bmatrix}^TK\begin{bmatrix}y\\p\end{bmatrix}, \hspace{.5em}
+      \Psi_2(y, p, x, q) := -\Psi_1(y, p, x, q).
 \end{equation}
 
-and the p.c.l.s.c functions $G_1: \mathbb{R}^{n_2} \times \mathbb{R}^{l_1} \rightarrow (-\infty, +\infty]$ and \\$G_2: \mathbb{R}^{n_1} \times \mathbb{R}^{l_2} \rightarrow (-\infty, +\infty]$ are defined by
-  \begin{equation}
-      G_1(y, p) := i_{\mathbb{R}^{n_2}_+}(y) + p_0, \hspace{1em} G_2(x, q) := i_{\mathbb{R}^{n_1}_+}(x) + q_0
-    \label{eq:things}
-  \end{equation}
-  
-  %% Moreover, if $\mathcal{G_1}'$ denotes the dual-gap function of problem $\eqref{eq:unconstrained_pb}$ and as before, $\mathcal{G_1}$ denotes the dual-gap function of problem \eqref{eq:primal_pb}, then we have the bound
-  %% \begin{equation}
-  %%   \mathcal{G_1}(x, y) \le \mathcal{G_1}'(x, u, y, v), \forall (x, u, y, v) \in \mathbb{R}^{n_1} \times \mathbb{R}^{l_2} \times \mathbb{R}^{n_2} \times \mathbb{R}^{l_1}
-  %%   \end{equation}
+Finally, define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
+\mathbb{R}^{n_2} \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1}
+\times \mathbb{R}^{l_2} \rightarrow (-\infty, +\infty]$ by
+\begin{eqnarray}
+  \left.
+  \begin{aligned}
+    \hat{\Psi}_1(y, p, x, q) &:=
+    \Psi_1(y, p, x, q)+ g_1(y, p) \text{ if }y \ge 0, \hat{\Psi}_1(y,
+    p, x, q) := \infty \text{ otherwise}\\
+    \hat{\Psi}_2(y, p, x, q) &:= \Psi_2(y, p, x, q)+ g_2(y, p) \text{ if
+    }x \ge 0, \hat{\Psi}_2(y,p, x, q) := \infty \text{ otherwise}.
+  \end{aligned}
+  \right\}
+\end{eqnarray}
 
+Consider the GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$)
+  \begin{eqnarray}
+    \left.
+    \begin{aligned}
+      \text{Find }(y^*,p^*, x^*, q^*) \in \mathbb{R}^{n_2}_+
+  \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1}_+ \times
+  \mathbb{R}^{l_2}\text{ such that }\hat{\Psi}_1(y^*, p^*, x^*, q^*) \le \hat{\Psi}_1(y, p, x^*, q^*)
+      \text{ and }\\
+      \hspace{.5em}\hat{\Psi}_2(y^*, p^*, x^*, q^*) \le
+      \hat{\Psi}_2(y^*, p^*, x, q)
+        \forall (y,p, x, q) \in \mathbb{R}^{n_2}_+
+      \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1}_+ \times
+      \mathbb{R}^{l_2}.
+    \end{aligned}
+    \right\}
+    \label{eq:unconstrained_pb}
+  \end{eqnarray}
+  \label{thm:pd}
+
+  Then a quadruplet $(y^*,p^*, x^*, q^*) \in \mathbb{R}^{n_2}
+  \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
+  \mathbb{R}^{l_2}$ solves the Nash equilibrium LCPs
+  \eqref{eq:primal_pb} and \eqref{eq:dual_pb} iff it solves
+  GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$).
   \label{thm:pd}
 \end{theorem}
 
-%% Theorem \ref{thm:pd}, can be interpreted as follows: 2 players $x$ (player 1)  and $y$ (player 2) go heads-on in a zero-sum game with payoff matrix $A$. Their strategy, profiles are $Q_1$ and $Q_2$ respectively, meaning that if player $j$ players a strategy which is outside $Q_k$ then they are panalized by inflicting an infinite loss yupon them. To remedy this, they recruit assistants $u$ and $v$, whose sole goal is to preven the ...
 \begin{proof}
-Define the following closed convex sets
+Define $S_1 := \dom(g_1) = \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$
+and $S_2 := \dom(g_2) = 
+\mathbb{R}^{n_1}_+ \times \mathbb{R}^{l_2}$. Noting that the
+equilibria of the LCPs \eqref{eq:primal_pb},
+\eqref{eq:dual_pb}, and the equilibria of GSP($\Psi_1$, $\Psi_2$,
+$g_1$, $g_2$) are contained in $S_1 \times S_2$, it suffices to show
+that at any point $(y, p, x, q) \in S_1 \times S_2$, the duality
+primal-dual gap between the primal LCP \eqref{eq:primal_pb} and the
+dual LCP \eqref{eq:dual_pb} equals the primal-dual gap of
+GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$).
+
+
+Indeed, the unconstrained objective in \eqref{eq:primal_pb}, say
+$a(x,y)$, can be written as
 \begin{eqnarray*}
   \begin{aligned}
-  \Sigma_2 &:= \{(y, p) \in \mathbb{R}^{n_2} \times
-  \mathbb{R}^{l_1}\text{ }|\text{ } -Ay + E_1^Tp \ge 0, E_2y = e_2, y
-  \ge 0\}\\
-  \Sigma_1 &:= \{(x, q) \in \mathbb{R}^{n_1} \times
-  \mathbb{R}^{l_2}\text{ }|\text{ } -A^Tx - E_2^Tq \le 0, E_1x = e_1,
-  x \ge 0\}
-  \end{aligned}
-\end{eqnarray*}
-The optimal value in the dual LCP \eqref{eq:primal_pb} can be computed as 
-\begin{eqnarray*}
-  \begin{aligned}
-    p_0^* &= \text{min}\{p_0\text{ }|\text{ } (y, p) \in \Sigma_2, p =
-    (p_0, p_1, ..., q_{l_1-1})\}\\
-    &= \underset{y,p}{\text{min}}\text{ }p_0 +
+    a(y,p) &= e_1^Tp +
     i_{\mathbb{R}^{n_2}_+}(y) + i_{\mathbb{R}^{n_1}_+}(-Ay + E_1^Tp) +
     i_{\{0\}}(E_2y - e_2)\\
-    &= \underset{y,p}{\text{min}}\text{ }G_1(y,p) +
+    &= g_1(y,p) +
     i_{\mathbb{R}^{n_1}_+}(-Ay + E_1^Tp) + i_{\{0\}}(E_2y - e_2)\\
-    &= \underset{y,p}{\text{min}}\text{ }G_1(y,p) + \underset{x \geq
-      0}{\text{max}}\text{ }x^T(Ay - E_1^Tp) +
-    \underset{q}{\text{max}}\text{ }q^T(E_2y - e_2)\\
-    &= \underset{y,p}{\text{min}}\text{ }G_1(y,p) + \underset{x,
-      q}{\text{max}}\text{ }x^TAy - x^TE_1^Tp + q^TE_2y -
-    i_{\mathbb{R}^{n_1}_+}(x) - q^Te_2\\
-    &= \underset{y,p}{\text{min}}\text{ }G_1(y,p) + \underset{x,
-      q}{\text{max}}\text{ }x^TAy - x^TE_1^Tp + q^TE_2y -
-    (i_{\mathbb{R}^{n_1}_+}(x) + q_0)\\
-    &= \underset{y,p}{\text{min}}\text{ }G_1(y,p) +
-    \underset{x,q}{\text{max}}\text{
-    }\begin{bmatrix}x\\q\end{bmatrix}^TK\begin{bmatrix}y\\p\end{bmatrix}
-      - G_2(x, q) = \underset{y,p}{\text{min}}\text{ }G_1(y,p) +
-      G_2^*\left(K\begin{bmatrix}y\\p\end{bmatrix}\right)
+    &= g_1(y,p) + \underset{x' \geq
+      0}{\text{max}}\text{ }x'^T(Ay - E_1^Tp) +
+    \underset{q'}{\text{max}}\text{ }q'^T(E_2y - e_2)\\
+    &= g_1(y,p) + \underset{x',
+      q'}{\text{max}}\text{ }x'^TAy - x^TE_1^Tp + q'^TE_2y -
+    (i_{\mathbb{R}^{n_1}_+}(x') + e_2^Tq)\\
+    &= g_1(y,p)
+      - \underset{x',q'}{\text{min}}\text{ }\Psi_2(y, p, x', q') + g_2(x',
+      q') = g_1(y,p) -\phi_2(y,p),
   \end{aligned}
   \label{eq:a}
 \end{eqnarray*}
-Thus the LCP \eqref{eq:primal_pb} can be written as 
-\begin{equation}
-  \underset{y,p}{\text{minimize}}\text{ }G_1(y,p) +
-  G_2^*\left(K\begin{bmatrix}y\\p\end{bmatrix}\right)
-\end{equation}
-Similarly, the optimal value in the dual LCP \eqref{eq:dual_pb} writes
+
+where $\phi_2(y, p) := \underset{x',q'}{\text{min}}\text{
+}\hat{\Psi}_2(y, p, x', q') \in [-\infty, +\infty)$.
+Similarly, the unconstrained objective, say
+$b(x, q)$, in the dual LCP \eqref{eq:dual_pb} writes
 \begin{eqnarray*}
   \begin{aligned}
- -q_0^* &= \text{max}\{-q_0\text{ }|\text{ } (x, q) \in \Sigma_1, q =
- (q_0, q_1, ..., q_{l_2-1})\}\\
-    &= \underset{x,q}{\text{max}}\text{ }-q_0 -
- i_{\mathbb{R}^{n_1}_+}(x) - i_{\mathbb{R}^{n_2}_+}(A^Tx+E_2^Tq) -
- i_{\{0\}}(E_1x - e_1)\\
-    &= \underset{x,q}{\text{max}}\text{ }-G_2(x, q) - \underset{y \geq
-   0}{\text{max}}\text{ }y^T(-A^Tx - E_2^Tq) -
- \underset{p}{\text{max}}\text{ }p^T(E_1x-e_1)\\
-    &= \underset{x,q}{\text{max}}\text{ }-G_2(x, q)
- -\underset{y,p}{\text{max}}\text{ }-(y^TA^Tx -p^TE_1x +
- y^TE_2^Tq)-(i_{\mathbb{R}^{n_2}_+}(y) + p^Te_1)\\
-    &= \underset{x,q}{\text{max}}\text{ }-G_2(x,
- q)-\underset{y,p}{\text{max}}\text{ }-
- \begin{bmatrix}y\\p\end{bmatrix}K^T\begin{bmatrix}x\\q\end{bmatrix}-G_1(y,p)
-   = \underset{x,q}{\text{max}}\text{ }-G_2(x,
-   q)-G_1^*\left(-K^T\begin{bmatrix}x\\q\end{bmatrix}\right),
-  \end{aligned}
+ b(x, q) &= 
+ -i_{\mathbb{R}^{n_1}_+}(x) - i_{\mathbb{R}^{n_2}_+}(A^Tx+E_2^Tq) -
+ i_{\{0\}}(e_1 - E_1x)\\
+    &= -g_2(x, q) + \underset{y' \geq
+   0}{\text{min}}\text{ }y'^T(A^Tx + E_2^Tq) +
+ \underset{p'}{\text{min}}\text{ }p'^T(e_1-E_1x)\\
+    &= -g_2(x, q)
+ +\underset{y',p'}{\text{max}}\text{ }\Psi_1(y', p', x, q) +
+ g_1(y', p') = -g_2(x, q) + \phi_1(x, q),
+   \end{aligned}
 \end{eqnarray*}
-and so the the LCP \eqref{eq:dual_pb} is equivalent to
-\begin{equation}
-  \underset{x,q}{\text{maximize}}\text{
-  }-G_1^*\left(-K^T\begin{bmatrix}x\\q\end{bmatrix}\right) - G_2(x, q)
-\end{equation}
-But these last two equations are simply the primal and dual
-formulations respectively, of the saddle-point problem
-\eqref{eq:unconstrained_pb}, and we are done.
+where $\phi_1(x, q) :=
+\underset{y',p'}{\text{min}}\text{ }\hat{\Psi}_1(y', p', x, q) \in
+         [-\infty, +\infty)$.
+Thus, one can compute the primal-dual gap between primal LCP
+\eqref{eq:primal_pb} and dual LCP \eqref{eq:dual_pb} at $(y, p, x, q)$ as
+\begin{eqnarray*}
+  \begin{split}
+  a(y, p) - b(x, q) &= g_1(y, p) - \phi_2(y, p) + g_2(x, q) - \phi_1(x,
+  q) \\
+  &= \Psi_1(y, p, x, q) +  g_1(y, p) - \phi_2(y, p) + \Psi_2(y, p, x,
+  q) + g_2(x, q) - \phi_1(x, q)\\
+  &= \hat{\Psi}_1(y, p, x, q) + \hat{\Psi}_2(y, p, x, q) - \phi_1(x,
+  q) - \phi_2(y, p)\\
+  &= \text{primal-dual gap of GSP}(\Psi_1, \Psi_2,
+  g_1, g_2) \text{ at }(y, p, x, q),
+  \end{split}
+\end{eqnarray*}
+where the second equality follows from the fact that $\Psi_1 + \Psi_2
+:= 0$.
 
 %% For the dual-gap bound, note that $\forall (x', u', y', v') \in \mathbb{R}^{n_1}_+ \times \mathbb{R}^{l_2} \times \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$, one has
 %% \begin{eqnarray*}
 %%   \begin{split}
-%%     \underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{l_2}}{max}\text{ }\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y'\\v'\end{bmatrix} + G_1(y', v') - G_2(x, u)
+%%     \underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{l_2}}{max}\text{ }\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y'\\v'\end{bmatrix} + g_1(y', v') - g_2(x, u)
 %%       &= \underset{x \in \mathbb{R}^{n_1}_+, u \in \mathbb{R}^{l_2}}{max}\text{ }x^TAy' - v'^T(E_1x - e_1) + u^T(E_2y' - e_2)\\
 %%       &\ge \underset{x \in \mathbb{R}^{n_1}_+}{max}\text{ }x^TAy' - v'^T(E_1x - e_1) + \underset{u \in \mathbb{R}^{l_2}}{max}\text{ }u^T(E_2y' - e_2)\\
 %%       &\ge \underset{x \in Q_1}{max}\text{ }x^TAy + \underset{u \in \mathbb{R}^{l_2}}{max}\text{ }u^T(E_2y' - e_2)
@@ -449,7 +497,7 @@ formulations respectively, of the saddle-point problem
 %% and
 %% \begin{eqnarray*}
 %%   \begin{split}
-%%     \underset{y \in \mathbb{R}^{n_2}, v \in \mathbb{R}^{l_1}}{min}\text{ }\begin{bmatrix}x'\\u'\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + G_1(y, v) - G_2(x', u')
+%%     \underset{y \in \mathbb{R}^{n_2}, v \in \mathbb{R}^{l_1}}{min}\text{ }\begin{bmatrix}x'\\u'\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + g_1(y, v) - g_2(x', u')
 %%       &= \underset{y \in \mathbb{R}^{n_2}_+, v \in \mathbb{R}^{l_1}}{min}\text{ }x'^TAy - v^T(E_1x' - e_1) + u'^T(E_2y - e_2)\\
 %%       &\le \underset{y \in \mathbb{R}^{n_2}_+}{min}\text{ }x'^TAy + u'^T(E_2y - e_2) - v^T(E_1x' - e_1)
 %%   \end{split}
@@ -462,173 +510,91 @@ formulations respectively, of the saddle-point problem
 % \subsection{The proposed algorithm and its $\mathcal{O}(1/\epsilon)$
 % convergence}
 
-\paragraph{In summary.}
-According to Theorem \ref{thm:pd}, solving the Nash equilibrium LCPs
-\eqref{eq:primal_pb}, \eqref{eq:dual_pb} is equivalent to solving the
-saddle-point problem \eqref{eq:unconstrained_pb}.
-In order to apply Algorithm 39 of \cite{chambolle2010}, we need
-formulae for the proximal operators of
-$G_1$ and $G_2$. Now, either of $G_1$ and $G_2$ is a separable sum of
-the indicator function of a convex set, whose prox is simply the
-euclidean projection onto the set,  and a linear transformation $z
-\mapsto a^Tz$ whose prox is simply $z \mapsto z - \tau a$. Thus,  one
-computes their respective proximal operators $\prox_{\tau G_1} :
-\mathbb{R}^{n_2} \times \mathbb{R}^{l_1} \rightarrow \mathbb{R}^{n_2}
-\times \mathbb{R}^{l_1}$, $\prox_{\sigma G_2}: \mathbb{R}^{n_1} \times
-\mathbb{R}^{l_2} \rightarrow \mathbb{R}^{n_1} \times \mathbb{R}^{l_2}$
-as
+\section{The algorithm}
+%% According to Theorem \ref{thm:pd}, solving the Nash equilibrium LCPs
+%% \eqref{eq:primal_pb}, \eqref{eq:dual_pb} is equivalent to solving the
+%% saddle-point problem \eqref{eq:unconstrained_pb}. An attractive method
+%% for such a saddle-point problem would be a primal-dual scheme, like
+%% that developed in \cite[Algorithm 39]{chambolle2010}. 
+%% Usually, to use a primal-dual algorithm, one needs a measure of the
+%% ``quality'' of the current iterates as regards being the solution of
+%% the saddle-point problem. A natural measure of this fittness is the
+%% primal-dual gap, which measures defection from strong-duality.
+%% However, the primal-dual gap in \eqref{eq:unconstrained_pb} can be
+%% unbounded even at near feasible points.  is well-suited for
 
-  \begin{equation}
-    \prox_{\tau G_1}(y, p) = ((y)_+, p - \tau e_1), \hspace{1em}
-    \prox_{\sigma G_2}(x, q) = ((x)_+, q - \sigma e_2)
-  \end{equation}
-
-Finally, applying Algorithm 39 of \cite{chambolle2010} to problem \eqref{eq:unconstrained_pb} we obtain Algorithm \ref{Tab:algo_simplified}. Its $\mathcal{O}(1/\epsilon)$ convergence rate in terms of the duality gap is immediate. Indeed,
-%% \subsection{Special case: $C_k = \mathbb{R}^{n_k}_+$} As discussed in subsection \ref{subsec:example_games},
-%% the Nash equilibrium problem for two-person zero-sum simultaneous games and two-person zero-sum sequential games with imcomplete
-%% information and perfect recall admits the formulation \eqref{eq:primal_pb}, with $C_k = \mathbb{R}^{n_k}_+$ (coding for nonnegativity constraints).
-%% In such situations, $\proj_{C_k}(z) \equiv (z)_+$ as already mentioned in \ref{sec:notation}, and Algorithm \ref{Tab:algo} reduces to the simpler Algorithm \ref{Tab:algo_simplified}.
-
-\begin{algorithm}[G_2]
-%%   \caption{$\mathcal{O}(1/\epsilon)$ Primal-dual algorithm for finding a Nash $\epsilon$-equilibrium for a sequential two-person zero-sum game with imcomplete information and perfect recall}
-%%   \KwIn{sequence-form specification of the game: $(A, E_1, E_2, e_1, e_2)$, where $A \in \mathbb{R}^{n_1 \times n_2}$,
-%%   $E_1 \in \mathbb{R}^{l_1 \times n_1}$, $E_2 \in \mathbb{R}^{l_2 \times n_2}$, $e_1 \in \mathbb{R}^{l_1}$, $e_2 \in \mathbb{R}^{l_2}$}
-%%   \KwOut{Nash $\epsilon-$equilibrium pair $(x^{(k)}$, $y^{(k)})$ of realization plans}
-%%   \textbf{Precompute}: $\|K\|^2$, where $K$ is constructed as in equations \eqref{eq:unconstrained_pb}. $\|K\|^2$ can be computed via a \textit{power iteration} on $K^TK$, for example.\\
-%%   \textbf{Initialize}:
-%%   $x^{(0)} \in \mathbb{R}^{n_1}$; $\tilde{y^{(0)}}, y^{(0)} \in \mathbb{R}^{n_2}$; $p \in \mathbb{R}^{l_1}$; $q^{(0)} \in \mathbb{R}^{l_2}$; 
-%%   $\tau, \sigma > 0 \text{ s.t. }\tau\sigma \|K\|^2 < 1$ (for example take $\tau = \sigma = .99/\|K\|$); $k = 0$.\\
-%%   \Repeat{
-%% %$\dfrac{\| x^{(k+1)} - x^{(k)}\|^2 + \|v^{(k+1)}- v^{(k)}\|^2}{\sigma} + \dfrac{\|y^{(k+1)}- y^{(k)}\|^2 + \|u^{(k+1)}- u^{(k)}\|^2}{\tau} < \epsilon$
-%% $|p_0^{(k)} + q_0^{(k)}| \le \epsilon$}{
-%%     \begin{eqnarray*}
-%%       x^{(k+1)} &\leftarrow& \left(x^{(k)} + \tau \left(A\tilde{y}^{(k)} - E_1^T\tilde{p}^{(k)}\right)\right)_+\\
-%%       q^{(k+1)} &\leftarrow& q^{(k)} + \tau \left(E_2\tilde{y}^{(k)} - e_2\right)\\
-%%       y^{(k+1)} &\leftarrow& \left(y^{(k)} - \sigma \left(A^Tx^{(k + 1)} + E_2^Tq^{(k + 1)}\right)\right)_+\\
-%%       p^{(k+1)} &\leftarrow& p^{(k)} - \sigma \left(e_1 - E_1x^{(k+1)}\right)\\
-%%       \tilde{y}^{(k+1)} &\leftarrow& 2y^{(k+1)} - y^{(k)}\\
-%%       \tilde{p}^{(k+1)} &\leftarrow& 2p^{(k+1)} - p^{(k)}\\
-%%       k &\leftarrow& k + 1
-%%     \end{eqnarray*}
-%%   }
-  \label{Tab:algo_simplified}
+Consider the following algorithm
+\begin{algorithm}
+\caption{Primal-dual algorithm for computing approximate Nash
+  Equilbria in two-person zero-sum games with imcomplete information
+  and perfect recall}
+\label{Tab:algo}
+\begin{algorithmic}[1]
+\State  $\lambda \leftarrow 1/\|K\|$,
+%% $y^{(0)} \leftarrow 0_{n_2}$,
+%% $p^{(0)} \leftarrow 0_{l_1}$, $x^{(0)} \leftarrow 0_{n_1}$, $q^{(0)}
+%% \leftarrow 0_{l_2}$,
+$k \leftarrow 0$
+\While{$\|\tilde{\epsilon}^{a}_k\| \ge \rho$ or $\|\tilde{v}^{a}_k\| \ge \epsilon$}
+\State $y^{(k + 1)} \leftarrow (y^{(k)} - \lambda (A^Tx^{(k)} +
+E_2^Tq^{(k)}))_+$
+\State  \hspace{.5em}$p^{(k+1)} \leftarrow p^{(k)} -
+\lambda(e_1-E_1x^{(k)})$
+\State $x^{(k + 1)} \leftarrow (x^{(k)} + \lambda (Ay^{(k+1)} -
+E_1^Tp^{(k+1)}))_+$
+\State  \hspace{.5em}$q^{(k+1)} \leftarrow q^{(k)} +
+\lambda(E_2y^{(k+1)}-e_2)$
+\State $y^{(k+1)} \leftarrow y^{(k+1)} - \lambda
+(A^T(x^{(k+1)}-x^{(k)}) + E_2^T(q^{(k+1)}-q^{(k)}))$
+\State $p^{(k+1)} \leftarrow p^{(k+1)} - \lambda E_1(x^{(k+1)}-x^{(k)})$
+\State $k \leftarrow k + 1$
+\EndWhile
+\end{algorithmic}
 \end{algorithm}
 
-\begin{theorem}
-  \label{thm:conv}
-  Algorithm \ref{Tab:algo_simplified} produces a Nash $\epsilon$-equilibrium after $\mathcal{O}(1/\epsilon)$ iterations.
+\begin{theorem}[Ergodic $\mathcal{O}(1/k)$ convergence]
+Let $d_0$ be the euclidean distance between the starting point
+$(y^{(0)},p^{(0)},x^{(0)},q^{(0)})$ Algorithm \ref{Tab:algo} and the
+set of equilibria for the GSP \eqref{eq:unconstrained_pb}.
+Then given any $\epsilon > 0$ and $\rho > 0$, we have the ergodic
+error bounds
+\begin{eqnarray}
+\|\tilde{\epsilon}^{a}_k\| \le \rho\text{ and }\|\tilde{v}^{a}_k\| \le
+\epsilon, \forall k \ge 2d_0\|K\|max(5d_0/\rho, 1/\epsilon).
+\end{eqnarray}
+
+Thus the iterates $(y^{(k)},p^{(k)},x^{(k)},q^{(k)})$ generated by
+Algorithm \ref{Tab:algo} converge ergodically to a
+$(\rho,\epsilon)$-Nash Equilibrium for the GSP \eqref{eq:unconstrained_pb}
+in no more than $2d_0\|K\|max(5d_0/\rho, 1/\epsilon)$ steps.
 \end{theorem}
 
 \begin{proof}
-This follows directly from Theorem 1 of \cite{chambolle2010}, and from the equivalence establised in Theorem \ref{thm:pd} above.
-\qed
+Note that the quadruplet $(\Psi_1, \Psi_2, g_1, g_2)$ clearly satisfies
+assumptions B.1, B.2, B.3, B.5, and B.6 of \cite{he2013accelerating}
+with $L_{xx} = L_{yy} = 0$ and $L_{xy} = L_{yx} = \|K\|$. Now,
+either of $g_1$ and $g_2$ is a separable sum of
+the indicator function of a convex set, whose prox is simply the
+euclidean projection onto the set,  and a linear transformation $z
+\mapsto a^Tz$ whose prox is simply $z \mapsto z - \tau a$. Thus,  one
+computes their respective proximal operators $\prox_{\tau g_1} :
+\mathbb{R}^{n_2} \times \mathbb{R}^{l_1} \rightarrow \mathbb{R}^{n_2}
+\times \mathbb{R}^{l_1}$, $\prox_{\sigma g_2}: \mathbb{R}^{n_1} \times
+\mathbb{R}^{l_2} \rightarrow \mathbb{R}^{n_1} \times \mathbb{R}^{l_2}$
+$\prox_{\lambda g_1}(y, p) = ((y)_+, p - \lambda e_1)$ and $\prox_{\lambda
+  g_2}(x, q) = ((x)_+, q - \lambda e_2)$. Algorithm \ref{Tab:algo} is
+then obtained from \cite[Algorithm
+  T-BD]{he2013accelerating}, applied on the GSP \eqref{eq:unconstrained_pb}
+ with the choice of parameters $\sigma = 1 \in (0, 1]$, $\sigma_x =
+         \sigma_y = 0 \in [0, \sigma)$,
+ $\lambda_{xy} := \frac{\sqrt{(\sigma^2 - \sigma_x^2)(\sigma^2 -
+               \sigma_y^2)}}{\sigma L_{xy}} = \sigma / \|K\| =
+           1/\|K\|$, $\lambda = \lambda_{xy} \in (0,
+           \lambda_{xy}]$. The convergence result then follows from
+         \cite[Theorem 4.2]{he2013accelerating}.
 \end{proof}
-
-\begin{remark}
-Note however that this convergence rate cannot be improved in the framework of \cite{chambolle2010}, since neither $G_1$ nor $G_2$ is \textit{uniformly convex}.
-\end{remark}
-
-%% \subsection{CQ algorithm for solving the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb}}
-%% In this section, we will reformulate the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb} as a \textit{multi-set split-feasibility problem (MSSFP)} which is amenable to the CQ algorithm.
-
-%% Now, let $\mathcal{H}_1$ and $\mathcal{H}_2$ denote the finite-dimensional Hilbert spaces $\mathbb{R}^{n_2} \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times \mathbb{R}^{n_1} \times \mathbb{R}^{l_2} \times \mathbb{R}^{n_2}$ and $\mathbb{R}^{n_1} \times \mathbb{R}^{l_2} \times \mathbb{R}^{n_2} \times \mathbb{R}^{l_1}$ respectively, and consider the following multi-set split-feasibility problem:
-%% \begin{eqnarray}
-%%   \text{Find }(y, p, u, x, q, v) \in \cap_{k=0}^{2}C_k \text{ such that }  L(y, p, u, x, q, v) \in Q
-%%   \label{eq:sf_pb}
-%% \end{eqnarray}
-%% where:
-%% \begin{itemize}
-%%   \item $L: \mathcal{H}_1 \rightarrow \mathcal{H}_2$  is the finite-dimensional (thus bounded) linear operator defined by its matrix
-%% \begin{eqnarray}
-%%   \begin{split}
-%%   L(y, p, u, x, q, v) &:= \left[
-%%     \begin{array}{cccccc}
-%%       -A & E_1^T & -I_{n_1} & 0_{n_1,n_1} & 0_{n_1, l_2} & 0_{n_1, n_2}\\ % \hline
-%%       E_2 & 0_{l_2, l_1} & 0_{l_2, n_1} & 0_{l_2, n_1} & 0_{l_2, l_2} & 0_{l_2, n_2}\\ %\hline
-%%       0_{n_2, n_2} & 0_{n_2, l_1} & 0_{n_2, n_1} & A^T & E_2^T & -I_{n_2}\\ %\hline
-%%       0_{l_1, n_2} & 0_{l_1, l_1} & 0_{l_1, n_1} & E_1 & 0_{l_1, l_2} & 0_{l_1, n_2} 
-%%       \end{array}
-%%     \right]\begin{bmatrix}y\\p\\u\\x\\q\\v\end{bmatrix}\\
-%%     &= (-Ay + E_1^T - u, E_2y, A^Tx + E_2^Tq - v, E_1x)
-%%   \end{split}
-%% \end{eqnarray}
-
-%% \item the closed convex set $Q \subseteq \mathcal{H}_2$ is the singleton
-%% \begin{equation}
-%%   Q := \{e\}, \hspace{.5em} e:=(0_{n_1}, e_2, 0_{n_2}, e_1)
-%% \end{equation}
-
-%% \item the closed sets $C_k$ are of the form
-%% \begin{eqnarray}
-%%   \begin{split}
-%%     C_0 &:= \{(y, p, u, x, q, v) \in \mathcal{H}_1| y \ge 0, u\ge 0, x \ge 0, v\ge0\},\\
-%%   C_1 &:= \{(y, p, u, x, q, v) \in \mathcal{H}_1 |c_1(y, p, u, x, q, v) := y^Tv\le 0\},\\
-%%   C_2 &:= \{(y, p, u, x, q, v) \in \mathcal{H}_1 |c_2(y, p, u, x, q, v) := x^Tu\le 0\}
-%%   \end{split}
-%%   \label{eq:Ck}
-%% \end{eqnarray}
-%% \end{itemize}
-
-%% Note that $C_0$ is convex, whilst the functions $c_k$ are $(S, r)$-subdifferentiable with $S := \{0\}$ and $r = 1$.
-%% Before exploiting the developments sofar in this section, let's begin with a Lemma.
-%% \begin{lemma}
-%% If a hextupule $(y, p, u, x, q, v) \in C$ solves the MSSFP \eqref{eq:sf_pb}, then the pair $(x, y) \in Q_1 \times Q_2$ of realization plans is a Nash equilibrium.
-%% \end{lemma}
-%% \begin{proof}
-%% Simply introduce auxiliary variables $u := -Ay + E_1^Tq$ and $v = A^Tx + E_2^Tq$ in \eqref{eq:feasibility} and note that if $(y,p,u,x,q,v) \in \cap_{k=0}^{2}C_k$ and $L(y,p,u,x,q,v) \in Q$, then $y\ge0$, $u\ge0$, $x\ge0$, $v\ge0$, $E_2y- e_2 = 0$, $E_1x-e_1=0$, $-Ay + E_1^Tp - u=0$, $A^Tx + E_2^Tq - v = 0$, $y^Tv = 0$, and $x^Tu = 0$, which are precisely the conditions in \eqref{eq:feasibility}. \qed
-
-%% \end{proof}
-
-%% Now, observe that $C$ is the set of minimizers of the convex function
-%% \begin{equation}
-%% f(y, p, u, x, q, v) := \sum_{j=0}^{n_1-1}{h(x_j, u_j)} + \sum_{j=0}^{n_2-1}{h(y_j, v_j)},
-%% \end{equation}
-%% where the continuous convex function $h$ is defined by
-%% \begin{eqnarray}
-%%   h(a, b) = \frac{1}{2}\begin{cases}
-%%     a^2, &\mbox{if } a \ge (b)_+\\
-%%     b^2, &\mbox{if } b \ge (a)_+\\
-%%     0, &\mbox{if } max(a, b) \le 0.
-%%   \end{cases}
-%%    \label{eq:h_func}
-%% \end{eqnarray}
-%% We'll be needing the following Lemma concerning the prox of $h$.
-
-%% \begin{figure}
-%%   \includegraphics[width=1.\linewidth]{h.png}
-%%   \caption{Graph of the function $h$ defined in equation \eqref{eq:h_func}}
-%% \end{figure}
-%% \begin{lemma}
-%% \begin{eqnarray}
-%%   \prox_{\lambda h}(a, b) = \underset{(\theta, \zeta) \in \{(a_1, b_1), (a_2, b_2), (a_3, b_3)\}}{argmin}{h(\theta, \zeta)}
-%% \end{eqnarray}
-%% where
-%% \begin{eqnarray*}
-%% \begin{split}
-%% (a_1, b_1) &:= 
-%% %\proj_{U_{\sqrt{1 + \lambda}}}((a/\sqrt{1 + \lambda}, b)) = 
-%%   \begin{cases}
-%%     \left(a, b\right), &\mbox{if } a \ge \sqrt{1+\lambda}(b)_+\\
-%%     (0,0), &\mbox{if } 0 \le b \le -\sqrt{1+\lambda}a\\
-%%     (0, b), &\mbox{if } max(a, b) \le 0\\
-%%     \dfrac{\sqrt{1+\lambda}a+b}{2 + \lambda}(\sqrt{1 + \lambda}, 1), &\mbox{otherwise}
-%%   \end{cases}\\
-%% (a_2, b_2) &:= 
-%% %\proj_{U_{\sqrt{1 + \lambda}}}((a/\sqrt{1 + \lambda}, b)) = 
-%%   \begin{cases}
-%%     \left(a, b\right), &\mbox{if } b \ge \sqrt{1+\lambda}(a)_+\\
-%%     (0,0), &\mbox{if } 0 \le a \le -\sqrt{1+\lambda}b\\
-%%     (a, 0), &\mbox{if } max(a, b) \le 0\\
-%%     \dfrac{a + \sqrt{1+\lambda}b}{2 + \lambda}(1,\sqrt{1 + \lambda}), &\mbox{otherwise}
-%%   \end{cases}\\
-%% (a_3, b_3) &:=
-%% %\proj_{W_{\sqrt{1 + \lambda}}}((a, b)) = 
-%% -((-a)_+, (-b)_+)
-%% \end{split}
-%%   \end{eqnarray*}
-%% \end{lemma}
-\subsection{Efficient computation of $Ay$ and $A^Tx$}
-In Algorithms \ref{Tab:algo_simplified} most of the time is spent
+\subsection{Practical considerations: Efficient computation of $Ay$ and $A^Tx$.}
+In Algorithms \ref{Tab:algo} most of the time is spent
 pre-multiplying vectors by $A$ and $A^T$. For \textit{flop}-type Poker
 games like \textit{Texas Hold'em} and  \textit{Rhode Island Hold'em},
 $A$ (and thus $A^T$ too)  is very big (up $10^{14}$ rows and columns!)
@@ -669,7 +635,7 @@ $S$, and $W$ are themselves sparse, which allows one to use the compressed row s
 
 Such a representation of the payoff matrix $A$ trivializes matvec operations involving $A$ or $A^T$ (thanks to formula \eqref{eq:kron_matvec} above, applied to their diagonal blocks and exploiting the sparsity of these blocks themselves). Of course, one can always write the payoff matrix $A$ of a flop-type Poker game in a form similary to \eqref{eq:factor_A} by applying appropriate permutations to the enumeration of the players's sequences.
 
-\section{Results}
+\section{Experimantal results}
 \label{sec:results}
 To access the practical quality of the proposed algorithm, we
 experimented it on real and simulated matrix games.
@@ -687,12 +653,12 @@ experimented it on real and simulated matrix games.
   \hspace{-1.3em}
   \includegraphics[width=.34\linewidth]{Kuhn3112_NE.pdf}
   \caption{Convergence curves of Algorithm
-    \ref{Tab:algo_simplified}. \textbf{Left column}: Random $1000
+    \ref{Tab:algo}. \textbf{Left column}: Random $1000
     \times 1000$ matrix game on simplexes. \textbf{Middle column}:
     Simplified poker. \textbf{Right column}: Kuhn 3-card
     Poker. \textbf{Top row}: convergence in terms of ergodic
-    duality-gap. \textbf{Bottom row}: Convergence in terms of value of
-    game.}
+    primal-dual gap. \textbf{Bottom row}: Convergence in terms of
+    value of game.}
   \label{Tab:dgap_curve}
 \end{figure}
 
@@ -703,7 +669,7 @@ experimented it on real and simulated matrix games.
 %% extablished results in section \ref{sec:algo}.
 % \end{remark}
 
-\subsection{Simulated game: matrix game on simplexes}
+\paragraph{Simulated game: matrix game on simplexes.}
 Any matrix $A \in \mathbb{R}^{n_1 \times n_2}$ specifies a
 \textit{matrix game}. The strategy profile of player $k$ is a simplex;
 this simplex can be written in the form \eqref{eq:polyhedron} by
@@ -713,7 +679,7 @@ game. Now, as in \textbf{nesterov, c-p, etc.}, we generate a $1000
 \times 1000$ random matrix whose entries are uniformly identically
 distributed in the closed interval $[-1, 1]$. See Figure \ref{Tab:sim_dgap_curve}...
 
-\subsection{Real-world game: Kuhn 3-card Poker}
+\paragraph{Real-world game: Kuhn 3-card Poker.}
 The sequence-form representation of this simplified Poker variant
 \cite{kuhn} is given by (not showing zero entries)\\
 
@@ -763,7 +729,7 @@ realization plans given by
     \end{split}
 \end{eqnarray*}
 is a Nash $10^{-4}$-equlibrium computed in 1500 iterations of
-Algorithm  \ref{Tab:algo_simplified}. The convergence curves are shown
+Algorithm  \ref{Tab:algo}. The convergence curves are shown
 in Fig \ref{Tab:dgap_curve}. One easy checks that this equilibrium is
 feasible. Indeed,
 

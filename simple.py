@@ -956,18 +956,16 @@ if __name__ == "__main__":
         m = float(m)
         m = "" if m >= 0 else "-"
         e = re.sub("\-0*", "-", e)
-        value_ = "%s10^{%s}" % (m, e)
+        kwargs = {}
+        plt.xlabel("\\textbf{$k$ (iteration count)}", fontsize=50)
+        if cnt == 0:
+            kwargs["label"] = "$\\langle x^*,Ay^*\\rangle$"
+            ax.set_ylabel(("\\textbf{$\\langle x^{(k)}, Ay^{(k)} "
+                           "\\rangle$"), fontsize=50)
         ax.axhline(
             -1. / 18. if isinstance(game, Kuhn3112) else value,
             linestyle="--", dashes=(10, 10), color="k",
-            label="$\\langle x^*,Ay^*\\rangle$ = $%s$" % (
-                "-1 / 18}" if isinstance(game, Kuhn3112) else
-                ("-1 / 4" if isinstance(game, SimplifiedPoker)
-                 else value_)), linewidth=4)
-        plt.xlabel("\\textbf{$k$ (iteration count)}", fontsize=50)
-        if cnt == 0:
-            ax.set_ylabel(("\\textbf{$\\langle x^{(k)}, Ay^{(k)} "
-                           "\\rangle$"), fontsize=50)
+            linewidth=4, **kwargs)
         plt.legend(loc="best", prop=dict(size=45), handlelength=1.5)
         ax.ticklabel_format(axis="y", style="sci", scilimits=(0., 0.))
         ax.tick_params(axis='both', which='major', labelsize=50)
