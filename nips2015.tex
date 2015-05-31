@@ -212,7 +212,7 @@ representation, the strategy profile of player $k$ is the polyhedron
 \label{eq:polyhedron}
 \end{equation}
 Note that $p^Te_1 = p_0$ and $q^Te_2 = q_0$ by definition of $e_1$ and
-$e_2$. At a feasible point $(y, p, x, q)$, the \textit{duality gap}
+$e_2$. At a feasible point $(y, p, x, q)$, the \textit{primal-dual gap}
 $\mathcal{G}(y, p, x, q)$ of these primal-dual pair of LCPs is given
 by\footnote{The inequality being due to \textit{weak duality}.}
 \begin{equation}
@@ -233,7 +233,7 @@ E_2^Tq) = 0.
 \label{eq:feasibility}
 \end{equation}
 
-Moreover, at equilibria, \textit{strong duality} holds and the value of the game equals $p_0 = -q_0$, i.e the duality gap $\mathcal{G}(y, p, x, q)$ defined in \eqref{eq:dgap} vanishes at equilibria.
+Moreover, at equilibria, \textit{strong duality} holds and the value of the game equals $p_0 = -q_0$, i.e the primal-dual gap $\mathcal{G}(y, p, x, q)$ defined in \eqref{eq:dgap} vanishes at equilibria.
 
 %% As usual, the ``minimax'' notation in problem \eqref{eq:primal_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution if (and only if)
 %% \begin{equation}
@@ -250,16 +250,29 @@ It should be noted that for the the class of games considered here (sequential g
 Solving the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb} exactly is impossible in practice \textbf{Cite Koller!!!}, and such a precision doesn't have any fundamental advantage. Instead, it is customary compute so-called Nash $\epsilon$-equlibria.
 
 \begin{definition}(\textbf{Nash $\epsilon$-equilibria})
-Given a small margin $\epsilon > 0$, a Nash $\epsilon$-equilibrium is a pair $(x^*, y^*)$ of realization plans such that there exists dual vectors $p^*$ and $q^*$ for problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb} such that the duality gap at $(y^*, p^*, x^*, q^*)$ doesn't exceed $\epsilon$. That is,
+Given a $\epsilon > 0$, a Nash $\epsilon$-equilibrium is
+a pair $(x^*, y^*)$ of realization plans such that there exists dual
+vectors $p^*$ and $q^*$ for problems \eqref{eq:primal_pb} and
+\eqref{eq:dual_pb} such that the primal-dual gap at $(y^*, p^*, x^*, q^*)$
+doesn't exceed $\epsilon$. That is,
+
 \begin{equation}
   0 \le \mathcal{G}(y^*, p^*, x^*, q^*) \le \epsilon
 \label{eq:approx_pb}
 \end{equation}
 \end{definition}
 
-\subsection{Precise statement of the problem}
-The goal of this article is to device a simple algorithm which produces a Nash $\epsilon$-equilibrium after $\mathcal{O}(1/\epsilon)$ iterations.
-%We first briefly introduce the sequence-form representation, and contrast it to the strategic-form representation. Then we state the Nash equilibrium problem for the sequence-form representation. Then in
+\begin{definition}(\textbf{Nash $(\rho,\epsilon)$-equilibria})
+Given $\rho > 0$ and $\epsilon > 0$, a Nash $(\rho,\epsilon$)-equilibrium is
+a pair $(x^*, y^*)$ of realization plans such that there exists dual
+vectors $p^*$ and $q^*$ for problems \eqref{eq:primal_pb} and
+\eqref{eq:dual_pb} such that ...
+
+\begin{equation}
+  0 \le \mathcal{G}(y^*, p^*, x^*, q^*) \le \epsilon
+\label{eq:approx_pb}
+\end{equation}
+\end{definition}
 
 \subsection{Outline of the article}
 We develop a $\mathcal{O}(1/\epsilon)$ primal-dual algorithm for computing Nash
@@ -316,9 +329,8 @@ and its many variants
 also become state-of-the-art.
 
 
-\section{Our contributions}
-\label{sec:algo}
-\subsection{Reformulation as a Generalized Saddle-point Problem (GSP)}
+\section{Reformulation as a Generalized Saddle-point Problem (GSP)}
+\label{sec:gsp}
 One cannot directly attack the LCPs \eqref{eq:primal_pb} and
 \eqref{eq:dual_pb} via a traditional primal-dual algorithm
 (for example \cite{chambolle2010,chambolle2014ergodic}) because
@@ -511,6 +523,8 @@ where the second equality follows from the fact that $\Psi_1 + \Psi_2
 % convergence}
 
 \section{The algorithm}
+\label{sec:algo}
+
 %% According to Theorem \ref{thm:pd}, solving the Nash equilibrium LCPs
 %% \eqref{eq:primal_pb}, \eqref{eq:dual_pb} is equivalent to solving the
 %% saddle-point problem \eqref{eq:unconstrained_pb}. An attractive method
