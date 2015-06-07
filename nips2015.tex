@@ -123,8 +123,9 @@ The \textit{effective domain} of $f$, denoted $\dom(f)$ is defined as
 %%   \underset{z \in \mathbb{R}^n}{\text{max}}\text{}z^Tx - f(z)$.
 The \textit{subgradient} of $f$ is the set-valued function
 \begin{eqnarray}
-\partial f: X \mapsto 2^X, \hspace{.5em} x \mapsto \{h\in X |
-f(z)  \ge f(x) + \langle h, z - x\rangle \forall z \in X\}.
+\partial f: X \rightarrow 2^{\mathbb{R}^n}, \hspace{.5em} x \mapsto
+\{h\in \mathbb{R}^n | f(z)  \ge f(x) + \langle h, z - x\rangle \forall
+z \in X\}.
 \end{eqnarray}
 Of course $\partial f(x)$ reduces to the singleton $\{\nabla f(x)\}$
 in case $f$ is differentiable at $x$. Given $\tau > 0$, the function
@@ -241,7 +242,8 @@ doesn't exceed $\epsilon$. That is,
 \subsection{Our contribution}
 We develop a $\mathcal{O}(1/\text{min}(\rho,\epsilon))$ primal-dual
 algorithm (Algorithm \ref{Tab:algo}) for computing Nash $(\rho,
-  \epsilon$)-equilibria (in a sense to be made clear later) for
+  \epsilon$)-equilibria (in a sense to be made clear later in
+  Definition \ref{thm:cool_notion}) for
   sequential two-person zero-sum games with imcomplete information and
   perfect recall.
 
@@ -515,23 +517,28 @@ In this section we derive the algorithm which is the main object of
 this manuscript.
 
 \subsection{Relaxing the conditions for equilibrium}
-Let us first introduce the notion of $\epsilon$-subgradients. The idea
-is to replace the usual optimality characterization ``$x$ optimal iff
-$0 \in \partial f(x)$'' with ``$x$ approx optimal iff $0 \in
-\partial_\epsilon f(x)$''. In fact, letting $\epsilon \rightarrow 0^+$,
-$\partial f(x) = \partial_{0^+}f(x)$ will coincide with
-subgradient of $f$ at $x$.
+Let us first introduce the notion of $\epsilon$-subgradients.
 
 \begin{definition}[$\epsilon$-subgradient]
 Given a scalar $\epsilon > 0$ and a function $f:X \subseteq \mathbb{R}^n
 \rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged subgradient (or
 $\epsilon$-subgradient, for short) of $f$ the set-valued function
 \begin{eqnarray}
-\partial_\epsilon f: X \mapsto 2^X, \hspace{.5em} x \mapsto \{h\in X |
-f(z) + \epsilon \ge f(x) + \langle h, z - x\rangle \forall z \in X\}.
+\partial_\epsilon f: X \rightarrow 2^{\mathbb{R}^n}, \hspace{.5em} x
+\mapsto \{h \in \mathbb{R}^n | f(z) + \epsilon \ge f(x) + \langle h, z
+- x\rangle \forall z \in X\}.
 \end{eqnarray}
 \end{definition}
 
+The idea is to replace the usual necessary condition ``$0 \in \partial
+f(x)$'' for the optimality of $x$ with ``$v \in \partial_\epsilon
+f(x)$, for some small perturbation vector $v$''. In fact, it is easy
+to see that, for each $x \in X$, $(\partial_\epsilon f(x))_{\epsilon >
+  0}$ is a decreasing sequence of sets which converges to $\partial
+f(x)$.
+
+Henceforth, the notion of approximate Nash equilibria will be
+understood in the following sense.
 
 %% Since won't typically be able to compute a feasible point in $Q_1 \in
 %% Q_2$ (due to the equality constraints $E_kz = e_k$), we will consider
@@ -548,6 +555,7 @@ pertubation vector $v^*$ for which
 \partial_\epsilon[\hat{\Psi}_1(., ., x^*, q^*) +
   \hat{\Psi}_2(y^*, p^*, , .)](y^*,p^*,x^*,q^*).
 \end{eqnarray}
+\label{thm:cool_notion}
 \end{definition}
 
 The above definition is a generalization of the notion of Nash
