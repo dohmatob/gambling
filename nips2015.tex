@@ -695,17 +695,19 @@ game. Now, as in \textbf{nesterov, c-p, etc.}, we generate a $1000
 distributed in the closed interval $[-1, 1]$.
 
 \paragraph{\textbf{Toy Poker game.}}
-The has $n_1 = n_2 = 5$ and $l_1 = l_2 = 3$. Its sequence-form
-representation is given by (showing only nonzero entries):\\
+The sequence-form representation for this Toy Poker game is given by
+(showing only nonzero entries):\\
 
- $E_1(0,0) = E_1(1,1) =
+$E_1 \in \mathbb{E}^{3 \times 5}$ with $E_1(0,0) = E_1(1,1) =
 E_1(1,2) = E_1(2,3) = E_1(2,4) = \textbf{1}$,
-$E_1(1,0) = E_1(2,0) = \textbf{-1}$;\\
+$E_1(1,0) = E_1(2,0) = \textbf{-1}$; \\
 
-$E_2(0,0) = E_2(1,1) = E_2(1,2) = E_2(2,3) = E_2(2,4) = \textbf{1}$,
-$E_2(1,0) = E_2(2,0) = \textbf{-1}$; and\\
+$E_2 \in \mathbb{E}^{3 \times 5}$ with $E_2(0,0) = E_2(1,1) = E_2(1,2)
+= E_2(2,3) = E_2(2,4) = \textbf{1}$, $E_2(1,0) = E_2(2,0) =
+\textbf{-1}$; and \\
 
-$A(2,0) = A(4,0) = \textbf{-0.5}$, $A(1,3) = \textbf{1}$, $A(3,1) =
+$A \in \mathbb{E}^{5 \times 5}$ with $A(2,0) =
+A(4,0) = \textbf{-0.5}$, $A(1,3) = \textbf{1}$, $A(3,1) =
 \textbf{-1}$, $A(1,2) = A(1,4) = A(3,2) = A(3,4) = \textbf{0.25}$.
 
 
@@ -713,18 +715,20 @@ $A(2,0) = A(4,0) = \textbf{-0.5}$, $A(1,3) = \textbf{1}$, $A(3,1) =
 The game has $n_1 = n_2 = 13$ and $l_1 = l_2 = 7$, and its
 sequence-form is given by:\\
 
-$E_1(0,0) = E_1(1,9) = E_1(1,12) = E_1(2,1) = E_1(2,4) = E_1(3,5) =
+$E_1 \in \mathbb{E}^{7 \times 13}$ with $E_1(0,0) = E_1(1,9) =
+E_1(1,12) = E_1(2,1) = E_1(2,4) = E_1(3,5) =
 E_1(3,8) = E_1(4,2) = E_1(4,3) = E_1(5,6) = E_1(5,7) = E_1(6,10) =
 E_1(6,11) = \textbf{1}$, $E_1(1,0) = E_1(2,0) = E_1(3,0) = E_1(4,1) =
-E_1(5,5) = E_1(6,9) = \textbf{-1}$;\\
+E_1(5,5) = E_1(6,9) = \textbf{-1}$; \\
 
+ $E_2 \in \mathbb{E}^{7 \times 13}$
 $E_2(0,0) = E_2(1,7) = E_2(1,8) = E_2(2,9) = E_2(2,10) = E_2(3,5) =
 E_2(3,6) = E_2(4,11) = E_2(4,12) = E_2(5,1) = E_2(5,2) = E_2(6,3) =
 E_2(6,4) = \textbf{1}$, $E_2(1,0) = E_2(2,0) = E_2(3,0) = E_2(4,0) =
-E_2(5,0) = E_2(6,0) = \textbf{-1}$; and\\
+E_2(5,0) = E_2(6,0) = \textbf{-1}$; and \\
 
-
-$A(3,8) = A(3,12) = A(4,6) = A(4,10) = A(7,12) = A(8,10) =
+ $A \in \mathbb{E}^{13 \times
+  13}$ with $A(3,8) = A(3,12) = A(4,6) = A(4,10) = A(7,12) = A(8,10) =
 \textbf{-0.333333}$, $A(1,7) = A(1,11) = A(2,8) = A(2,12) = A(5,11) =
 A(6,4) = A(6,12) = A(10,4) = A(10,8) = \textbf{-0.166667}$, $A(7,4) =
 A(8,2) = A(11,4) = A(11,8) = A(12,2) = A(12,6) = \textbf{0.333333}$,
