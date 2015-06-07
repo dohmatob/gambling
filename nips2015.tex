@@ -561,14 +561,14 @@ y^*, x^*, q^*)$.
 
 
 The above definition is a generalization of the notion of Nash
-equilibria since
+equilibria since:
 \begin{itemize}
 \item Exact Nash equilibria correspond to Nash $(0^+,0^+)$-equilibria.
 \item Nash $\epsilon$-equilibria (in the sense of Definition
   \ref{thm:approx_nash}) correspond to Nash $(0^+,\epsilon)$-equilibria.
 \end{itemize}
 
-\subsection{The algorithm proper and its convergence rate}
+\subsection{Algorithm and convergence rate}
 Consider the following algorithm for solving the GSP
 \eqref{eq:unconstrained_pb}
 \begin{algorithm}
@@ -582,27 +582,27 @@ Consider the following algorithm for solving the GSP
   \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
   \mathbb{R}^{l_2}$.
 \Ensure A Nash $(\rho, \epsilon)$-equilibrium
-$(\tilde{y},\tilde{p},\tilde{x},\tilde{q}) \in S_1 \times S_2$ for
+$({y^*},{p^*},{x^*},{q^*}) \in S_1 \times S_2$ for
 the GSP \eqref{eq:unconstrained_pb}.
-\State  $\lambda \leftarrow 1/\|K\|$, ${v}_a^{(0)} \leftarrow 0$,
-$\tilde{v}_a^{(0)} \leftarrow 0$, $k \leftarrow 0$
-\While{$\|\tilde{\epsilon}_a^{(k)}\| \ge \rho$ or
-  $\|\tilde{v}_{a}^{(k)}\| \ge \epsilon$}
+\State  $\lambda \leftarrow 1/\|K\|$, ${v}_a^{(0)} \leftarrow 0$, $k \leftarrow 0$
+\While{$\|\tilde{\epsilon}_a^{(k)}\| \ge \epsilon$ or
+  $\|{v}_{a}^{(k)}\|/k \ge \rho$}
 \State $y^{(k + 1)} \leftarrow (y^{(k)} - \lambda (A^Tx^{(k)} +
 E_2^Tq^{(k)}))_+$
-\State  \hspace{.5em}$p^{(k+1)} \leftarrow p^{(k)} -
+\State  $p^{(k+1)} \leftarrow p^{(k)} -
 \lambda(e_1-E_1x^{(k)})$
 \State $x^{(k + 1)} \leftarrow (x^{(k)} + \lambda (Ay^{(k+1)} -
 E_1^Tp^{(k+1)}))_+$
-\State  \hspace{.5em}$q^{(k+1)} \leftarrow q^{(k)} +
-\lambda(E_2y^{(k+1)}-e_2)$
-\State $y^{(k+1)} \leftarrow y^{(k+1)} - \lambda
-(A^T(x^{(k+1)}-x^{(k)}) + E_2^T(q^{(k+1)}-q^{(k)}))$
-\State $p^{(k+1)} \leftarrow p^{(k+1)} + \lambda
-E_1(x^{(k+1)}-x^{(k)})$
-\State ${v}_a^{(k+1)} \leftarrow {v}_a^{(k} +
-\frac{1}{\lambda}(y^{(k+1)}-y^{(k)},p^{(k+1)}-p^{(k)},x^{(k+1)}-x^{(k)},q^{(k+1)}-q^{(k)})$
-\State $\tilde{v}_a^{(k+1)} \leftarrow \frac{1}{k + 1}v_a^{(k+1)}$
+\State $\Delta x^{(k+1)} \leftarrow x^{(k+1)}-x^{(k)}$
+\State $\Delta q^{(k+1)} \leftarrow q^{(k+1)}-q^{(k)}$
+\State  $q^{(k+1)} \leftarrow q^{(k)} + \Delta q^{(k+1)}$
+\State $y^{(k+1)} \leftarrow y^{(k+1)} - \lambda (A^T\Delta x^{(k+1)}
++ E_2^T\Delta q^{(k+1)})$
+\State $\Delta y^{(k+1)} \leftarrow y^{(k+1)}-y^{(k)}$
+\State $p^{(k+1)} \leftarrow p^{(k+1)} + \lambda E_1\Delta x^{(k+1)}$
+\State $\Delta p^{(k+1)} \leftarrow p^{(k+1)}-p^{(k)}$
+\State ${v}_a^{(k+1)} \leftarrow {v}_a^{(k)} + \frac{1}{\lambda}(\Delta
+y^{(k+1)},\Delta p^{(k+1)},\Delta x^{(k+1)},\Delta q^{(k+1)})$
 \State $k \leftarrow k + 1$
 \EndWhile
 \end{algorithmic}
@@ -616,12 +616,13 @@ Then given any $\epsilon > 0$ and $\rho > 0$, there exists and index
 $k_0 \le 2d_0\|K\|max(5d_0/\rho, 1/\epsilon)$ such that the following
 error bounds hold:
 \begin{eqnarray}
-\|\tilde{\epsilon}^{a}_{k_0}\| \le \rho\text{ and }\|\tilde{v}^{a}_{k_0}\| \le
-\epsilon.
+\|\tilde{v}_a^{k_0}\| \le \rho \text{ and }
+\|\tilde{\epsilon}_a^{k_0}\| \le \epsilon
 \end{eqnarray}
 
+where $\tilde{v}_a^{(k_0)} := v_a^{(k_0)}/k_0$.
 Thus Algorithm \ref{Tab:algo} outputs an $(\rho,\epsilon)$-Nash
-Equilibrium for the GSP \eqref{eq:unconstrained_pb}
+equilibrium for the GSP \eqref{eq:unconstrained_pb}
 in at most $2d_0\|K\|max(5d_0/\rho, 1/\epsilon)$ iterations.
 \end{theorem}
 
