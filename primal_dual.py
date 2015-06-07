@@ -32,8 +32,8 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     # misc
     if init is None: init = {}
     n1, n2 = A.shape
-    k1, k2 = E1.shape[0], E2.shape[0]
-    zeros = np.zeros((k2, k1))
+    l1, l2 = E1.shape[0], E2.shape[0]
+    zeros = np.zeros((l2, l1))
     if "norm_K" in init: norm_K = init["norm_K"]
     else:
         # XXX use power iteration to compute ||K||
@@ -42,9 +42,9 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     sigma = init.get("sigma", 1.)
     lambd = init.get("lambd", .9 * sigma / norm_K)
     y = init.get("x", np.zeros(n2))
-    p = init.get("p", np.zeros(k1))
+    p = init.get("p", np.zeros(l1))
     x = init.get("x", np.zeros(n1))
-    q = init.get("q", np.zeros(k2))
+    q = init.get("q", np.zeros(l2))
     delta_y_sum = np.zeros_like(y)
     delta_p_sum = np.zeros_like(p)
     delta_x_sum = np.zeros_like(x)

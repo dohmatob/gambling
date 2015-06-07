@@ -16,6 +16,21 @@ matplotlib.rc('text', usetex=True)
 plt.rc('font', size=50)  # make the power in sci notation bigger
 
 
+def _matrix2texstr(A, name="A", exclude=None):
+    if exclude is None: exclude = []
+    vals = dict((val, []) for val in np.unique(A))
+    for val in exclude: del vals[val]
+    for v, u in vals.items():
+        for i in range(A.shape[0]):
+            for j in range(A.shape[1]):
+                if A[i, j] == v: u.append((i, j))
+    out = []
+    for v, u in vals.items():
+        out.append("$" + " = ".join(["%s(%i,%i)" % (name, i, j)
+                                     for (i, j) in u] + ["\\textbf{%g}$" % v]))
+    return ", ".join(out)
+
+
 class Game(object):
     """Sequence-form representaion of two-person zero-sum games with perfect
     recall and imcomplete information (like Poker, love, war, diplomacy, etc.)
@@ -473,7 +488,11 @@ class Game(object):
         nx.draw_networkx_edge_labels(self.tree, pos,
                                      edge_labels=self.edge_labels)
 
-        # plt.axis("off")
+    def matrices2texstrs(self):
+        return [
+            _matrix2texstr(self.constraints[1][0], exclude=[0.], name="E_1"),
+            _matrix2texstr(self.constraints[1][0], exclude=[0.], name="E_2"),
+            _matrix2texstr(self.payoff_matrix, exclude=[0.], name="A")]
 
 
 class Kuhn3112(Game):
