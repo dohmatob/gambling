@@ -517,9 +517,10 @@ In this section we derive the algorithm which is the main object of
 this manuscript.
 
 \subsection{Relaxing the conditions for equilibrium}
-Let us first introduce the notion of $\epsilon$-subgradients.
+Let us first introduce the notion of $\epsilon$-subgradients
+\cite{he2013accelerating}.
 
-\begin{definition}[$\epsilon$-subgradient \cite{he2013accelerating}]
+\begin{definition}[$\epsilon$-subgradient]
 Given a scalar $\epsilon > 0$ and a function $f:X \subseteq \mathbb{R}^n
 \rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged subgradient (or
 $\epsilon$-subgradient, for short) of $f$ the set-valued function
@@ -538,15 +539,15 @@ to see that, for each $x \in X$, $(\partial_\epsilon f(x))_{\epsilon >
 f(x)$.
 
 Henceforth, the notion of approximate Nash equilibria will be
-understood in the following sense.
+understood in the following sense, which was first introduced in
+\cite{he2013accelerating}.
 
 %% Since won't typically be able to compute a feasible point in $Q_1 \in
 %% Q_2$ (due to the equality constraints $E_kz = e_k$), we will consider
 %% an approximate equilibrium concept which takes in to account the
 %% distance from the set of equilibria. Viz,
 
-\begin{definition}[\textbf{Nash $(\rho,\epsilon)$-equilibria}
-    \cite{he2013accelerating}]
+\begin{definition}[\textbf{Nash $(\rho,\epsilon)$-equilibria}]
 Given $\rho > 0$ and $\epsilon > 0$, a Nash
 $(\rho,\epsilon$)-equilibrium is a pair $(x^*, y^*)$ of realization
 plans such that there exists dual vectors $p^*$ and $q^*$ and a
