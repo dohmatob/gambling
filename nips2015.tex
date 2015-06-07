@@ -1,8 +1,9 @@
-\documentclass{article} % For LaTeX2e
-\usepackage{nips14submit_e,times}
+\documentclass[envcountsame]{llncs} % For LaTeX2e
+%\usepackage{mathpazo}
+%\usepackage{nips14submit_e,times}
 %\usepackage{hyperref}
 \usepackage{url}
-\usepackage{amsmath,amsfonts,amsthm}
+\usepackage{amsmath,amsfonts}%,amsthm}
 \usepackage{bbm}
 \usepackage{algorithm,algorithmicx}
 \usepackage{graphicx}
@@ -14,7 +15,7 @@
 \usepackage{pifont}
 
 %\usepackage[section]{placeins}
-\usepackage{subfigure}
+\usepackage[FIGTOPCAP]{subfigure}
 
 \def\B#1{\bm{#1}}
 %\def\B#1{\mathbf{#1}}
@@ -22,28 +23,23 @@
 
 %\renewcommand{\labelitemi}{--}
 
-\newtheorem{theorem}{Theorem} \newtheorem{lemma}[theorem]{Lemma}
+%\newtheorem{theorem}{Theorem} \newtheorem{lemma}[theorem]{Lemma}
 
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{remark}{Remark}
+%\newtheorem{proposition}[theorem]{Proposition}
+%% \newtheorem{corollary}[theorem]{Corollary}
+%% \newtheorem{definition}[theorem]{Definition}
+%\newtheorem{remark}{Remark}
 \newtheorem{fact}{Fact}
 
 \DeclareMathOperator{\dom}{dom}
 \DeclareMathOperator{\proj}{proj}
 \DeclareMathOperator{\prox}{prox}
 
-\author{
-Elvis DOHMATOB
-\\
-Parietal team, Inria Saclay Ile-de-France, Saclay, France\\
-\textit{email}: elvis.dohmatob@inria.fr}
-
-\title{\bf Primal-dual algorithm for computing Nash equilibria in
-% two-person zero-sum
-sequential games with imcomplete information
-% with imcomplete information and perfect recall
+\title{\bf A simple algorithm for computing approximate Nash equilibria in
+  two-person zero-sum games with imcomplete information}
+\author{Elvis DOHMATOB\\\email{elvis.dohmatob@inria.fr}}
+\institute{
+Parietal team, Inria Saclay Ile-de-France, Saclay, France
 }
 
 
@@ -67,35 +63,18 @@ sequential games with imcomplete information
 \begin{abstract}
 We present a simple primal-dual algorithm
 %with low costs per iteration,
-for computing Nash-equilibria in two-person zero-sum sequential games
-with imcomplete information and perfect recall (like Texas Hold'em
-Poker). This primal-dual algorithm derives from the general
-primal-dual algorithm developed
-% by Chambolle and Pock
-in \cite{chambolle2010,chambolle2014ergodic}. It should be noted that
-the latter primal-dual algorithm is not directly applicable to compute
-Nash equilibria for the aforementioned games considered here since the
-strategy profiles of players (polyhedra) are so complex that it is not
-possible
-% (for example, simplexes for simultaneous games, and intersections of
-% hyperplanes and nonnegative orthants, for sequential games)
- to effectively compute % (i.e using non-iterative procedures, etc.)
-euclidean
-% (metric)%
- projections (the proximal operators) thereupon.
-The core of our technique is to rewrite the equilibrium problem as an
-equivalent saddle-point problem for which the proximal operators can
-be computed analytically.
- %% dualize the linear constraints that form the player's strategy profile, thus obtainining an equivalent saddle-point problem which is amenable to the primal-dual scheme.
+for computing approximate Nash equilibria in two-person zero-sum
+sequential games with imcomplete information and perfect recall (like
+Texas Hold'em Poker).
 Our algorithm only performs basic iterations
 (i.e iterations involving no
 % only involving basic operations like matvec, clipping, etc., and no
-calls to external first-order oracles, etc.).
-Our algorithm is applicable to a broad class of two-person zero-sum
+calls to external first-order oracles, etc.) and is applicable to a
+broad class of two-person zero-sum
 games including simultaneous games and sequential games with
 imcomplete information and perfect recall. The applicability to the
 latter kind of games is thanks to the sequence-form representation von
-Stengel's \cite{von1996efficient}
+Stengel's \cite{von1996efficient}.
 %% Unlike the EGT (Excessive Gap Technique) recently used in
 %% \cite{hoda2010smoothing, gilpinfirst}, our algorithm has a cheap
 %% and constant cost per iteration.
@@ -122,7 +101,7 @@ proposes a simple and fast algorithm for solving for such equilibria
 approximately, in a sense which will be made clear shortly.
 
 
-\subsection{Notation and terminology}
+\paragraph{\textbf{Notation and terminology.}}
 Let $m$ and $n$ be positive integers.
 $\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ } z \geq
 0\}$ is the nonnegative $n$-dimensional \textit{orthant}.  The
@@ -172,7 +151,7 @@ The interested reader should refer to
 elaborate exposition of convex-analytical concepts and their use in
 optimization.
 
-\subsection{Statement of the problem}
+\paragraph{\textbf{Statement of the problem.}}
 The sequence-form for two-person zero-sum games was introduced in
 \cite{koller1992complexity}, and the theory was further developed in
 \cite{von1996efficient,vonequilibrium}, where it was established that
@@ -197,7 +176,7 @@ and the dual LCP
 \begin{equation}
   \begin{aligned}
     \text{maximize}-e_2^Tq,\hspace{.5em}\text{subject to }(y,q) \in
-    \mathbb{R}^{n_1} \times \mathbb{R}^{l_2}, -A^Tx - E_2^Tq \leq 0,
+    \mathbb{R}^{n_1} \times \mathbb{R}^{l_2}, A^Tx + E_2^Tq \geq 0,
     E_1x = e_1, x \ge 0.
   \end{aligned}
   \label{eq:dual_pb}
@@ -210,7 +189,7 @@ entries are $-1$, $0$ or $1$, and each $e_k$ is a vector of the form
 $[1, 0, ..., 0]$. In this so-called \textit{sequence-form}
 representation, the strategy profile of player $k$ is the polyhedron
 \begin{equation}
-  Q_k := \{z \in \mathbb{R}^n_+ |\text{ }E_kz = e_k\}
+  Q_k := \{z \in \mathbb{R}^{n_k}_+ |\text{ }E_kz = e_k\}
 \label{eq:polyhedron}
 \end{equation}
 Note that $p^Te_1 = p_0$ and $q^Te_2 = q_0$ by definition of $e_1$ and
@@ -271,7 +250,7 @@ vectors $p^*$ and $q^*$ for problems \eqref{eq:primal_pb} and
 \eqref{eq:dual_pb} such that ...
 \end{definition}
 
-\subsection{Outline of the article}
+\paragraph{\textbf{Our contribution.}}
 We develop a $\mathcal{O}(1/\text{min}(\rho,\epsilon))$ primal-dual
 algorithm for computing Nash $(\rho, \epsilon$)-equilibria for
 sequential two-person zero-sum games with imcomplete information and
@@ -343,9 +322,10 @@ algorithm is known nor is likely to exist for the polyhedra $Q_k$
 defined in \eqref{eq:polyhedron}, the strategy profiles for players in
 the games considered here. It should however be noted that such this
 projection can still be done iteratively using, for example, the
-algorithm in proposition 4.2 of \cite{combettes2010dualization} or any
-CQ algorithm (since this projection sub-problem, is, in fact a
-\textit{split-feasibility problem}), for example. Unfortunately, as
+algorithm in proposition 4.2 of \cite{combettes2010dualization}%%  or any
+%% CQ algorithm (since this projection sub-problem, is, in fact a
+%% \textit{split-feasibility problem}), for example
+. Unfortunately, as
 with any nested iterative scheme, one would have to solve this
 sub-problem with finer and finer precision.
 
@@ -417,33 +397,31 @@ Finally, define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
   \begin{aligned}
     \hat{\Psi}_1(y, p, x, q) &:=
     \Psi_1(y, p, x, q)+ g_1(y, p) \text{ if }y \ge 0, \hat{\Psi}_1(y,
-    p, x, q) := \infty \text{ otherwise}\\
+    p, x, q) := \infty \text{ else}\\
     \hat{\Psi}_2(y, p, x, q) &:= \Psi_2(y, p, x, q)+ g_2(y, p) \text{ if
-    }x \ge 0, \hat{\Psi}_2(y,p, x, q) := \infty \text{ otherwise}.
+    }x \ge 0, \hat{\Psi}_2(y,p, x, q) := \infty \text{ else}.
   \end{aligned}
   \right\}
 \end{eqnarray}
 
-Consider the GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$)
-  \begin{eqnarray}
-    \left.
-    \begin{aligned}
-      \text{Find }(y^*,p^*, x^*, q^*) \in \mathbb{R}^{n_2}_+
-  \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1}_+ \times
-  \mathbb{R}^{l_2}\text{ such that }\hat{\Psi}_1(y^*, p^*, x^*, q^*) \le \hat{\Psi}_1(y, p, x^*, q^*)
-      \text{ and }\\
-      \hspace{.5em}\hat{\Psi}_2(y^*, p^*, x^*, q^*) \le
-      \hat{\Psi}_2(y^*, p^*, x, q)
-        \forall (y,p, x, q) \in \mathbb{R}^{n_2}_+
-      \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1}_+ \times
-      \mathbb{R}^{l_2}.
-    \end{aligned}
-    \right\}
-    \label{eq:unconstrained_pb}
-  \end{eqnarray}
-  \label{thm:pd}
+Define the sets $S_1 := \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$ and $S_2 :=
+\mathbb{R}^{n_1}_+ \times \mathbb{R}^{l_2}$ and consider the
+GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$): Find $(y^*,p^*, x^*, q^*) \in
+S_1 \times S_2$ such that
+\begin{eqnarray}
+  \left.
+  \begin{aligned}
+    \hat{\Psi}_1(y^*, p^*, x^*, q^*) \le \hat{\Psi}_1(y, &p, x^*,
+    q^*),\hspace{.5em} \hspace{.5em}\hat{\Psi}_2(y^*, p^*, x^*, q^*)
+    \le \hat{\Psi}_2(y^*, p^*, x, q)\\
+    &\forall (y,p, x, q) \in S_1 \times S_2.
+  \end{aligned}
+  \right\}
+  \label{eq:unconstrained_pb}
+\end{eqnarray}
+\label{thm:pd}
 
-  Then a quadruplet $(y^*,p^*, x^*, q^*) \in \mathbb{R}^{n_2}
+Then a quadruplet $(y^*,p^*, x^*, q^*) \in \mathbb{R}^{n_2}
   \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
   \mathbb{R}^{l_2}$ solves the Nash equilibrium LCPs
   \eqref{eq:primal_pb} and \eqref{eq:dual_pb} iff it solves
@@ -452,20 +430,15 @@ Consider the GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$)
 \end{theorem}
 
 \begin{proof}
-Define $S_1 := \dom(g_1) = \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$
-and $S_2 := \dom(g_2) = 
-\mathbb{R}^{n_1}_+ \times \mathbb{R}^{l_2}$. Noting that the
-equilibria of the LCPs \eqref{eq:primal_pb},
-\eqref{eq:dual_pb}, and the equilibria of GSP($\Psi_1$, $\Psi_2$,
-$g_1$, $g_2$) are contained in $S_1 \times S_2$, it suffices to show
-that at any point $(y, p, x, q) \in S_1 \times S_2$, the duality
-primal-dual gap between the primal LCP \eqref{eq:primal_pb} and the
-dual LCP \eqref{eq:dual_pb} equals the primal-dual gap of
-GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$).
-
-
+Note that $\dom(g_1) = S_1$ and $\dom(g_2) = S_2$ and observe that the
+equilibria of the LCPs \eqref{eq:primal_pb}, \eqref{eq:dual_pb}, and
+the equilibria of GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$) are contained
+in $S_1 \times S_2$, it suffices to show that at any point $(y, p, x,
+q) \in S_1 \times S_2$, the duality primal-dual gap between the primal
+LCP \eqref{eq:primal_pb} and the dual LCP \eqref{eq:dual_pb} equals
+the primal-dual gap of GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$).
 Indeed, the unconstrained objective in \eqref{eq:primal_pb}, say
-$a(x,y)$, can be written as
+$a(x,y)$, can be computed as
 \begin{eqnarray*}
   \begin{aligned}
     a(y,p) &= e_1^Tp +
@@ -486,8 +459,8 @@ $a(x,y)$, can be written as
   \label{eq:a}
 \end{eqnarray*}
 
-where $\phi_2(y, p) := \underset{x',q'}{\text{min}}\text{
-}\hat{\Psi}_2(y, p, x', q') \in [-\infty, +\infty)$.
+where $-\infty \le \phi_2(y, p) := \underset{x',q'}{\text{min}}\text{
+}\hat{\Psi}_2(y, p, x', q') < +\infty$.
 Similarly, the unconstrained objective, say
 $b(x, q)$, in the dual LCP \eqref{eq:dual_pb} writes
 \begin{eqnarray*}
@@ -503,9 +476,8 @@ $b(x, q)$, in the dual LCP \eqref{eq:dual_pb} writes
  g_1(y', p') = -g_2(x, q) + \phi_1(x, q),
    \end{aligned}
 \end{eqnarray*}
-where $\phi_1(x, q) :=
-\underset{y',p'}{\text{min}}\text{ }\hat{\Psi}_1(y', p', x, q) \in
-         [-\infty, +\infty)$.
+where $-\infty \le \phi_1(x, q) :=
+\underset{y',p'}{\text{min}}\text{ }\hat{\Psi}_1(y', p', x, q) < +\infty$.
 Thus, one can compute the primal-dual gap between primal LCP
 \eqref{eq:primal_pb} and dual LCP \eqref{eq:dual_pb} at $(y, p, x, q)$ as
 \begin{eqnarray*}
@@ -574,8 +546,8 @@ Consider the following algorithm
 \Require $\rho >0$, $\epsilon > 0$; $(y^{(0)},p^{(0)},x^{(0)},q^{(0)})
 \in \mathbb{R}^{n_2}
   \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
-  \mathbb{R}^{l_2}$
-\Ensure $(\rho, \epsilon)$-Nash equilibrium
+  \mathbb{R}^{l_2}$.
+\Ensure A Nash $(\rho, \epsilon)$-equilibrium
 $(\tilde{y},\tilde{p},\tilde{x},\tilde{q}) \in S_1 \times S_2$ for
 the GSP \eqref{eq:unconstrained_pb}.
 \State  $\lambda \leftarrow 1/\|K\|$,
@@ -602,7 +574,7 @@ E_1^Tp^{(k+1)}))_+$
 
 \begin{theorem}[Ergodic $\mathcal{O}(1/k)$ convergence]
 Let $d_0$ be the euclidean distance between the starting point
-$(y^{(0)},p^{(0)},x^{(0)},q^{(0)})$ Algorithm \ref{Tab:algo} and the
+$(y^{(0)},p^{(0)},x^{(0)},q^{(0)})$ of Algorithm \ref{Tab:algo} and the
 set of equilibria for the GSP \eqref{eq:unconstrained_pb}.
 Then given any $\epsilon > 0$ and $\rho > 0$, we have the ergodic
 error bounds
@@ -632,11 +604,11 @@ $\prox_{\lambda g_1}(y, p) = ((y)_+, p - \lambda e_1)$ and $\prox_{\lambda
   g_2}(x, q) = ((x)_+, q - \lambda e_2)$. Algorithm \ref{Tab:algo} is
 then obtained from \cite[Algorithm
   T-BD]{he2013accelerating}, applied on the GSP \eqref{eq:unconstrained_pb}
- with the choice of parameters $\sigma = 1 \in (0, 1]$, $\sigma_x =
+ with the choice of parameters: $\sigma = 1 \in (0, 1]$, $\sigma_x =
          \sigma_y = 0 \in [0, \sigma)$,
  $\lambda_{xy} := \frac{\sqrt{(\sigma^2 - \sigma_x^2)(\sigma^2 -
                \sigma_y^2)}}{\sigma L_{xy}} = \sigma / \|K\| =
-           1/\|K\|$, $\lambda = \lambda_{xy} \in (0,
+           1/\|K\|$, and $\lambda = \lambda_{xy} \in (0,
            \lambda_{xy}]$. The convergence result then follows from
          \cite[Theorem 4.2]{he2013accelerating}.
 \end{proof}
@@ -688,35 +660,32 @@ To access the practical quality of the proposed algorithm, we
 experimented it on real and simulated matrix games.
 
 \begin{figure}[!htpb]
-  \includegraphics[width=.34\linewidth]{simplex_dgap.pdf}
+  \subfigure[Matrix game on simplices]{
+    \includegraphics[width=.33\linewidth]{simplex_dgap.pdf}
+  }
+  \hspace{-2em}
+  \subfigure[Simplified Poker]{
+    \includegraphics[width=.33\linewidth]{SimplifiedPoker_dgap.pdf}
+  }
+  \hspace{-2em}
+  \subfigure[Kuhn 3-card Poker]{
+    \includegraphics[width=.33\linewidth]{Kuhn3112_dgap.pdf}
+  }
+  \vspace{-1em}
   \hspace{-1em}
-  \includegraphics[width=.34\linewidth]{SimplifiedPoker_dgap.pdf}
-  \hspace{-.8em}
-  \includegraphics[width=.34\linewidth]{Kuhn3112_dgap.pdf}
-  \hspace{-1.3em}
-  \includegraphics[width=.35\linewidth]{simplex_NE.pdf}
-  \hspace{-.8em}
-  \includegraphics[width=.34\linewidth]{SimplifiedPoker_NE.pdf}
-  \hspace{-1.3em}
-  \includegraphics[width=.34\linewidth]{Kuhn3112_NE.pdf}
+  \includegraphics[width=.34\linewidth]{simplex_NE.pdf}
+  \hspace{-1em}
+  \includegraphics[width=.33\linewidth]{SimplifiedPoker_NE.pdf}
+  \hspace{-1em}
+  \includegraphics[width=.33\linewidth]{Kuhn3112_NE.pdf}
   \caption{Convergence curves of Algorithm
-    \ref{Tab:algo}. \textbf{Left column}: Random $1000
-    \times 1000$ matrix game on simplexes. \textbf{Middle column}:
-    Simplified poker. \textbf{Right column}: Kuhn 3-card
-    Poker. \textbf{Top row}: convergence in terms of ergodic
+    \ref{Tab:algo}. \textbf{Top row}: convergence in terms of ergodic
     primal-dual gap. \textbf{Bottom row}: Convergence in terms of
     value of game.}
   \label{Tab:dgap_curve}
 \end{figure}
 
-%% \begin{remark}
-%% The results presented here are not meant to be benchmarks comparing
-%% our algorithm to other algorithms, but should rather be seen as
-%% proof-of-concept which experimentally  validates the rigorously
-%% extablished results in section \ref{sec:algo}.
-% \end{remark}
-
-\paragraph{Simulated game: matrix game on simplexes.}
+\paragraph{\textbf{Simulated game: matrix game on simplexes.}}
 Any matrix $A \in \mathbb{R}^{n_1 \times n_2}$ specifies a
 \textit{matrix game}. The strategy profile of player $k$ is a simplex;
 this simplex can be written in the form \eqref{eq:polyhedron} by
@@ -726,7 +695,7 @@ game. Now, as in \textbf{nesterov, c-p, etc.}, we generate a $1000
 \times 1000$ random matrix whose entries are uniformly identically
 distributed in the closed interval $[-1, 1]$. See Figure \ref{Tab:sim_dgap_curve}...
 
-\paragraph{Real-world game: Kuhn 3-card Poker.}
+\paragraph{\textbf{Real-world game: Kuhn 3-card Poker.}}
 The sequence-form representation of this simplified Poker variant
 \cite{kuhn} is given by (not showing zero entries)\\
 
