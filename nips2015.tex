@@ -530,7 +530,7 @@ E_1^Tp^{(k+1)}))_+$
 \lambda(E_2y^{(k+1)}-e_2)$
 \State $y^{(k+1)} \leftarrow y^{(k+1)} - \lambda
 (A^T(x^{(k+1)}-x^{(k)}) + E_2^T(q^{(k+1)}-q^{(k)}))$
-\State $p^{(k+1)} \leftarrow p^{(k+1)} - \lambda E_1(x^{(k+1)}-x^{(k)})$
+\State $p^{(k+1)} \leftarrow p^{(k+1)} + \lambda E_1(x^{(k+1)}-x^{(k)})$
 \State $k \leftarrow k + 1$
 \EndWhile
 \end{algorithmic}
