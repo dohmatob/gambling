@@ -531,34 +531,34 @@ $\epsilon$-subgradient, for short) of $f$ the set-valued function
 \end{eqnarray}
 \end{definition}
 
-The idea is to replace the usual necessary condition ``$0 \in \partial
-f(x)$'' for the optimality of $x$ with ``$v \in \partial_\epsilon
-f(x)$, for some small perturbation vector $v$''. In fact, it is easy
-to see that, for each $x \in X$, $(\partial_\epsilon f(x))_{\epsilon >
-  0}$ is a decreasing sequence of sets which converges to $\partial
-f(x)$.
+The idea behind $\epsilon$-subgradients is the following: given a
+function $f$ which we wish to minimize, replace the usual necessary
+condition ``$0 \in \partial f(x)$'' for the optimality of $x$ with the
+weaker condition ``$\exists v \in \partial_\epsilon f(x)$, for some small
+perturbation vector $v$''. In fact, it is easy to see that, for each
+$x \in X$, $(\partial_\epsilon f(x))_{\epsilon > 0}$ is a decreasing
+sequence of sets which converges to $\partial f(x)$.
 
-Henceforth, the notion of approximate Nash equilibria will be
-understood in the following sense, which was first introduced in
-\cite{he2013accelerating}.
-
-%% Since won't typically be able to compute a feasible point in $Q_1 \in
-%% Q_2$ (due to the equality constraints $E_kz = e_k$), we will consider
-%% an approximate equilibrium concept which takes in to account the
-%% distance from the set of equilibria. Viz,
+This approximation concept for subgradients yields the following
+concept of approximate Nash equlibria (adapted from
+\cite{he2013accelerating}).
 
 \begin{definition}[\textbf{Nash $(\rho,\epsilon)$-equilibria}]
 Given $\rho > 0$ and $\epsilon > 0$, a Nash
-$(\rho,\epsilon$)-equilibrium is a pair $(x^*, y^*)$ of realization
-plans such that there exists dual vectors $p^*$ and $q^*$ and a
-pertubation vector $v^*$ for which
+$(\rho,\epsilon$)-equilibrium for the GSP \eqref{eq:unconstrained_pb}
+is any quadruplet $(x^*, y^*, x^*, q^*)$ for which
+there exists a perturbation vector $v^*$ such that
 \begin{eqnarray}
 \|v^*\| \le \rho \text{ and}\hspace{.5em} v^* \in
 \partial_\epsilon[\hat{\Psi}_1(., ., x^*, q^*) +
   \hat{\Psi}_2(y^*, p^*, , .)](y^*,p^*,x^*,q^*).
 \end{eqnarray}
+
+Such a vector $v^*$ is called a Nash $\epsilon$-residual at $(x^*,
+y^*, x^*, q^*)$.
 \label{thm:cool_notion}
 \end{definition}
+
 
 The above definition is a generalization of the notion of Nash
 equilibria in the sense that
@@ -567,10 +567,6 @@ equilibria in the sense that
 \item Nash $\epsilon$-equilibria (in the sense of Definition
   \ref{thm:approx_nash}) correspond to Nash $(0^+,\epsilon)$-equilibria.
 \end{itemize}
-
-%\paragraph{\textbf{Plan of attack.}}
-\textbf{XXX TODO: Define the ergodic variables $\tilde{v}^a$ and
-  $\tilde{\epsilon}^a$, ...}
 
 \subsection{The algorithm proper and its convergence rate}
 Consider the following algorithm for solving the GSP
@@ -588,12 +584,10 @@ Consider the following algorithm for solving the GSP
 \Ensure A Nash $(\rho, \epsilon)$-equilibrium
 $(\tilde{y},\tilde{p},\tilde{x},\tilde{q}) \in S_1 \times S_2$ for
 the GSP \eqref{eq:unconstrained_pb}.
-\State  $\lambda \leftarrow 1/\|K\|$,
-%% $y^{(0)} \leftarrow 0_{n_2}$,
-%% $p^{(0)} \leftarrow 0_{l_1}$, $x^{(0)} \leftarrow 0_{n_1}$, $q^{(0)}
-%% \leftarrow 0_{l_2}$,
-$k \leftarrow 0$
-\While{$\|\tilde{\epsilon}^{a}_k\| \ge \rho$ or $\|\tilde{v}^{a}_k\| \ge \epsilon$}
+\State  $\lambda \leftarrow 1/\|K\|$, ${v}_a^{(0)} \leftarrow 0$,
+$\tilde{v}_a^{(0)} \leftarrow 0$, $k \leftarrow 0$
+\While{$\|\tilde{\epsilon}_a^{(k)}\| \ge \rho$ or
+  $\|\tilde{v}_{a}^{(k)}\| \ge \epsilon$}
 \State $y^{(k + 1)} \leftarrow (y^{(k)} - \lambda (A^Tx^{(k)} +
 E_2^Tq^{(k)}))_+$
 \State  \hspace{.5em}$p^{(k+1)} \leftarrow p^{(k)} -
@@ -604,7 +598,11 @@ E_1^Tp^{(k+1)}))_+$
 \lambda(E_2y^{(k+1)}-e_2)$
 \State $y^{(k+1)} \leftarrow y^{(k+1)} - \lambda
 (A^T(x^{(k+1)}-x^{(k)}) + E_2^T(q^{(k+1)}-q^{(k)}))$
-\State $p^{(k+1)} \leftarrow p^{(k+1)} + \lambda E_1(x^{(k+1)}-x^{(k)})$
+\State $p^{(k+1)} \leftarrow p^{(k+1)} + \lambda
+E_1(x^{(k+1)}-x^{(k)})$
+\State ${v}_a^{(k+1)} \leftarrow {v}_a^{(k} +
+\frac{1}{\lambda}(y^{(k+1)}-y^{(k)},p^{(k+1)}-p^{(k)},x^{(k+1)}-x^{(k)},q^{(k+1)}-q^{(k)})$
+\State $\tilde{v}_a^{(k+1)} \leftarrow \frac{1}{k + 1}v_a^{(k+1)}$
 \State $k \leftarrow k + 1$
 \EndWhile
 \end{algorithmic}
@@ -614,11 +612,12 @@ E_1^Tp^{(k+1)}))_+$
 Let $d_0$ be the euclidean distance between the starting point
 $(y^{(0)},p^{(0)},x^{(0)},q^{(0)})$ of Algorithm \ref{Tab:algo} and the
 set of equilibria for the GSP \eqref{eq:unconstrained_pb}.
-Then given any $\epsilon > 0$ and $\rho > 0$, we have the ergodic
-error bounds
+Then given any $\epsilon > 0$ and $\rho > 0$, there exists and index
+$k_0 \le 2d_0\|K\|max(5d_0/\rho, 1/\epsilon)$ such that the following
+error bounds hold:
 \begin{eqnarray}
-\|\tilde{\epsilon}^{a}_k\| \le \rho\text{ and }\|\tilde{v}^{a}_k\| \le
-\epsilon, \forall k \ge 2d_0\|K\|max(5d_0/\rho, 1/\epsilon).
+\|\tilde{\epsilon}^{a}_{k_0}\| \le \rho\text{ and }\|\tilde{v}^{a}_{k_0}\| \le
+\epsilon.
 \end{eqnarray}
 
 Thus Algorithm \ref{Tab:algo} outputs an $(\rho,\epsilon)$-Nash
