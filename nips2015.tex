@@ -64,7 +64,6 @@ algoithm; convex-optimization; enlarged subgradient
 
 \section{Introduction}
 \label{sec:intro}
-\paragraph{\textbf{Context.}}
 A game-theoretic approach to playing games strategically optimally
 consists in computing Nash-equilibria (infact, approximations thereof)
 offline, and playing one's part of the equilibrium online. This
@@ -77,7 +76,8 @@ especially in sequential games with imperfect information. This paper
 proposes a simple and fast algorithm for solving for such equilibria
 approximately, in a sense which will be made clear shortly.
 
-\paragraph{\textbf{Notation and terminology.}}
+\subsection{Notation and terminology}
+\paragraph{\textbf{General notions.}}
 Let $m$ and $n$ be positive integers.
 $\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ } z \geq
 0\}$ is the nonnegative $n$-dimensional \textit{orthant}.  The
@@ -101,6 +101,7 @@ Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
  defined to be the largest \textit{singular value} of $A$, i.e the
  largest \textit{eigenvalue} of $A^TA$ (or equivalently, of $AA^T$).
 
+\paragraph{\textbf{Convex analysis.}}
 Given a subset $C$ of $\mathbb{R}^n$,
 $i_C$ denotes its \textit{indicator function} defined by
 \begin{eqnarray}
@@ -120,7 +121,13 @@ The \textit{effective domain} of $f$, denoted $\dom(f)$ is defined as
 %% The \textit{Fenchel-Legendre transform} of $f$ is the function $f^*:
 %% \mathbb{R}^n \rightarrow (-\infty, +\infty]$ defined by $f^*(x) \equiv
 %%   \underset{z \in \mathbb{R}^n}{\text{max}}\text{}z^Tx - f(z)$.
-Given $\tau > 0$, the function
+The \textit{subgradient} of $f$ is the set-valued function
+\begin{eqnarray}
+\partial f: X \mapsto 2^X, \hspace{.5em} x \mapsto \{h\in X |
+f(z)  \ge f(x) + \langle h, z - x\rangle \forall z \in X\}.
+\end{eqnarray}
+Of course $\partial f(x)$ reduces to the singleton $\{\nabla f(x)\}$
+in case $f$ is differentiable at $x$. Given $\tau > 0$, the function
 \begin{eqnarray}
   \prox_{\tau f}: \mathbb{R}^n \rightarrow \mathbb{R}^n,\hspace{.5em}x
   \mapsto \underset{z \in \mathbb{R}^n}{\text{min }}\frac{1}{2}\|z
@@ -133,7 +140,7 @@ The interested reader should refer to
 elaborate exposition of convex-analytical concepts and their use in
 optimization.
 
-\paragraph{\textbf{Statement of the problem.}}
+\subsection{Statement of the problem}
 The sequence-form for two-person zero-sum games was introduced in
 \cite{koller1992complexity}, and the theory was further developed in
 \cite{koller1994fast,von1996efficient,vonequilibrium}, where it was
@@ -231,15 +238,12 @@ doesn't exceed $\epsilon$. That is,
 \label{thm:approx_nash}
 \end{definition}
 
-\paragraph{\textbf{Our contribution.}}
+\subsection{Our contribution}
 We develop a $\mathcal{O}(1/\text{min}(\rho,\epsilon))$ primal-dual
-algorithm for computing Nash $(\rho, \epsilon$)-equilibria (in a sense
-to be made clear later) for
-sequential two-person zero-sum games with imcomplete information and
-perfect recall.
-
-
-
+algorithm (Algorithm \ref{Tab:algo}) for computing Nash $(\rho,
+  \epsilon$)-equilibria (in a sense to be made clear later) for
+  sequential two-person zero-sum games with imcomplete information and
+  perfect recall.
 
 \section{Related work}
 \label{sec:related_work}
@@ -521,8 +525,8 @@ h, z - x\rangle \forall z \in X\}$.
 
 \begin{definition}[$\epsilon$-subgradient]
 Given a scalar $\epsilon > 0$ and a function $f:X \subseteq \mathbb{R}^n
-\rightarrow [-\infty,+\infty]$, the $\epsilon$-subgradient of $f$ the
-set-valued function
+\rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged subgradient (or
+$\epsilon$-subgradient, for short) of $f$ the set-valued function
 \begin{eqnarray}
 \partial_\epsilon f: X \mapsto 2^X, \hspace{.5em} x \mapsto \{h\in X |
 f(z) + \epsilon \ge f(x) + \langle h, z - x\rangle \forall z \in X\}.
@@ -628,10 +632,10 @@ Algorithm \ref{Tab:algo} is then obtained from \cite[Algorithm
   T-BD]{he2013accelerating}, applied on the GSP
 \eqref{eq:unconstrained_pb} with the choice of parameters: $\sigma = 1
 \in (0, 1]$, $\sigma_x = \sigma_y = 0 \in [0, \sigma)$,
-    $\lambda_{xy} := \frac{\sqrt{(\sigma^2 - \sigma_x^2)(\sigma^2 -
-        \sigma_y^2)}}{\sigma L_{xy}} = \sigma / \|K\| =
-    1/\|K\|$, and $\lambda = \lambda_{xy} \in (0,
-    \lambda_{xy}]$. The convergence result follows immediately from
+    $\lambda_{xy} := \frac{1}{\sigma L_{xy}}\sqrt{(\sigma^2 -
+        \sigma_x^2)(\sigma^2 - \sigma_y^2)} = \sigma / \|K\| =
+      1/\|K\|$, and $\lambda = \lambda_{xy} \in (0,
+      \lambda_{xy}]$. The convergence result follows immediately from
   \cite[Theorem 4.2]{he2013accelerating}.
   \qed
 \end{proof}
