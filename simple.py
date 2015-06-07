@@ -982,7 +982,7 @@ if __name__ == "__main__":
                            "\\rangle$"), fontsize=50)
         ax.axhline(
             -1. / 18. if isinstance(game, Kuhn3112) else value,
-            linestyle="--", dashes=(20, 10), color="r",
+            linestyle="--", dashes=(30, 10), color="b",
             linewidth=4, **kwargs)
         plt.legend(loc="best", prop=dict(size=45), handlelength=1.5)
         ax.ticklabel_format(axis="y", style="sci", scilimits=(0., 0.))
@@ -994,8 +994,8 @@ if __name__ == "__main__":
         plt.figure(figsize=(13.5, 10))
         plt.grid("on")
         plt.loglog(cst / np.arange(1, len(dgaps) + 1), linestyle="--",
-                   dashes=(20, 10), label="$\\mathcal{O}(1/k)$", linewidth=4,
-                   color="r")
+                   dashes=(30, 10), label="$\\mathcal{O}(1/k)$", linewidth=4,
+                   color="b")
         plt.loglog(np.abs(dgaps), label="\\textbf{Algorithm 1}", linewidth=4)
         if cnt == 0:
             plt.ylabel("\\textbf{$||\\tilde{v}^{a}_k||$}", fontsize=50)

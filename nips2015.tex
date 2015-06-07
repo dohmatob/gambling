@@ -16,8 +16,9 @@
 \DeclareMathOperator{\proj}{proj}
 \DeclareMathOperator{\prox}{prox}
 
-\title{\bf A simple algorithm for computing approximate Nash equilibria in
-  two-person zero-sum games with imcomplete information}
+\title{\bf A simple and efficient algorithm for computing approximate
+  Nash equilibria in two-person zero-sum games with imcomplete
+  information\smallskip\hrule\hrule}
 \author{Elvis DOHMATOB\\\email{elvis.dohmatob@inria.fr}}
 \institute{
 Parietal team, Inria Saclay Ile-de-France, Saclay, France
@@ -49,18 +50,20 @@ Poker). Our algorithm only performs basic iterations (i.e iterations
 involving no calls to external first-order oracles, etc.) and is
 applicable to a broad class of two-person zero-sum games including
 simultaneous games and sequential games with imcomplete information
-and perfect recall. The applicability to the latter kind of games is
-thanks to the sequence-form representation
-\cite{koller1992complexity}. As an application, we apply our algorithm
-to solve Kuhn 3-card Poker.
+and perfect recall. The number of iterations need to produce a Nash
+equilibrium with a given precision is inversely proportion to the
+precision. The applicability to the latter kind of games is thanks to
+the sequence-form representation \cite{koller1992complexity}. As
+proof-of-concept, we apply our algorithm to solve Kuhn 3-card Poker.
 \end{abstract}
 
 \textbf{keywords}: sequential game; imcomplete information; perfect
-recall; sequence-form; Nash equilibrium; primal-dual algoithm;
-split-feasibility problem; convex-optimization
+recall; sequence-form; approximate Nash equilibrium; primal-dual
+algoithm; convex-optimization
 
 \section{Introduction}
 \label{sec:intro}
+\paragraph{\textbf{Context.}}
 A game-theoretic approach to playing games strategically optimally
 consists in computing Nash-equilibria (infact, approximations thereof)
 offline, and playing one's part of the equilibrium online. This
@@ -72,7 +75,6 @@ for equilibria remains a mathematical and computational challenge,
 especially in sequential games with imperfect information. This paper
 proposes a simple and fast algorithm for solving for such equilibria
 approximately, in a sense which will be made clear shortly.
-
 
 \paragraph{\textbf{Notation and terminology.}}
 Let $m$ and $n$ be positive integers.
@@ -93,32 +95,38 @@ The operator $(.)_+$ is the well-known
 $\mathbb{R}^{m \times n}$ denotes the space of all $m$-by-$n$ real
 matrices, $I_m$ denotes the $m$-by-$m$ identity matrix, and $0_{m,n}$
 denotes the $m$-by-$n$ matrix of zeros.
-
 Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
   norm}, denoted $\|A\|$, is
  defined to be the largest \textit{singular value} of $A$, i.e the
- largest \textit{eigen-value} of $A^TA$ (or equivalently, of $AA^T$).
+ largest \textit{eigenvalue} of $A^TA$ (or equivalently, of $AA^T$).
 
 Given a subset $C$ of $\mathbb{R}^n$,
-$i_C$ denotes its \textit{indicator function} defined by $i_C(x) = 0$
-if $ x \in C$; $i_c(x) = \infty$ otherwise.
+$i_C$ denotes its \textit{indicator function} defined by
+\begin{eqnarray}
+  i_C(x) = 0, \text{ if } x \in C;\hspace{.3em} i_c(x) = \infty\text{
+    otherwise.}
+\end{eqnarray}
+
 Let $f : \mathbb{R}^n \rightarrow (-\infty, +\infty]$ be a convex
   function.
 The \textit{effective domain} of $f$, denoted $\dom(f)$ is defined as
-$\dom(f) := \{x \in \mathbb{R}^n | f(x) < +\infty\}$. If $\dom(f) \ne
-\emptyset$ then we say $f$ is \textit{proper}.
+\begin{eqnarray}
+  \dom(f) := \{x \in \mathbb{R}^n | f(x) < +\infty\}.
+\end{eqnarray}
+ If $\dom(f) \ne \emptyset$ then we say $f$ is \textit{proper}.
 %% \textit{proper convex lower semi-continous function}
 %% (\textit{p.c.l.s.c} for short).
 %% The \textit{Fenchel-Legendre transform} of $f$ is the function $f^*:
 %% \mathbb{R}^n \rightarrow (-\infty, +\infty]$ defined by $f^*(x) \equiv
 %%   \underset{z \in \mathbb{R}^n}{\text{max}}\text{}z^Tx - f(z)$.
-Given $\tau > 0$, the \textit{proximal operator}
-of $f$ at rank $\tau$, denoted $\prox_{\tau f}$, is the
-function which maps a point $x \in \mathbb{R}^n$ to the (necessarily
-unique) minimizer of the $1$-strongly convex function $\mathbb{R}^n
-\rightarrow (-\infty,+\infty]$, $z\mapsto \frac{1}{2}\|z - x\|^2 +
-  \tau f(z)$.
+Given $\tau > 0$, the function
+\begin{eqnarray}
+  \prox_{\tau f}: \mathbb{R}^n \rightarrow \mathbb{R}^n,\hspace{.5em}x
+  \mapsto \underset{z \in \mathbb{R}^n}{\text{min }}\frac{1}{2}\|z
+  - x\|^2 + \tau f(z),
+\end{eqnarray}
 
+is called the \textit{proximal operator} of $f$ at rank $\tau$.
 The interested reader should refer to
 \cite{rockafellar1997convex,combettes2011proximal} for a more
 elaborate exposition of convex-analytical concepts and their use in
@@ -215,18 +223,13 @@ doesn't exceed $\epsilon$. That is,
   0 \le \mathcal{G}(y^*, p^*, x^*, q^*) \le \epsilon
 \label{eq:approx_pb}
 \end{equation}
-\end{definition}
-
-\begin{definition}[\textbf{Nash $(\rho,\epsilon)$-equilibria}]
-Given $\rho > 0$ and $\epsilon > 0$, a Nash $(\rho,\epsilon$)-equilibrium is
-a pair $(x^*, y^*)$ of realization plans such that there exists dual
-vectors $p^*$ and $q^*$ for problems \eqref{eq:primal_pb} and
-\eqref{eq:dual_pb} such that ...
+\label{thm:approx_nash}
 \end{definition}
 
 \paragraph{\textbf{Our contribution.}}
 We develop a $\mathcal{O}(1/\text{min}(\rho,\epsilon))$ primal-dual
-algorithm for computing Nash $(\rho, \epsilon$)-equilibria for
+algorithm for computing Nash $(\rho, \epsilon$)-equilibria (in a sense
+to be made clear later) for
 sequential two-person zero-sum games with imcomplete information and
 perfect recall.
 
@@ -372,7 +375,7 @@ Finally, define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
     \hat{\Psi}_1(y, p, x, q) &:=
     \Psi_1(y, p, x, q)+ g_1(y, p) \text{ if }y \ge 0, \hat{\Psi}_1(y,
     p, x, q) := \infty \text{ else}\\
-    \hat{\Psi}_2(y, p, x, q) &:= \Psi_2(y, p, x, q)+ g_2(y, p) \text{ if
+    \hat{\Psi}_2(y, p, x, q) &:= \Psi_2(y, p, x, q)+ g_2(x, q) \text{ if
     }x \ge 0, \hat{\Psi}_2(y,p, x, q) := \infty \text{ else}.
   \end{aligned}
   \right\}
@@ -468,6 +471,7 @@ Thus, one can compute the primal-dual gap between primal LCP
 \end{eqnarray*}
 where the second equality follows from the fact that $\Psi_1 + \Psi_2
 := 0$.
+\qed
 
 %% For the dual-gap bound, note that $\forall (x', u', y', v') \in \mathbb{R}^{n_1}_+ \times \mathbb{R}^{l_2} \times \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$, one has
 %% \begin{eqnarray*}
@@ -495,12 +499,63 @@ where the second equality follows from the fact that $\Psi_1 + \Psi_2
 % \subsection{The proposed algorithm and its $\mathcal{O}(1/\epsilon)$
 % convergence}
 
-\section{The algorithm}
+\section{The proposed algorithm}
 \label{sec:algo}
+In this section we derive the algorithm which is the main object of
+this manuscript.
+
+\subsection{Relaxing the conditions for equilibrium}
+Let us first introduce the notion of $\epsilon$-subgradients. The idea
+is to replace the usual optimality characterization ``$x$ optimal iff
+$0 \in \partial f(x)$'' with ``$x$ approx optimal iff $0 \in
+\partial_\epsilon f(x)$''. In fact, letting $\epsilon \rightarrow 0^+$,
+$\partial f(x) = \partial_{0^+}f(x)$ will coincide with
+subgradient of $f$ at $x$, namely $\{h\in X | f(z) \ge f(x) + \langle
+h, z - x\rangle \forall z \in X\}$.
+
+\begin{definition}[$\epsilon$-subgradient]
+Given a scalar $\epsilon > 0$ and a function $f:X \subseteq \mathbb{R}^n
+\rightarrow [-\infty,+\infty]$, the $\epsilon$-subgradient of $f$ the
+set-valued function
+\begin{eqnarray}
+\partial_\epsilon f: X \mapsto 2^X, \hspace{.5em} x \mapsto \{h\in X |
+f(z) + \epsilon \ge f(x) + \langle h, z - x\rangle \forall z \in X\}.
+\end{eqnarray}
+\end{definition}
+
+
+%% Since won't typically be able to compute a feasible point in $Q_1 \in
+%% Q_2$ (due to the equality constraints $E_kz = e_k$), we will consider
+%% an approximate equilibrium concept which takes in to account the
+%% distance from the set of equilibria. Viz,
+
+\begin{definition}[\textbf{Nash $(\rho,\epsilon)$-equilibria}]
+Given $\rho > 0$ and $\epsilon > 0$, a Nash
+$(\rho,\epsilon$)-equilibrium is a pair $(x^*, y^*)$ of realization
+plans such that there exists dual vectors $p^*$ and $q^*$ and a
+pertubation vector $v^*$ for which
+\begin{eqnarray}
+\|v^*\| \le \rho \text{ and}\hspace{.5em} v^* \in
+\partial_\epsilon[\hat{\Psi}_1(., ., x^*, q^*) +
+  \hat{\Psi}_2(y^*, p^*, , .)](y^*,p^*,x^*,q^*).
+\end{eqnarray}
+\end{definition}
+
+The above definition is a generalization of the notion of Nash
+equilibria in the sense that
+\begin{itemize}
+\item Exact Nash equilibria correspond to Nash $(0^+,0^+)$-equilibria.
+\item Nash $\epsilon$-equilibria (in the sense of Definition
+  \ref{thm:approx_nash}) correspond to Nash $(0^+,\epsilon)$-equilibria.
+\end{itemize}
+
+%\paragraph{\textbf{Plan of attack.}}
 \textbf{XXX TODO: Define the ergodic variables $\tilde{v}^a$ and
   $\tilde{\epsilon}^a$, ...}
 
-Consider the following algorithm for solving the GSP \eqref{eq:unconstrained_pb}
+\subsection{The algorithm proper and its convergence rate}
+Consider the following algorithm for solving the GSP
+\eqref{eq:unconstrained_pb}
 \begin{algorithm}
 \caption{Primal-dual algorithm for computing approximate Nash
   Equilbria in two-person zero-sum games with imcomplete information
@@ -556,26 +611,25 @@ in at most $2d_0\|K\|max(5d_0/\rho, 1/\epsilon)$ iterations.
 Note that the quadruplet $(\Psi_1, \Psi_2, g_1, g_2)$ clearly satisfies
 assumptions B.1, B.2, B.3, B.5, and B.6 of \cite{he2013accelerating}
 with $L_{xx} = L_{yy} = 0$ and $L_{xy} = L_{yx} = \|K\|$. Now,
-either of $g_1$ and $g_2$ is a separable sum of
-the indicator function of a convex set, whose prox is simply the
-euclidean projection onto the set,  and a linear transformation $z
-\mapsto a^Tz$ whose prox is simply $z \mapsto z - \tau a$. Thus,  one
-computes their respective proximal operators $\prox_{\tau g_1} :
-\mathbb{R}^{n_2} \times \mathbb{R}^{l_1} \rightarrow \mathbb{R}^{n_2}
-\times \mathbb{R}^{l_1}$, $\prox_{\sigma g_2}: \mathbb{R}^{n_1} \times
-\mathbb{R}^{l_2} \rightarrow \mathbb{R}^{n_1} \times \mathbb{R}^{l_2}$
-$\prox_{\lambda g_1}(y, p) = ((y)_+, p - \lambda e_1)$ and $\prox_{\lambda
-  g_2}(x, q) = ((x)_+, q - \lambda e_2)$. Algorithm \ref{Tab:algo} is
-then obtained from \cite[Algorithm
-  T-BD]{he2013accelerating}, applied on the GSP \eqref{eq:unconstrained_pb}
- with the choice of parameters: $\sigma = 1 \in (0, 1]$, $\sigma_x =
-         \sigma_y = 0 \in [0, \sigma)$,
- $\lambda_{xy} := \frac{\sqrt{(\sigma^2 - \sigma_x^2)(\sigma^2 -
-               \sigma_y^2)}}{\sigma L_{xy}} = \sigma / \|K\| =
-           1/\|K\|$, and $\lambda = \lambda_{xy} \in (0,
-           \lambda_{xy}]$. The convergence result then follows from
-         \cite[Theorem 4.2]{he2013accelerating}.
+one easily computes the proximal operators $g_1$ and $g_2$ as
+\begin{eqnarray*}
+  \prox_{\lambda g_1}(y, p) \equiv ((y)_+, p - \lambda
+  e_1),\hspace{.5em} \prox_{\lambda g_2}(x, q) \equiv ((x)_+, q -
+  \lambda e_2).
+  \end{eqnarray*}
+
+Algorithm \ref{Tab:algo} is then obtained from \cite[Algorithm
+  T-BD]{he2013accelerating}, applied on the GSP
+\eqref{eq:unconstrained_pb} with the choice of parameters: $\sigma = 1
+\in (0, 1]$, $\sigma_x = \sigma_y = 0 \in [0, \sigma)$,
+    $\lambda_{xy} := \frac{\sqrt{(\sigma^2 - \sigma_x^2)(\sigma^2 -
+        \sigma_y^2)}}{\sigma L_{xy}} = \sigma / \|K\| =
+    1/\|K\|$, and $\lambda = \lambda_{xy} \in (0,
+    \lambda_{xy}]$. The convergence result follows immediately from
+  \cite[Theorem 4.2]{he2013accelerating}.
+  \qed
 \end{proof}
+
 \subsection{Practical considerations}
 \paragraph{\textbf{Efficient computation of $Ay$ and $A^Tx$.}}
 In Algorithms \ref{Tab:algo} most of the time is spent
