@@ -593,7 +593,8 @@ then obtained from \cite[Algorithm
            \lambda_{xy}]$. The convergence result then follows from
          \cite[Theorem 4.2]{he2013accelerating}.
 \end{proof}
-\subsection{Practical considerations: Efficient computation of $Ay$ and $A^Tx$.}
+\subsection{Practical considerations}
+\paragraph{\textbf{Efficient computation of $Ay$ and $A^Tx$.}}
 In Algorithms \ref{Tab:algo} most of the time is spent
 pre-multiplying vectors by $A$ and $A^T$. For \textit{flop}-type Poker
 games like \textit{Texas Hold'em} and  \textit{Rhode Island Hold'em},
@@ -618,22 +619,56 @@ F_{m-1,0}B & F_{m-1,1}B & \cdots & F_{m-1,n-1}B
 \end{definition}
 
 One notes that $(F \otimes B)^T = F^T \otimes B^T$.
-$F \otimes B$ can be very much larger than both $F$ and $B$ in dimensions. For example, if $r = n = r = s = 1000$, so that $F$ and $B$ are $10^3$-by-$10^3$ matrices, then $F \otimes B$ is a $10^6$-by-$10^6$ matrix! Fortunately, given a vector $x \in \mathbb{R}^{rs}$ one can compute the matvec product $(F \otimes B)x$ without forming $F \otimes B$. Indeed, let $y := (F \otimes B)x$. We rewrite the row vector $x$ as an $s$-by-$r$ matrix $X = [X_0, X_1, ..., X_{r-1}]$, where each column vector $X_i$ is the $i$th block of $s$ elements of $x$ read from left to right. Similarly, rewrite $y$ as as an $n$-by-$m$ matrix $Y = [Y_0, Y_1, ..., Y_{m-1}]$. Then one easily verfies that $Y$ is the matrix product of the ``small'' matrices $B$, $X$, and $F^T$, i.e
+$F \otimes B$ can be very much larger than both $F$ and $B$ in
+dimensions. For example, if $r = n = r = s = 1000$, so that $F$ and
+$B$ are $10^3$-by-$10^3$ matrices, then $F \otimes B$ is a
+$10^6$-by-$10^6$ matrix! Fortunately, given a vector $x \in
+\mathbb{R}^{rs}$ one can compute the matvec product $(F \otimes B)x$
+without forming $F \otimes B$. Indeed, let $y := (F \otimes B)x$. We
+rewrite the row vector $x$ as an $s$-by-$r$ matrix $X = [X_0, X_1,
+  ..., X_{r-1}]$, where each column vector $X_i$ is the $i$th block of
+$s$ elements of $x$ read from left to right. Similarly, rewrite $y$ as
+as an $n$-by-$m$ matrix $Y = [Y_0, Y_1, ..., Y_{m-1}]$. Then one
+easily verfies that $Y$ is the matrix product of the ``small''
+matrices $B$, $X$, and $F^T$, i.e
+
 \begin{equation}
   \label{eq:kron_matvec}
   Y = BXF^T
 \end{equation}
 
-Now, in Texas Hold'em for example, the payoff matrix $A$ can be written as block-diagonal matrix whose blocks are sums of Kronecker products of much smaller sparse matrices as follows
+Now, in Texas Hold'em for example, the payoff matrix $A$ can be
+written as block-diagonal matrix whose blocks are sums of Kronecker
+products of much smaller sparse matrices as follows
 
 \begin{equation}
-  A = \begin{bmatrix}F_1 \otimes B_1\hspace{10em}\\\hspace{3em}F_2 \otimes B_2\hspace{7em}\\\hspace{6em}F_3 \otimes B_3\hspace{4em}\\\hspace{10em}F_4 \otimes B_4 + S \end{bmatrix}
+  A = \begin{bmatrix}F_1 \otimes B_1\hspace{10em}\\\hspace{3em}F_2
+    \otimes B_2\hspace{7em}\\\hspace{6em}F_3 \otimes
+    B_3\hspace{4em}\\\hspace{10em}F_4 \otimes B_4 + S \end{bmatrix}
 \label{eq:factor_A}
 \end{equation}
-See \cite{hoda2010smoothing}. The matrices $F_i$ correspond to sequences of moves in round $i$ which end in a \textit{fold} action, and $S$ to the sequences which end in a \textit{showdown}. $B_i$ encodes the betting structure of round $i$, while $W$ encodes the wind/lose/draw information determined by ranking the players' hands at showdown. The component matrices $F_i$, $B_i$, $S$, and $W$ are small enough to be explictly represented whereas it is infeasible to explicitly represent A. Furthermore, the matrices $F_i$, $B_i$,
-$S$, and $W$ are themselves sparse, which allows one to use the compressed row storage data structure that only stores nonzero entries (for example \textit{scipy.sparse.csr\_matrix}, in the Python programming language).
+See \cite{hoda2010smoothing}. The matrices $F_i$ correspond to
+sequences of moves in round $i$ which end in a \textit{fold} action,
+and $S$ to the sequences which end in a \textit{showdown}. $B_i$
+encodes the betting structure of round $i$, while $W$ encodes the
+wind/lose/draw information determined by ranking the players' hands at
+showdown. The component matrices $F_i$, $B_i$, $S$, and $W$ are small
+enough to be explictly represented whereas it is infeasible to
+explicitly represent A. Furthermore, the matrices $F_i$, $B_i$,
+$S$, and $W$ are themselves sparse, which allows one to use the
+compressed row storage data structure that only stores nonzero entries
+(for example \textit{scipy.sparse.csr\_matrix}, in the Python
+programming language).
 
-Such a representation of the payoff matrix $A$ trivializes matvec operations involving $A$ or $A^T$ (thanks to formula \eqref{eq:kron_matvec} above, applied to their diagonal blocks and exploiting the sparsity of these blocks themselves). Of course, one can always write the payoff matrix $A$ of a flop-type Poker game in a form similary to \eqref{eq:factor_A} by applying appropriate permutations to the enumeration of the players's sequences.
+Such a representation of the payoff matrix $A$ trivializes matvec
+operations involving $A$ or $A^T$ (thanks to formula
+\eqref{eq:kron_matvec} above, applied to their diagonal blocks and
+exploiting the sparsity of these blocks themselves). Of course, one
+can always write the payoff matrix $A$ of a flop-type Poker game in a
+form similary to \eqref{eq:factor_A} by applying appropriate
+permutations to the enumeration of the players's sequences.
+
+\paragraph{\textbf{Computing $\|K\|$.}} Power iteration (Perron-Frobenius)...
 
 \section{Experimantal results}
 \label{sec:results}
