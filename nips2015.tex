@@ -16,9 +16,9 @@
 \DeclareMathOperator{\proj}{proj}
 \DeclareMathOperator{\prox}{prox}
 
-\title{\bf A simple and efficient algorithm for computing approximate
+\title{\hrule\hrule\bigskip\bigskip A simple and efficient algorithm for computing approximate
   Nash equilibria in two-person zero-sum games with imcomplete
-  information\smallskip\hrule\hrule}
+  information}
 \author{Elvis DOHMATOB\\\email{elvis.dohmatob@inria.fr}}
 \institute{
 Parietal team, Inria Saclay Ile-de-France, Saclay, France
@@ -46,7 +46,8 @@ Parietal team, Inria Saclay Ile-de-France, Saclay, France
 We present a simple primal-dual algorithm for computing approximate
 Nash equilibria in two-person zero-sum sequential games with
 imcomplete information and perfect recall (like Texas Hold'em
-Poker). Our algorithm only performs basic iterations (i.e iterations
+Poker) based on the notion of enlarged subgradients.
+Our algorithm only performs basic iterations (i.e iterations
 involving no calls to external first-order oracles, etc.) and is
 applicable to a broad class of two-person zero-sum games including
 simultaneous games and sequential games with imcomplete information
@@ -59,7 +60,7 @@ proof-of-concept, we apply our algorithm to solve Kuhn 3-card Poker.
 
 \textbf{keywords}: sequential game; imcomplete information; perfect
 recall; sequence-form; approximate Nash equilibrium; primal-dual
-algoithm; convex-optimization
+algoithm; convex-optimization; enlarged subgradient
 
 \section{Introduction}
 \label{sec:intro}
@@ -171,7 +172,7 @@ entries are $-1$, $0$ or $1$, and each $e_k$ is a vector of the form
 $[1, 0, ..., 0]$. In this so-called \textit{sequence-form}
 representation, the strategy profile of player $k$ is the polyhedron
 \begin{equation}
-  Q_k := \{z \in \mathbb{R}^{n_k}_+ |\text{ }E_kz = e_k\}
+  Q_k := \{z \in \mathbb{R}^{n_k}_+ |\text{ }E_kz = e_k\}.
 \label{eq:polyhedron}
 \end{equation}
 Note that $p^Te_1 = p_0$ and $q^Te_2 = q_0$ by definition of $e_1$ and
@@ -179,7 +180,7 @@ $e_2$. At a feasible point $(y, p, x, q)$, the \textit{primal-dual gap}
 $\mathcal{G}(y, p, x, q)$ of these primal-dual pair of LCPs is given
 by\footnote{The inequality being due to \textit{weak duality}.}
 \begin{equation}
-  0 \le \mathcal{G}(y, p, x, q) := p_0 - (-q_0) = p_0 + q_0
+  0 \le \mathcal{G}(y, p, x, q) := p_0 - (-q_0) = p_0 + q_0.
   \label{eq:dgap}
 \end{equation}
 
@@ -196,7 +197,11 @@ E_2^Tq) = 0.
 \label{eq:feasibility}
 \end{equation}
 
-Moreover, at equilibria, \textit{strong duality} holds and the value of the game equals $p_0 = -q_0$, i.e the primal-dual gap $\mathcal{G}(y, p, x, q)$ defined in \eqref{eq:dgap} vanishes at equilibria.
+Moreover, at equilibria, \textit{strong duality} holds and the value
+of the game equals $p_0 = -q_0$, i.e the primal-dual gap
+$\mathcal{G}(y, p, x, q)$ defined in \eqref{eq:dgap} vanishes at
+equilibria.
+
 
 %% As usual, the ``minimax'' notation in problem \eqref{eq:primal_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution if (and only if)
 %% \begin{equation}
@@ -220,7 +225,7 @@ vectors $p^*$ and $q^*$ for problems \eqref{eq:primal_pb} and
 doesn't exceed $\epsilon$. That is,
 
 \begin{equation}
-  0 \le \mathcal{G}(y^*, p^*, x^*, q^*) \le \epsilon
+  0 \le \mathcal{G}(y^*, p^*, x^*, q^*) \le \epsilon.
 \label{eq:approx_pb}
 \end{equation}
 \label{thm:approx_nash}
@@ -254,7 +259,7 @@ following equivalent saddle-point form
 
 \begin{equation}
   \underset{y \in Q_2}{\text{minimize}}\text{ }\underset{x \in
-    Q_1}{\text{maximize}}\text{ }x^TAy
+    Q_1}{\text{maximize}}\text{ }x^TAy.
   \label{eq:gilpin}
 \end{equation}
 The authors reported a $\mathcal{O}(1/\epsilon)$ convergence rate
@@ -327,7 +332,8 @@ the primal-dual gap might explode even at ``nearly feasible'' points,
 leaving a primal-dual algorithm with no clear on whether progress is
 being made or not. So need to way to
 \begin{itemize}
-\item avoid having to compute the projections $\proj_{Q_k}$, and
+\item avoid having to compute the projections $\proj_{Q_k}$,
+\item have control over how far we are from the set of equilibria,
 \item cope  with infinite primal-dual gaps.
 \end{itemize}
 
