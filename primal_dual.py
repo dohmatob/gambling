@@ -70,6 +70,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         delta_x = x - old_x
         delta_q = q - old_q
         y -= lambd * (A.T.dot(delta_x) + E2.T.dot(delta_q))
+        p += lambd * E1.dot(delta_x)
 
         # compute game value and primal-dual gap at current iterates
         value = x.dot(A.dot(y))

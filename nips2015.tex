@@ -42,25 +42,17 @@ Parietal team, Inria Saclay Ile-de-France, Saclay, France
 \maketitle
 
 \begin{abstract}
-We present a simple primal-dual algorithm
-%with low costs per iteration,
-for computing approximate Nash equilibria in two-person zero-sum
-sequential games with imcomplete information and perfect recall (like
-Texas Hold'em Poker).
-Our algorithm only performs basic iterations
-(i.e iterations involving no
-% only involving basic operations like matvec, clipping, etc., and no
-calls to external first-order oracles, etc.) and is applicable to a
-broad class of two-person zero-sum
-games including simultaneous games and sequential games with
-imcomplete information and perfect recall. The applicability to the
-latter kind of games is thanks to the sequence-form representation von
-Stengel's \cite{von1996efficient}.
-%% Unlike the EGT (Excessive Gap Technique) recently used in
-%% \cite{hoda2010smoothing, gilpinfirst}, our algorithm has a cheap
-%% and constant cost per iteration.
-As an application, we apply our algorithm to solve Kuhn 3-card Poker.
-%% We conclude by extending our results to tackle Nash equilibrium problems with even more general strategy profiles, where the nonnegativity constraints on realization plans are replaced with more general convex sets.
+We present a simple primal-dual algorithm for computing approximate
+Nash equilibria in two-person zero-sum sequential games with
+imcomplete information and perfect recall (like Texas Hold'em
+Poker). Our algorithm only performs basic iterations (i.e iterations
+involving no calls to external first-order oracles, etc.) and is
+applicable to a broad class of two-person zero-sum games including
+simultaneous games and sequential games with imcomplete information
+and perfect recall. The applicability to the latter kind of games is
+thanks to the sequence-form representation
+\cite{koller1992complexity}. As an application, we apply our algorithm
+to solve Kuhn 3-card Poker.
 \end{abstract}
 
 \textbf{keywords}: sequential game; imcomplete information; perfect
@@ -135,9 +127,10 @@ optimization.
 \paragraph{\textbf{Statement of the problem.}}
 The sequence-form for two-person zero-sum games was introduced in
 \cite{koller1992complexity}, and the theory was further developed in
-\cite{von1996efficient,vonequilibrium}, where it was established that
-for sequential two-person zero-sum games with imcomplete information
-and perfect recall, there exist sparse matrices $A \in \mathbb{R}^{n_1
+\cite{koller1994fast,von1996efficient,vonequilibrium}, where it was
+established that for sequential two-person zero-sum games with
+imcomplete information and perfect recall, there exist sparse matrices
+$A \in \mathbb{R}^{n_1
   \times n_2}$, $E_1 \in \mathbb{R}^{l_1 \times n_1}$, $E_2 \in
 \mathbb{R}^{l_2 \times n_2}$, and vectors $e_1 \in \mathbb{R}^{l_1},
 e_2 \in \mathbb{R}^{l_2}$ such that $n_1$, $n_2$, $l_1$, and $l_2$ are
@@ -504,20 +497,10 @@ where the second equality follows from the fact that $\Psi_1 + \Psi_2
 
 \section{The algorithm}
 \label{sec:algo}
+\textbf{XXX TODO: Define the ergodic variables $\tilde{v}^a$ and
+  $\tilde{\epsilon}^a$, ...}
 
-%% According to Theorem \ref{thm:pd}, solving the Nash equilibrium LCPs
-%% \eqref{eq:primal_pb}, \eqref{eq:dual_pb} is equivalent to solving the
-%% saddle-point problem \eqref{eq:unconstrained_pb}. An attractive method
-%% for such a saddle-point problem would be a primal-dual scheme, like
-%% that developed in \cite[Algorithm 39]{chambolle2010}. 
-%% Usually, to use a primal-dual algorithm, one needs a measure of the
-%% ``quality'' of the current iterates as regards being the solution of
-%% the saddle-point problem. A natural measure of this fittness is the
-%% primal-dual gap, which measures defection from strong-duality.
-%% However, the primal-dual gap in \eqref{eq:unconstrained_pb} can be
-%% unbounded even at near feasible points.  is well-suited for
-
-Consider the following algorithm
+Consider the following algorithm for solving the GSP \eqref{eq:unconstrained_pb}
 \begin{algorithm}
 \caption{Primal-dual algorithm for computing approximate Nash
   Equilbria in two-person zero-sum games with imcomplete information
