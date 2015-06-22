@@ -36,7 +36,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     zeros = np.zeros((l2, l1))
     if "norm_K" in init: norm_K = init["norm_K"]
     else:
-        # XXX use power iteration to compute ||K||
+        # XXX use power iteration to compute ||K||^2
         K = np.vstack((np.hstack((A, -E1.T)), np.hstack((E2, zeros))))
         norm_K = linalg.norm(K, 2)
     sigma = init.get("sigma", 1.)
@@ -58,18 +58,27 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         old_y = y.copy()
         old_p = p.copy()
         old_x = x.copy()
-        old_q = q.copy()
 
-        # update iterates
+        # y update
         y -= lambd * (A.T.dot(x) + E2.T.dot(q))
         y = proj_C2(y)
+
+        # p update
         p -= lambd * (e1 - E1.dot(x))
+
+        # x updata
         x += lambd * (A.dot(y) - E1.T.dot(p))
         x = proj_C1(x)
-        q += lambd * (E2.dot(y) - e2)
         delta_x = x - old_x
-        delta_q = q - old_q
+
+        # q update
+        delta_q = lambd * (E2.dot(y) - e2)
+        q += delta_q
+
+        # u update (again)
         y -= lambd * (A.T.dot(delta_x) + E2.T.dot(delta_q))
+
+        # p update (again)
         p += lambd * E1.dot(delta_x)
 
         # compute game value and primal-dual gap at current iterates

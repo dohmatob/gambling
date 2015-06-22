@@ -9,12 +9,6 @@ import matplotlib.pyplot as plt
 from sklearn.utils import check_random_state
 from primal_dual import primal_dual_ne, primal_dual_sg_ne
 
-# matplotlib confs
-matplotlib.rcParams['text.latex.preamble'] = ['\\boldmath']
-matplotlib.rc('font', family='serif', serif='cm10')
-matplotlib.rc('text', usetex=True)
-plt.rc('font', size=50)  # make the power in sci notation bigger
-
 
 def _matrix2texstr(A, name="A", exclude=None):
     if exclude is None: exclude = []
@@ -932,6 +926,12 @@ def test_nash_player():
 
 
 if __name__ == "__main__":
+    # matplotlib confs
+    matplotlib.rcParams['text.latex.preamble'] = ['\\boldmath']
+    matplotlib.rc('font', family='serif', serif='cm10')
+    matplotlib.rc('text', usetex=True)
+    plt.rc('font', size=50)  # make the power in sci notation bigger
+
     rng = check_random_state(42)
     max_iter = 10000
     game_clses = ["simplex", SimplifiedPoker, Kuhn3112]

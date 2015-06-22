@@ -1,5 +1,6 @@
 \documentclass[envcountsame]{llcns2e/llncs}
 \usepackage{url}
+%\usepackage{times}
 \usepackage{amsmath,amsfonts}
 \usepackage{bbm}
 \usepackage{algorithm,algorithmicx}
@@ -41,21 +42,22 @@ Parietal team, Inria Saclay Ile-de-France, Saclay, France
 
 
 \maketitle
-
-\begin{abstract}
-We present a simple primal-dual algorithm for computing approximate
-Nash equilibria in two-person zero-sum sequential games with
-imcomplete information and perfect recall (like Texas Hold'em
-Poker) based on the notion of enlarged subgradients.
-Our algorithm only performs basic iterations (i.e iterations
-involving no calls to external first-order oracles, etc.) and is
-applicable to a broad class of two-person zero-sum games including
-simultaneous games and sequential games with imcomplete information
-and perfect recall. The number of iterations need to produce a Nash
-equilibrium with a given precision is inversely proportion to the
-precision. The applicability to the latter kind of games is thanks to
-the sequence-form representation \cite{koller1992complexity}. As
-proof-of-concept, we apply our algorithm to solve Kuhn 3-card Poker.
+\begin{abstract}We present a simple primal-dual algorithm for
+  computing approximate Nash equilibria in two-person zero-sum
+  sequential games with  imcomplete information and perfect recall
+  (like Texas Hold'em Poker) based on the notion of enlarged
+  subgradients. Our algorithm only performs basic iterations (i.e
+  iterations involving no calls to external first-order oracles, etc.)
+  and is applicable to a broad class of two-person zero-sum games
+  including simultaneous games and sequential games with imcomplete
+  information and perfect recall. The applicability to the latter kind
+  of games is thanks to the sequence-form representation
+  \cite{koller1992complexity} which allows us to encode any such game
+  as a matrix game with polyhedral strategy profiles, the size of the
+  representation being linear in ... The number of iterations needed
+  to produce a Nash equilibrium with a given precision is inversely
+  proportional to the desired precision. As proof-of-concept, we apply our
+  algorithm to solve Kuhn 3-card Poker.
 \end{abstract}
 
 \textbf{keywords}: sequential game; imcomplete information; perfect
@@ -85,17 +87,13 @@ components of a vector $z \in \mathbb{R}^n$ will be denoted $z_0$,
 $z_1$, ..., $z_{n-1}$ (indexing begins from $0$, and not $1$). The
 notation ``$z \ge 0$'' means that all the components of $z$ are
 nonnegative. For a vector $z = (z_0, z_1, ..., z_{n-1}) \in
-\mathbb{R}^n$, %% $\|z\|$ denotes the $2$-\textit{norm} of $z$ defined
-%% by $\|z\| := \sqrt{z^Tz} = \sqrt{\sum_{j=0}^{n - 1}{z_j^2}}$.
+\mathbb{R}^n$, $\|z\|$ denotes the $2$-\textit{norm} of $z$ defined
+by $\|z\| := \sqrt{z^Tz} = \sqrt{\sum_{j=0}^{n - 1}{z_j^2}}$.
 $(z)_+:=\text{max}(0, z) \in \mathbb{R}^{n}_+$ is the point-wise
-maximum of $z$ with $0$.
-%% For example, $((-2, \pi))_+ = (max(-2, 0),
-%% max(\pi, 0)) = (0, \pi)$.
+maximum of $z$ with $0$. For example, $((-2, \pi))_+ = (max(-2, 0),
+max(\pi, 0)) = (0, \pi)$.
 The operator $(.)_+$ is the well-known
 (multi-dimensional) \textit{ramp} function.
-$\mathbb{R}^{m \times n}$ denotes the space of all $m$-by-$n$ real
-matrices, $I_m$ denotes the $m$-by-$m$ identity matrix, and $0_{m,n}$
-denotes the $m$-by-$n$ matrix of zeros.
 Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
   norm}, denoted $\|A\|$, is
  defined to be the largest \textit{singular value} of $A$, i.e the
@@ -105,10 +103,9 @@ Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
 Given a subset $C$ of $\mathbb{R}^n$,
 $i_C$ denotes its \textit{indicator function} defined by
 \begin{eqnarray}
-  i_C(x) = 0, \text{ if } x \in C;\hspace{.3em} i_c(x) = \infty\text{
+  i_C(x) = 0 \text{ if } x \in C\text{ and }+\infty\text{
     otherwise.}
 \end{eqnarray}
-
 Let $f : \mathbb{R}^n \rightarrow (-\infty, +\infty]$ be a convex
   function.
 The \textit{effective domain} of $f$, denoted $\dom(f)$ is defined as
@@ -123,23 +120,30 @@ The \textit{effective domain} of $f$, denoted $\dom(f)$ is defined as
 %%   \underset{z \in \mathbb{R}^n}{\text{max}}\text{}z^Tx - f(z)$.
 The \textit{subgradient} of $f$ is the set-valued function
 \begin{eqnarray}
-\partial f: X \rightarrow 2^{\mathbb{R}^n}, \hspace{.5em} x \mapsto
-\{h\in \mathbb{R}^n | f(z)  \ge f(x) + \langle h, z - x\rangle \forall
-z \in X\}.
+\partial f: \mathbb{R}^n \rightarrow 2^{\mathbb{R}^n}, \hspace{.5em} x \mapsto
+\{s\in \mathbb{R}^n | f(z)  \ge f(x) + \langle s, z - x\rangle, \forall
+z \in \mathbb{R}^n\}.
 \end{eqnarray}
 Of course $\partial f(x)$ reduces to the singleton $\{\nabla f(x)\}$
-in case $f$ is differentiable at $x$. Given $\tau > 0$, the function
+in case $f$ is differentiable at $x$. If $f$ is convex, its
+\textit{proximal operator} the function defined by
 \begin{eqnarray}
-  \prox_{\tau f}: \mathbb{R}^n \rightarrow \mathbb{R}^n,\hspace{.5em}x
+  \prox_f: \mathbb{R}^n \rightarrow \mathbb{R}^n,\hspace{.5em}x
   \mapsto \underset{z \in \mathbb{R}^n}{\text{min }}\frac{1}{2}\|z
-  - x\|^2 + \tau f(z),
+  - x\|^2 + f(z),
+\end{eqnarray}
+For example, if $C$ is a closed convex subset of $\mathbb{R}^n$, then
+$\prox_C = \proj_C$, the orthogonal projector onto $C$. Thus proximal
+operators generalize orthongal projectors. One also has the useful
+characterization
+\begin{eqnarray}
+  p = \prox_f(x)\text{ iff } x - p \in \partial f(p).
 \end{eqnarray}
 
-is called the \textit{proximal operator} of $f$ at rank $\tau$.
 The interested reader should refer to
-\cite{rockafellar1997convex,combettes2011proximal} for a more
-elaborate exposition of convex-analytical concepts and their use in
-optimization.
+\cite{combettes2011proximal} for
+a more elaborate exposition of proximal operators and their
+use in modern convex-optimization.
 
 \subsection{Statement of the problem}
 The sequence-form for two-person zero-sum games was introduced in
@@ -339,8 +343,8 @@ leaving a primal-dual algorithm with no clear on whether progress is
 being made or not. So need to way to
 \begin{itemize}
 \item avoid having to compute the projections $\proj_{Q_k}$,
-\item have control over how far we are from the set of equilibria,
-\item cope  with infinite primal-dual gaps.
+\item have control over how far we are from the set of equilibria and
+  avoid infinite (and thus non-informative) primal-dual gaps
 \end{itemize}
 
 In the next theorem, we show that the said LCP problems can be
@@ -356,13 +360,13 @@ Define two proper closed convex functions
         i_{\mathbb{R}^{n_2}_+}(y) + e_1^Tp\\
         g_2: \mathbb{R}^{n_1} &\times \mathbb{R}^{l_2} \rightarrow
         (-\infty, +\infty],\hspace{1em} g_2(x, q) :=
-          i_{\mathbb{R}^{n_1}_+}(x) + e_2^Tq.
+          i_{\mathbb{R}^{n_1}_+}(x) + e_2^Tq
     \end{aligned}
     \right\}
     \label{eq:things}
   \end{eqnarray}
 
-Also, define two bilinear forms $\Psi_1$, $\Psi_2: \mathbb{R}^{n_2}
+Also define two bilinear forms $\Psi_1$, $\Psi_2: \mathbb{R}^{n_2}
 \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
 \mathbb{R}^{l_2} \rightarrow \mathbb{R}$ by letting
   \begin{equation}
@@ -370,7 +374,7 @@ Also, define two bilinear forms $\Psi_1$, $\Psi_2: \mathbb{R}^{n_2}
       \left[
         \begin{array}{cc}
           A & -E_1^T \\
-          E_2 & 0_{l_2, l_1}
+          E_2 & 0
         \end{array}
         \right],\hspace{.5em}
     \Psi_1(y, p, x, q)
@@ -467,8 +471,8 @@ $b(x, q)$, in the dual LCP \eqref{eq:dual_pb} writes
 \end{eqnarray*}
 where $-\infty \le \phi_1(x, q) :=
 \underset{y',p'}{\text{min}}\text{ }\hat{\Psi}_1(y', p', x, q) < +\infty$.
-Thus, one can compute the primal-dual gap between primal LCP
-\eqref{eq:primal_pb} and dual LCP \eqref{eq:dual_pb} at $(y, p, x, q)$ as
+Thus, one can compute the primal-dual gap between the primal LCP
+\eqref{eq:primal_pb} and dual the LCP \eqref{eq:dual_pb} at $(y, p, x, q)$ as
 \begin{eqnarray*}
   \begin{split}
   a(y, p) - b(x, q) &= g_1(y, p) - \phi_2(y, p) + g_2(x, q) - \phi_1(x,
@@ -513,32 +517,28 @@ where the second equality follows from the fact that $\Psi_1 + \Psi_2
 
 \section{The proposed algorithm}
 \label{sec:algo}
-In this section we derive the algorithm which is the main object of
-this manuscript.
-
 \subsection{Relaxing the conditions for equilibrium}
 Let us first introduce the notion of $\epsilon$-subgradients
 \cite{he2013accelerating}.
-
 \begin{definition}[$\epsilon$-subgradient]
-Given a scalar $\epsilon > 0$ and a function $f:X \subseteq \mathbb{R}^n
+Given a scalar $\epsilon > 0$ and a function $f:\mathbb{R}^n
 \rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged subgradient (or
-$\epsilon$-subgradient, for short) of $f$ the set-valued function
+$\epsilon$-subgradient, for short) of $f$ is the set-valued function
 \begin{eqnarray}
-\partial_\epsilon f: X \rightarrow 2^{\mathbb{R}^n}, \hspace{.5em} x
-\mapsto \{h \in \mathbb{R}^n | f(z) + \epsilon \ge f(x) + \langle h, z
-- x\rangle \forall z \in X\}.
+\partial_\epsilon f: \mathbb{R}^n \rightarrow
+2^{\mathbb{R}^n}, \hspace{.5em} x \mapsto \{s \in \mathbb{R}^n | f(z)
+\ge f(x) + \langle s, z - x\rangle - \epsilon,\forall z \in
+\mathbb{R}^n\}.
 \end{eqnarray}
 \end{definition}
 
-The idea behind $\epsilon$-subgradients is the following: given a
-function $f$ which we wish to minimize, replace the usual necessary
+The idea behind $\epsilon$-subgradients is the following. Say we wish
+to minimize the function $f$. Replace the usual necessary
 condition ``$0 \in \partial f(x)$'' for the optimality of $x$ with the
-weaker condition ``$\exists v \in \partial_\epsilon f(x)$, for some small
-perturbation vector $v$''. In fact, it is easy to see that, for each
-$x \in X$, $(\partial_\epsilon f(x))_{\epsilon > 0}$ is a decreasing
-sequence of sets which converges to $\partial f(x)$.
-
+weaker condition ``$\partial_\epsilon f(x)$ contains a sufficiently
+small vector $v$''. In fact, it is easy to see that, for each
+point $x \in \mathbb{R}^n$, we have $\underset{\epsilon \rightarrow
+  0^+}{\text{lim }}\partial_\epsilon f(x) = \partial f(x)$.
 This approximation concept for subgradients yields the following
 concept of approximate Nash equlibria (adapted from
 \cite{he2013accelerating}).
@@ -569,13 +569,14 @@ equilibria since:
 \end{itemize}
 
 \subsection{Algorithm and convergence rate}
-Consider the following algorithm for solving the GSP
-\eqref{eq:unconstrained_pb}
+We now derive the algorithm derive the algorithm which is the main object of
+this manuscript.
+
 \begin{algorithm}
+\label{Tab:algo}
 \caption{Primal-dual algorithm for computing approximate Nash
   Equilbria in two-person zero-sum games with imcomplete information
   and perfect recall}
-\label{Tab:algo}
 \begin{algorithmic}[1]
 \Require $\rho >0$, $\epsilon > 0$; $(y^{(0)},p^{(0)},x^{(0)},q^{(0)})
 \in \mathbb{R}^{n_2}
@@ -584,7 +585,8 @@ Consider the following algorithm for solving the GSP
 \Ensure A Nash $(\rho, \epsilon)$-equilibrium
 $({y^*},{p^*},{x^*},{q^*}) \in S_1 \times S_2$ for
 the GSP \eqref{eq:unconstrained_pb}.
-\State  $\lambda \leftarrow 1/\|K\|$, ${v}_a^{(0)} \leftarrow 0$, $k \leftarrow 0$
+\State  $\lambda \leftarrow 1/\|K\|$, ${v}_a^{(0)} \leftarrow 0$, $k
+\leftarrow 0$
 \While{$\|\tilde{\epsilon}_a^{(k)}\| \ge \epsilon$ or
   $\|{v}_{a}^{(k)}\|/k \ge \rho$}
 \State $y^{(k + 1)} \leftarrow (y^{(k)} - \lambda (A^Tx^{(k)} +
@@ -592,16 +594,18 @@ E_2^Tq^{(k)}))_+$
 \State  $p^{(k+1)} \leftarrow p^{(k)} -
 \lambda(e_1-E_1x^{(k)})$
 \State $x^{(k + 1)} \leftarrow (x^{(k)} + \lambda (Ay^{(k+1)} -
-E_1^Tp^{(k+1)}))_+$
-\State $\Delta x^{(k+1)} \leftarrow x^{(k+1)}-x^{(k)}$
-\State $\Delta q^{(k+1)} \leftarrow q^{(k+1)}-q^{(k)}$
-\State  $q^{(k+1)} \leftarrow q^{(k)} + \Delta q^{(k+1)}$
+E_1^Tp^{(k+1)}))_+$, \hspace{.5em}$\Delta x^{(k+1)} \leftarrow
+x^{(k+1)}-x^{(k)}$
+\State $\Delta q^{(k+1)} \leftarrow
+q^{(k+1)}-q^{(k)}$, \hspace{.5em}$q^{(k+1)}
+\leftarrow q^{(k)} + \Delta q^{(k+1)}$
 \State $y^{(k+1)} \leftarrow y^{(k+1)} - \lambda (A^T\Delta x^{(k+1)}
-+ E_2^T\Delta q^{(k+1)})$
-\State $\Delta y^{(k+1)} \leftarrow y^{(k+1)}-y^{(k)}$
-\State $p^{(k+1)} \leftarrow p^{(k+1)} + \lambda E_1\Delta x^{(k+1)}$
-\State $\Delta p^{(k+1)} \leftarrow p^{(k+1)}-p^{(k)}$
-\State ${v}_a^{(k+1)} \leftarrow {v}_a^{(k)} + \frac{1}{\lambda}(\Delta
++ E_2^T\Delta q^{(k+1)})$, \hspace{.5em}$\Delta y^{(k+1)} \leftarrow
+y^{(k+1)}-y^{(k)}$
+\State $p^{(k+1)} \leftarrow p^{(k+1)} + \lambda E_1\Delta x^{(k+1)}$,
+\hspace{.5em} $\Delta p^{(k+1)} \leftarrow p^{(k+1)}-p^{(k)}$
+\State ${v}_a^{(k+1)} \leftarrow {v}_a^{(k)} +
+\frac{1}{\lambda}(\Delta
 y^{(k+1)},\Delta p^{(k+1)},\Delta x^{(k+1)},\Delta q^{(k+1)})$
 \State $k \leftarrow k + 1$
 \EndWhile
@@ -612,7 +616,7 @@ y^{(k+1)},\Delta p^{(k+1)},\Delta x^{(k+1)},\Delta q^{(k+1)})$
 Let $d_0$ be the euclidean distance between the starting point
 $(y^{(0)},p^{(0)},x^{(0)},q^{(0)})$ of Algorithm \ref{Tab:algo} and the
 set of equilibria for the GSP \eqref{eq:unconstrained_pb}.
-Then given any $\epsilon > 0$ and $\rho > 0$, there exists and index
+Then given any $\epsilon > 0$ and $\rho > 0$, there exists an index
 $k_0 \le 2d_0\|K\|max(5d_0/\rho, 1/\epsilon)$ such that the following
 error bounds hold:
 \begin{eqnarray}
@@ -631,11 +635,11 @@ Note that the quadruplet $(\Psi_1, \Psi_2, g_1, g_2)$ clearly satisfies
 assumptions B.1, B.2, B.3, B.5, and B.6 of \cite{he2013accelerating}
 with $L_{xx} = L_{yy} = 0$ and $L_{xy} = L_{yx} = \|K\|$. Now,
 one easily computes the proximal operators $g_1$ and $g_2$ as
-\begin{eqnarray*}
+\begin{eqnarray}
   \prox_{\lambda g_1}(y, p) \equiv ((y)_+, p - \lambda
   e_1),\hspace{.5em} \prox_{\lambda g_2}(x, q) \equiv ((x)_+, q -
   \lambda e_2).
-  \end{eqnarray*}
+  \end{eqnarray}
 
 Algorithm \ref{Tab:algo} is then obtained from \cite[Algorithm
   T-BD]{he2013accelerating}, applied on the GSP
