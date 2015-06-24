@@ -1,7 +1,9 @@
-\documentclass[envcountsame]{llcns2e/llncs}
+\documentclass{article} % For LaTeX2e
+\usepackage{nips14submit_e}
+%\documentclass[envcountsame]{llcns2e/llncs}
 \usepackage{url}
-%\usepackage{times}
-\usepackage{amsmath,amsfonts}
+\usepackage{times}
+\usepackage{amsmath,amsfonts, amsthm}
 \usepackage{bbm}
 \usepackage{algorithm,algorithmicx}
 \usepackage{graphicx}
@@ -12,17 +14,26 @@
 \usepackage{pifont}
 \usepackage[FIGTOPCAP]{subfigure}
 
+\newtheorem{theorem}{Theorem} \newtheorem{lemma}[theorem]{Lemma}
+
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}{Remark}
 \newtheorem{fact}{Fact}
+
 \DeclareMathOperator{\dom}{dom}
 \DeclareMathOperator{\proj}{proj}
 \DeclareMathOperator{\prox}{prox}
 
-\title{\hrule\hrule\bigskip\bigskip A simple and efficient algorithm for computing approximate
+\title{
+  %\hrule\hrule\bigskip\bigskip
+  A simple and efficient algorithm for computing approximate
   Nash equilibria in two-person zero-sum games with imcomplete
   information}
-\author{Elvis DOHMATOB\\\email{elvis.dohmatob@inria.fr}}
-\institute{
-Parietal team, Inria Saclay Ile-de-France, Saclay, France
+\author{Elvis DOHMATOB
+\\Parietal team, Inria Saclay Ile-de-France, Saclay, France
+\\\texttt{firstname.lastname@inria.fr}
 }
 
 
@@ -80,6 +91,10 @@ approximately, in a sense which will be made clear shortly.
 
 \subsection{Notation and terminology}
 \paragraph{\textbf{General notions.}}
+Given a set $X$, $2^X$ denotes the \emph{powerset} of $X$, i.e the set
+of all subsets of $X$, or equivalently the set of all binary
+functions on $X$.
+
 Let $m$ and $n$ be positive integers.
 $\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ } z \geq
 0\}$ is the nonnegative $n$-dimensional \textit{orthant}.  The
@@ -94,6 +109,7 @@ maximum of $z$ with $0$. For example, $((-2, \pi))_+ = (max(-2, 0),
 max(\pi, 0)) = (0, \pi)$.
 The operator $(.)_+$ is the well-known
 (multi-dimensional) \textit{ramp} function.
+
 Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
   norm}, denoted $\|A\|$, is
  defined to be the largest \textit{singular value} of $A$, i.e the
@@ -487,7 +503,6 @@ Thus, one can compute the primal-dual gap between the primal LCP
 \end{eqnarray*}
 where the second equality follows from the fact that $\Psi_1 + \Psi_2
 := 0$.
-\qed
 
 %% For the dual-gap bound, note that $\forall (x', u', y', v') \in \mathbb{R}^{n_1}_+ \times \mathbb{R}^{l_2} \times \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$, one has
 %% \begin{eqnarray*}
@@ -650,7 +665,6 @@ Algorithm \ref{Tab:algo} is then obtained from \cite[Algorithm
       1/\|K\|$, and $\lambda = \lambda_{xy} \in (0,
       \lambda_{xy}]$. The convergence result follows immediately from
   \cite[Theorem 4.2]{he2013accelerating}.
-  \qed
 \end{proof}
 
 \subsection{Practical considerations}
@@ -851,7 +865,7 @@ Finally, one checks that
  which agrees to 5 d.p with the value of $-1 / 18$ computed
  analytically by H. W. Kuhn in his 1950 paper \cite{kuhn}. The
  evolution of the dual gap and the expected value of the game across
- iterations is shown in Figure \ref{Tab:dgap_curve}.
+ iterations are shown in Figure \ref{Tab:dgap_curve}.
 
 
 \section{Conclusion}
