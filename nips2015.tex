@@ -29,7 +29,7 @@
 \title{
   %\hrule\hrule\bigskip\bigskip
   A simple and efficient algorithm for computing approximate
-  Nash equilibria in two-person zero-sum games with imcomplete
+  Nash equilibria in two-person zero-sum sequential games with imcomplete
   information}
 \author{Elvis DOHMATOB
 \\Parietal team, Inria Saclay Ile-de-France, Saclay, France
@@ -259,13 +259,62 @@ doesn't exceed $\epsilon$. That is,
 \label{thm:approx_nash}
 \end{definition}
 
+Let us introduce the notion of $\epsilon$-subgradients
+\cite{he2013accelerating}.
+
+\begin{definition}[$\epsilon$-subgradient]
+Given a scalar $\epsilon > 0$ and a function $f:\mathbb{R}^n
+\rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged subgradient (or
+$\epsilon$-subgradient, for short) of $f$ is the set-valued function
+\begin{eqnarray}
+\partial_\epsilon f: \mathbb{R}^n \rightarrow
+2^{\mathbb{R}^n}, \hspace{.5em} x \mapsto \{s \in \mathbb{R}^n | f(z)
+\ge f(x) + \langle s, z - x\rangle - \epsilon,\forall z \in
+\mathbb{R}^n\}.
+\end{eqnarray}
+\end{definition}
+
+The idea behind $\epsilon$-subgradients is the following. Say we wish
+to minimize the function $f$. Replace the usual necessary
+condition ``$0 \in \partial f(x)$'' for the optimality of $x$ with the
+weaker condition ``$\partial_\epsilon f(x)$ contains a sufficiently
+small vector $v$''. In fact, it is easy to see that, for each
+point $x \in \mathbb{R}^n$, we have $\underset{\epsilon \rightarrow
+  0^+}{\text{lim }}\partial_\epsilon f(x) = \partial f(x)$.
+This approximation concept for subgradients yields the following
+concept of approximate Nash equlibria (adapted from
+\cite{he2013accelerating}).
+
+\begin{definition}[\textbf{Nash $(\rho,\epsilon)$-equilibria}]
+Given $\rho > 0$ and $\epsilon > 0$, a Nash
+$(\rho,\epsilon$)-equilibrium for the GSP \eqref{eq:unconstrained_pb}
+is any quadruplet $(x^*, y^*, x^*, q^*)$ for which
+there exists a perturbation vector $v^*$ such that
+\begin{eqnarray}
+\|v^*\| \le \rho \text{ and}\hspace{.5em} v^* \in
+\partial_\epsilon[\hat{\Psi}_1(., ., x^*, q^*) +
+  \hat{\Psi}_2(y^*, p^*, , .)](y^*,p^*,x^*,q^*).
+\end{eqnarray}
+
+Such a vector $v^*$ is called a Nash $\epsilon$-residual at $(x^*,
+y^*, x^*, q^*)$.
+\label{thm:cool_notion}
+\end{definition}
+
+
+The above definition is a generalization of the notion of Nash
+equilibria since:
+\begin{itemize}
+\item Exact Nash equilibria correspond to Nash $(0^+,0^+)$-equilibria.
+\item Nash $\epsilon$-equilibria (in the sense of Definition
+  \ref{thm:approx_nash}) correspond to Nash $(0^+,\epsilon)$-equilibria.
+\end{itemize}
+
 \subsection{Our contribution}
 We develop a $\mathcal{O}(1/\text{min}(\rho,\epsilon))$ primal-dual
 algorithm (Algorithm \ref{Tab:algo}) for computing Nash $(\rho,
-  \epsilon$)-equilibria (in a sense to be made clear later in
-  Definition \ref{thm:cool_notion}) for
-  sequential two-person zero-sum games with imcomplete information and
-  perfect recall.
+  \epsilon$)-equilibria for sequential two-person zero-sum games with
+  imcomplete information and perfect recall.
 
 \section{Related work}
 \label{sec:related_work}
@@ -532,57 +581,6 @@ where the second equality follows from the fact that $\Psi_1 + \Psi_2
 
 \section{The proposed algorithm}
 \label{sec:algo}
-\subsection{Relaxing the conditions for equilibrium}
-Let us first introduce the notion of $\epsilon$-subgradients
-\cite{he2013accelerating}.
-\begin{definition}[$\epsilon$-subgradient]
-Given a scalar $\epsilon > 0$ and a function $f:\mathbb{R}^n
-\rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged subgradient (or
-$\epsilon$-subgradient, for short) of $f$ is the set-valued function
-\begin{eqnarray}
-\partial_\epsilon f: \mathbb{R}^n \rightarrow
-2^{\mathbb{R}^n}, \hspace{.5em} x \mapsto \{s \in \mathbb{R}^n | f(z)
-\ge f(x) + \langle s, z - x\rangle - \epsilon,\forall z \in
-\mathbb{R}^n\}.
-\end{eqnarray}
-\end{definition}
-
-The idea behind $\epsilon$-subgradients is the following. Say we wish
-to minimize the function $f$. Replace the usual necessary
-condition ``$0 \in \partial f(x)$'' for the optimality of $x$ with the
-weaker condition ``$\partial_\epsilon f(x)$ contains a sufficiently
-small vector $v$''. In fact, it is easy to see that, for each
-point $x \in \mathbb{R}^n$, we have $\underset{\epsilon \rightarrow
-  0^+}{\text{lim }}\partial_\epsilon f(x) = \partial f(x)$.
-This approximation concept for subgradients yields the following
-concept of approximate Nash equlibria (adapted from
-\cite{he2013accelerating}).
-
-\begin{definition}[\textbf{Nash $(\rho,\epsilon)$-equilibria}]
-Given $\rho > 0$ and $\epsilon > 0$, a Nash
-$(\rho,\epsilon$)-equilibrium for the GSP \eqref{eq:unconstrained_pb}
-is any quadruplet $(x^*, y^*, x^*, q^*)$ for which
-there exists a perturbation vector $v^*$ such that
-\begin{eqnarray}
-\|v^*\| \le \rho \text{ and}\hspace{.5em} v^* \in
-\partial_\epsilon[\hat{\Psi}_1(., ., x^*, q^*) +
-  \hat{\Psi}_2(y^*, p^*, , .)](y^*,p^*,x^*,q^*).
-\end{eqnarray}
-
-Such a vector $v^*$ is called a Nash $\epsilon$-residual at $(x^*,
-y^*, x^*, q^*)$.
-\label{thm:cool_notion}
-\end{definition}
-
-
-The above definition is a generalization of the notion of Nash
-equilibria since:
-\begin{itemize}
-\item Exact Nash equilibria correspond to Nash $(0^+,0^+)$-equilibria.
-\item Nash $\epsilon$-equilibria (in the sense of Definition
-  \ref{thm:approx_nash}) correspond to Nash $(0^+,\epsilon)$-equilibria.
-\end{itemize}
-
 \subsection{Algorithm and convergence rate}
 We now derive the algorithm derive the algorithm which is the main object of
 this manuscript.
