@@ -94,8 +94,8 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
 
         # invoke callback
         if callback: callback(locals())
-        print "Iter %03i/%03i: value=%g, gap=%.2e" % (k + 1, max_iter,
-                                                      value, gap)
+        print ("Iter %03i/%03i: game value = %g, primal-dual gap (perturbed) ="
+               " %.2e") % (k + 1, max_iter, value, gap)
 
         # check convergence
         if gap < tol:
