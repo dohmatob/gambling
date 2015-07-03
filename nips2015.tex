@@ -97,13 +97,14 @@ functions on $X$.
 
 Let $m$ and $n$ be positive integers.
 $\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ } z \geq
-0\}$ is the nonnegative $n$-dimensional \textit{orthant}.  The
-components of a vector $z \in \mathbb{R}^n$ will be denoted $z_0$,
-$z_1$, ..., $z_{n-1}$ (indexing begins from $0$, and not $1$). The
-notation ``$z \ge 0$'' means that all the components of $z$ are
+0\}$ is the nonnegative $n$-dimensional \textit{orthant}.  Given two
+vectors $z, w \in \mathbb{R}^n$, their inner product will be denoted
+$\langle z, w\rangle$ The components of $z \in \mathbb{R}^n$ will be
+denoted $z_0$, $z_1$, ..., $z_{n-1}$ (indexing begins from $0$,
+not $1$). The notation ``$z \ge 0$'' means that all the components of $z$ are
 nonnegative. For a vector $z = (z_0, z_1, ..., z_{n-1}) \in
 \mathbb{R}^n$, $\|z\|$ denotes the $2$-\textit{norm} of $z$ defined
-by $\|z\| := \sqrt{z^Tz} = \sqrt{\sum_{j=0}^{n - 1}{z_j^2}}$.
+by $\|z\| := \sqrt{\langle z, z\rangle} = \sqrt{\sum_{j=0}^{n - 1}{z_j^2}}$.
 $(z)_+:=\text{max}(0, z) \in \mathbb{R}^{n}_+$ is the point-wise
 maximum of $z$ with $0$. For example, $((-2, \pi))_+ = (max(-2, 0),
 max(\pi, 0)) = (0, \pi)$.
@@ -122,9 +123,10 @@ $i_C$ denotes its \textit{indicator function} defined by
   i_C(x) = 0 \text{ if } x \in C\text{ and }+\infty\text{
     otherwise.}
 \end{eqnarray}
-Let $f : \mathbb{R}^n \rightarrow (-\infty, +\infty]$ be a convex
-  function.
-The \textit{effective domain} of $f$, denoted $\dom(f)$ is defined as
+At times, we will write $i_{x \in C}$ for $i_C(x)$ (to ease notation,
+etc.). Let $f : \mathbb{R}^n \rightarrow (-\infty, +\infty]$ be a
+  convex function. The \textit{effective domain} of $f$, denoted
+  $\dom(f)$ is defined as
 \begin{eqnarray}
   \dom(f) := \{x \in \mathbb{R}^n | f(x) < +\infty\}.
 \end{eqnarray}
@@ -176,7 +178,7 @@ and such that Nash equilibria correspond to pairs $(x, y)$ of
 \textit{realization plans} which solve the primal LCP
 \begin{equation}
   \begin{aligned}
-     \text{minimize }e_1^Tp, \hspace{.5em}\text{ subject to }(y,p) \in
+     \text{minimize }\langle e_1, p\rangle, \hspace{.5em}\text{ subject to }(y,p) \in
      \mathbb{R}^{n_2} \times \mathbb{R}^{l_1}, -Ay +
     E_1^Tp \geq 0, E_2y = e_2, y \ge 0.
   \end{aligned}
@@ -186,7 +188,7 @@ and such that Nash equilibria correspond to pairs $(x, y)$ of
 and the dual LCP
 \begin{equation}
   \begin{aligned}
-    \text{maximize}-e_2^Tq,\hspace{.5em}\text{subject to }(y,q) \in
+    \text{maximize}-\langle e_2, q\rangle,\hspace{.5em}\text{subject to }(y,q) \in
     \mathbb{R}^{n_1} \times \mathbb{R}^{l_2}, A^Tx + E_2^Tq \geq 0,
     E_1x = e_1, x \ge 0.
   \end{aligned}
@@ -203,7 +205,7 @@ representation, the strategy profile of player $k$ is the polyhedron
   Q_k := \{z \in \mathbb{R}^{n_k}_+ |\text{ }E_kz = e_k\}.
 \label{eq:polyhedron}
 \end{equation}
-Note that $p^Te_1 = p_0$ and $q^Te_2 = q_0$ by definition of $e_1$ and
+Note that $\langle e_1, p\rangle = p_0$ and $\langle e_2, q\rangle = q_0$ by definition of $e_1$ and
 $e_2$. At a feasible point $(y, p, x, q)$, the \textit{primal-dual gap}
 $\mathcal{G}(y, p, x, q)$ of these primal-dual pair of LCPs is given
 by\footnote{The inequality being due to \textit{weak duality}.}
@@ -220,8 +222,8 @@ equilibrium for the game)  if and only if there exist vectors $p$ and
 $q$ such that
 \begin{equation}
 \hspace{.25em} -Ay + E_1^Tp \ge 0, \hspace{.5em}A^Tx + E_2^Tq \ge
-0, \hspace{.25em} x^T(-Ay + E_1^Tp) = 0, \hspace{.25em} y^T(A^Tx +
-E_2^Tq) = 0.
+0, \hspace{.25em} \langle x, -Ay + E_1^Tp\rangle = 0, \hspace{.25em}
+\langle y, A^Tx  + E_2^Tq\rangle = 0.
 \label{eq:feasibility}
 \end{equation}
 
@@ -329,12 +331,13 @@ information like Texas Hold'em Poker, etc.
 In \cite{hoda2010smoothing}, a nested iterative procedure using the
 Excessive Gap Technique (EGT) \cite{nesterov2005excessive} was used to
 to solve the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb} in the
-following equivalent saddle-point form
+following equivalent saddle-point form\footnote{Note that in
+  \cite{hoda2010smoothing}, the roles of $x$ and $y$ are swapped.}
 
 
 \begin{equation}
   \underset{y \in Q_2}{\text{minimize}}\text{ }\underset{x \in
-    Q_1}{\text{maximize}}\text{ }x^TAy.
+    Q_1}{\text{maximize}}\text{ }\langle x, Ay\rangle
   \label{eq:gilpin}
 \end{equation}
 The authors reported a $\mathcal{O}(1/\epsilon)$ convergence rate
@@ -342,23 +345,34 @@ The authors reported a $\mathcal{O}(1/\epsilon)$ convergence rate
 iteration loop, though the cost of an iteration is presumably heavy
 since it entails computing a $softmax$ at each iteration.
 
-
 \cite{gilpinfirst} proposed a modified verson of the technqiues in
 \cite{hoda2010smoothing} and  proved a $\mathcal{O}\left(\left(\|A\| /
 \delta\right) ln\left(1 / \epsilon\right)\right)$ convergence rate in
-terms of the number of calls made to a first-order oracle (for
-example, Nesterov's optimal gradient \cite{nesterov1983}). Here
-$\delta = \delta(A, E_1, E_2, e_1, e_2)$ is a certain
-\textit{condition number} for the game. It should be noted however that
+terms of the number of calls made to a first-order oracle. Here
+$\delta = \delta(A, E_1, E_2, e_1, e_2) > 0$ is a certain
+\textit{condition number} for the game. Their ingenious idea was to
+show that \eqref{eq:gilpin} can futher be written in the form\\
+\[\mathrm{maximize}\{G(x, y):=G(x, y) :=
+max\{\langle x, Av\rangle - \langle u, Ay\rangle |
+(u,v) \in Q_1 \times Q_2|(x,y) \in Q_1 \times Q_2\},
+\]
+and then show that if $\mathcal{E}$ is the set of Nash equilibria for
+the game, then  there exists a scalar
+$\delta > 0$ such that $distance((x, y), \mathcal{E}) \le \dfrac{G(x, y)}{\delta}$,
+for any pair of realization plans $(x, y) \in Q_1 \times Q_2$. Their
+algorithm is then to apply Nesterov smoothing with a geometrically
+decreasing sequence of tolerance levels on primal-dual gap function $G$.
+It should be noted however that
 \begin{itemize}
-\item[--] though \cite{gilpinfirst} proved that we always have $\delta
-  > 0$, this constant can be arbitrarily small; and most importantly,
-\item[--] the reported linear convergence rate is not in terms of
+\item[--] Though \cite{gilpinfirst} proved that we always have $\delta
+  > 0$, this constant can be arbitrarily small; and most importantly.
+\item[--] The reported linear convergence rate is not in terms of
   basic operations (addition, multiplication, matvec, clipping, etc.),
-  but in terms of the number of calls to a first-order oracle. Of
-  course, the existence of a linear algorithm for solving
-  \eqref{eq:gilpin} is improbable, as the usual strong-convexity
-  conditions are absent.
+  but in terms of the number of calls to a first-order oracle. For
+  example the projections $\proj_{Q_k}$ are applied at each iteration.%%  Of
+  %% course, the existence of a linear algorithm for solving
+  %% \eqref{eq:gilpin} is improbable, as the usual strong-convexity
+  %% conditions are absent.
 
 \end{itemize}
 
@@ -422,10 +436,10 @@ Define two proper closed convex functions
     \begin{aligned}
       g_1: \mathbb{R}^{n_2} &\times \mathbb{R}^{l_1} \rightarrow
       (-\infty, +\infty], \hspace{1em} g_1(y, p) :=
-        i_{\mathbb{R}^{n_2}_+}(y) + e_1^Tp\\
+        i_{\mathbb{R}^{n_2}_+}(y) + \langle e_1,p\rangle\\
         g_2: \mathbb{R}^{n_1} &\times \mathbb{R}^{l_2} \rightarrow
         (-\infty, +\infty],\hspace{1em} g_2(x, q) :=
-          i_{\mathbb{R}^{n_1}_+}(x) + e_2^Tq
+          i_{\mathbb{R}^{n_1}_+}(x) + \langle e_2, q\rangle
     \end{aligned}
     \right\}
     \label{eq:things}
@@ -433,7 +447,7 @@ Define two proper closed convex functions
 
 Also define two bilinear forms $\Psi_1$, $\Psi_2: \mathbb{R}^{n_2}
 \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
-\mathbb{R}^{l_2} \rightarrow \mathbb{R}$ by letting
+\mathbb{R}^{l_2} \rightarrow \mathbb{R}$ with $\Psi_2 = -\Psi_1$ by letting
   \begin{equation}
       K :=
       \left[
@@ -443,8 +457,8 @@ Also define two bilinear forms $\Psi_1$, $\Psi_2: \mathbb{R}^{n_2}
         \end{array}
         \right],\hspace{.5em}
     \Psi_1(y, p, x, q)
-    := \begin{bmatrix}x\\q\end{bmatrix}^TK\begin{bmatrix}y\\p\end{bmatrix}, \hspace{.5em}
-      \Psi_2(y, p, x, q) := -\Psi_1(y, p, x, q).
+    := \left\langle \begin{bmatrix}x\\q\end{bmatrix},
+      K\begin{bmatrix}y\\p\end{bmatrix}\right\rangle.
 \end{equation}
 
 Finally, define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
@@ -499,17 +513,15 @@ Indeed, the unconstrained objective in \eqref{eq:primal_pb}, say
 $a(x,y)$, can be computed as
 \begin{eqnarray*}
   \begin{aligned}
-    a(y,p) &= e_1^Tp +
-    i_{\mathbb{R}^{n_2}_+}(y) + i_{\mathbb{R}^{n_1}_+}(-Ay + E_1^Tp) +
-    i_{\{0\}}(E_2y - e_2)\\
-    &= g_1(y,p) +
-    i_{\mathbb{R}^{n_1}_+}(-Ay + E_1^Tp) + i_{\{0\}}(E_2y - e_2)\\
+    a(y,p) &= \langle e_1,p\rangle + i_{y\ge 0} + i_{-Ay + E_1^Tp \ge 0} +
+    i_{E_2y = e_2}\\
     &= g_1(y,p) + \underset{x' \geq
-      0}{\text{max}}\text{ }x'^T(Ay - E_1^Tp) +
-    \underset{q'}{\text{max}}\text{ }q'^T(E_2y - e_2)\\
+      0}{\text{max}}\text{ }\langle x',Ay - E_1^Tp\rangle +
+    \underset{q'}{\text{max}}\text{ }\langle q',E_2y - e_2\rangle\\
     &= g_1(y,p) + \underset{x',
-      q'}{\text{max}}\text{ }x'^TAy - x^TE_1^Tp + q'^TE_2y -
-    (i_{\mathbb{R}^{n_1}_+}(x') + e_2^Tq)\\
+      q'}{\text{max}}\text{ }\langle x',Ay\rangle - \langle x',
+    E_1^Tp\rangle + \langle q',E_2y\rangle -
+    (i_{x' \ge 0} + \langle e_2,q\rangle)\\
     &= g_1(y,p)
       - \underset{x',q'}{\text{min}}\text{ }\Psi_2(y, p, x', q') + g_2(x',
       q') = g_1(y,p) -\phi_2(y,p),
@@ -524,11 +536,11 @@ $b(x, q)$, in the dual LCP \eqref{eq:dual_pb} writes
 \begin{eqnarray*}
   \begin{aligned}
  b(x, q) &= 
- -i_{\mathbb{R}^{n_1}_+}(x) - i_{\mathbb{R}^{n_2}_+}(A^Tx+E_2^Tq) -
- i_{\{0\}}(e_1 - E_1x)\\
+-\langle q, e_2\rangle -i_{x \ge 0} - i_{A^Tx+E_2^Tq \ge 0} -
+ i_{E_1x = e_1}\\
     &= -g_2(x, q) + \underset{y' \geq
-   0}{\text{min}}\text{ }y'^T(A^Tx + E_2^Tq) +
- \underset{p'}{\text{min}}\text{ }p'^T(e_1-E_1x)\\
+   0}{\text{min}}\text{ }\langle y', A^Tx + E_2^Tq\rangle +
+ \underset{p'}{\text{min}}\text{ }\langle p', e_1-E_1x\rangle\\
     &= -g_2(x, q)
  +\underset{y',p'}{\text{max}}\text{ }\Psi_1(y', p', x, q) +
  g_1(y', p') = -g_2(x, q) + \phi_1(x, q),
@@ -603,15 +615,13 @@ the GSP \eqref{eq:unconstrained_pb}.
 \While{$\|\tilde{\epsilon}_a^{(k)}\| \ge \epsilon$ or
   $\|{v}_{a}^{(k)}\|/k \ge \rho$}
 \State $y^{(k + 1)} \leftarrow (y^{(k)} - \lambda (A^Tx^{(k)} +
-E_2^Tq^{(k)}))_+$
-\State  $p^{(k+1)} \leftarrow p^{(k)} -
+E_2^Tq^{(k)}))_+$, \hspace{.5em}$p^{(k+1)} \leftarrow p^{(k)} -
 \lambda(e_1-E_1x^{(k)})$
 \State $x^{(k + 1)} \leftarrow (x^{(k)} + \lambda (Ay^{(k+1)} -
 E_1^Tp^{(k+1)}))_+$, \hspace{.5em}$\Delta x^{(k+1)} \leftarrow
 x^{(k+1)}-x^{(k)}$
-\State $\Delta q^{(k+1)} \leftarrow
-q^{(k+1)}-q^{(k)}$, \hspace{.5em}$q^{(k+1)}
-\leftarrow q^{(k)} + \Delta q^{(k+1)}$
+\State $\Delta q^{(k+1)} \leftarrow \lambda (E_2y -
+e_2)$, \hspace{.5em}$q^{(k+1)} \leftarrow q^{(k)} + \Delta q^{(k+1)}$
 \State $y^{(k+1)} \leftarrow y^{(k+1)} - \lambda (A^T\Delta x^{(k+1)}
 + E_2^T\Delta q^{(k+1)})$, \hspace{.5em}$\Delta y^{(k+1)} \leftarrow
 y^{(k+1)}-y^{(k)}$

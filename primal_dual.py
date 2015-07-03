@@ -14,8 +14,8 @@ _norm = lambda *args: sqrt(np.sum(np.concatenate(args) ** 2))
 
 
 def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
-                   proj_C2=lambda y: np.maximum(y, 0.), init=None, tol=1e-10,
-                   max_iter=10000, callback=None):
+                   proj_C2=lambda y: np.maximum(y, 0.), init=None,
+                   epsilon=1e-10, max_iter=10000, callback=None):
     """Primal-Dual algorithm for computing Nash equlibrium for two-person
     zero-sum game with payoff matrix A and contraint sets
 
@@ -23,8 +23,12 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
 
     The formal problem is:
 
-        minimize maximize <x, Ay>
-        y in Q2  x in Q1
+        minimmize maximize <x, Ay>
+         x in Q1   y in Q2
+
+    Notes
+    -----
+    \epsilon really stands for \rho in the paper.
 
     Returns
     -------
@@ -41,7 +45,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         norm_K = linalg.norm(K, 2)
     sigma = init.get("sigma", 1.)
     lambd = init.get("lambd", .9 * sigma / norm_K)
-    y = init.get("x", np.zeros(n2))
+    y = init.get("y", np.zeros(n2))
     p = init.get("p", np.zeros(l1))
     x = init.get("x", np.zeros(n1))
     q = init.get("q", np.zeros(l2))
@@ -93,13 +97,13 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         gaps.append(gap)
 
         # invoke callback
-        if callback: callback(locals())
+        if callback and callback(locals()): break
         print ("Iter %03i/%03i: game value = %g, primal-dual gap (perturbed) ="
                " %.2e") % (k + 1, max_iter, value, gap)
 
         # check convergence
-        if gap < tol:
-            print "Converged (gap < gap tol = %.2e)." % tol
+        if gap < epsilon:
+            print "Converged (gap < gap epsilon = %.2e)." % epsilon
             break
 
     # misc
@@ -114,9 +118,27 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     return x, y, p, q, init, values, gaps
 
 
-def primal_dual_sg_ne(A, **kwargs):
+def primal_dual_sg_ne(A, epsilon=1e-4, **kwargs):
     n1, n2 = A.shape
     E1 = np.ones((1, n1))
     E2 = np.ones((1, n2))
-    e1 = e2 = 1.
-    return primal_dual_ne(A, E1, E2, e1, e2, **kwargs)
+    e1 = 1.
+    e2 = 1.
+
+    init = kwargs.pop("init") if "init" in kwargs else {}
+    if not "x" in init: init["x"] = (1. / n1) * np.ones(n1)
+    if not "y" in init: init["y"] = (1. / n2) * np.ones(n2)
+    kwargs["init"] = init
+
+    gaps = []
+
+    def cb(variables):
+        gap = A.T.dot(variables["x"]).max() - A.dot(variables["y"]).min()
+        gap = abs(gap)  # maybe gap < 0 in case we aren't on the feasible set
+        print gap
+        gaps.append(gap)
+        return gap < epsilon
+
+    x, y, _, _, _, values, _ = primal_dual_ne(A, E1, E2, e1, e2, callback=cb,
+                                              epsilon=epsilon, **kwargs)
+    return x, y, values, gaps

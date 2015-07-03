@@ -455,7 +455,7 @@ if __name__ == "__main__":
 
     rng = check_random_state(42)
     max_iter = 10000
-    game_clses = ["simplex", SimplifiedPoker, Kuhn3112]
+    game_clses = ["simplex", SimplifiedPoker, Kuhn3112][1:2]
     for cnt, game_cls in enumerate(game_clses):
         if game_cls == "simplex":
             game = None
