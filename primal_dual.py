@@ -15,7 +15,7 @@ _norm = lambda *args: sqrt(np.sum(np.concatenate(args) ** 2))
 
 def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
                    proj_C2=lambda y: np.maximum(y, 0.), init=None,
-                   epsilon=1e-10, max_iter=10000, callback=None):
+                   epsilon=1e-4, max_iter=10000, callback=None):
     """Primal-Dual algorithm for computing Nash equlibrium for two-person
     zero-sum game with payoff matrix A and contraint sets
 
@@ -118,7 +118,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     return x, y, p, q, init, values, gaps
 
 
-def primal_dual_sg_ne(A, epsilon=1e-4, **kwargs):
+def primal_dual_sg_ne(A, epsilon=1e-4, strict=True, **kwargs):
     n1, n2 = A.shape
     E1 = np.ones((1, n1))
     E2 = np.ones((1, n2))
@@ -133,12 +133,14 @@ def primal_dual_sg_ne(A, epsilon=1e-4, **kwargs):
     gaps = []
 
     def cb(variables):
-        gap = A.T.dot(variables["x"]).max() - A.dot(variables["y"]).min()
+        gap = A.dot(variables["y"]).max() - A.T.dot(variables["x"]).min()
         gap = abs(gap)  # maybe gap < 0 in case we aren't on the feasible set
         print gap
         gaps.append(gap)
-        return gap < epsilon
+        return strict and gap < epsilon
 
-    x, y, _, _, _, values, _ = primal_dual_ne(A, E1, E2, e1, e2, callback=cb,
-                                              epsilon=epsilon, **kwargs)
-    return x, y, values, gaps
+    x, y, p, q, init, values, gaps_ = primal_dual_ne(
+        A, E1, E2, e1, e2, callback=cb, epsilon=epsilon, **kwargs)
+
+    if strict: return x, y, values, gaps
+    else: return x, y, p, q, init, values, gaps_

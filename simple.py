@@ -455,14 +455,14 @@ if __name__ == "__main__":
 
     rng = check_random_state(42)
     max_iter = 10000
-    game_clses = ["simplex", SimplifiedPoker, Kuhn3112][1:2]
+    game_clses = ["simplex", SimplifiedPoker, Kuhn3112]
     for cnt, game_cls in enumerate(game_clses):
         if game_cls == "simplex":
             game = None
             name = game_cls
-            A = rng.uniform(-1, 1, size=(1000, 1000))
+            A = rng.uniform(-1, 1, size=(100, 100))
             x, y, p, q, init, values, dgaps = primal_dual_sg_ne(
-                A, max_iter=max_iter)
+                A, max_iter=max_iter, strict=False)
         else:
             game = game_cls()
             name = game.__class__.__name__
@@ -471,7 +471,7 @@ if __name__ == "__main__":
             A = game.payoff_matrix
             args = (A, E1, E2, e1, e2)
             x, y, p, q, init, values, dgaps = primal_dual_ne(A, E1, E2, e1, e2,
-                                                             max_iter=max_iter)
+                                                          max_iter=max_iter)
 
         # estimate constant in bound (4.1) of Yunlong He's Theorem 3.5
         aux = np.concatenate((y, p, x, q))

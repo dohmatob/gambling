@@ -22,7 +22,6 @@
 \newtheorem{remark}{Remark}
 \newtheorem{fact}{Fact}
 
-\DeclareMathOperator{\dom}{dom}
 \DeclareMathOperator{\proj}{proj}
 \DeclareMathOperator{\prox}{prox}
 
@@ -126,11 +125,11 @@ $i_C$ denotes its \textit{indicator function} defined by
 At times, we will write $i_{x \in C}$ for $i_C(x)$ (to ease notation,
 etc.). Let $f : \mathbb{R}^n \rightarrow (-\infty, +\infty]$ be a
   convex function. The \textit{effective domain} of $f$, denoted
-  $\dom(f)$ is defined as
+  $dom(f)$ is defined as
 \begin{eqnarray}
-  \dom(f) := \{x \in \mathbb{R}^n | f(x) < +\infty\}.
+  dom(f) := \{x \in \mathbb{R}^n | f(x) < +\infty\}.
 \end{eqnarray}
- If $\dom(f) \ne \emptyset$ then we say $f$ is \textit{proper}.
+ If $dom(f) \ne \emptyset$ then we say $f$ is \textit{proper}.
 %% \textit{proper convex lower semi-continous function}
 %% (\textit{p.c.l.s.c} for short).
 %% The \textit{Fenchel-Legendre transform} of $f$ is the function $f^*:
@@ -178,9 +177,9 @@ and such that Nash equilibria correspond to pairs $(x, y)$ of
 \textit{realization plans} which solve the primal LCP
 \begin{equation}
   \begin{aligned}
-     \text{minimize }\langle e_1, p\rangle, \hspace{.5em}\text{ subject to }(y,p) \in
-     \mathbb{R}^{n_2} \times \mathbb{R}^{l_1}, -Ay +
-    E_1^Tp \geq 0, E_2y = e_2, y \ge 0.
+     \text{minimize }\langle e_1, p\rangle, \hspace{.5em}\text{ subject to: }(y,p) \in
+     \mathbb{R}^{n_2} \times \mathbb{R}^{l_1},  y \ge 0, E_2y = e_2, -Ay +
+    E_1^Tp \geq 0.
   \end{aligned}
   \label{eq:primal_pb}
 \end{equation}
@@ -188,9 +187,8 @@ and such that Nash equilibria correspond to pairs $(x, y)$ of
 and the dual LCP
 \begin{equation}
   \begin{aligned}
-    \text{maximize}-\langle e_2, q\rangle,\hspace{.5em}\text{subject to }(y,q) \in
-    \mathbb{R}^{n_1} \times \mathbb{R}^{l_2}, A^Tx + E_2^Tq \geq 0,
-    E_1x = e_1, x \ge 0.
+    \text{maximize}-\langle e_2, q\rangle,\hspace{.5em}\text{subject to: }(x,q) \in
+    \mathbb{R}^{n_1} \times \mathbb{R}^{l_2},  x \ge 0, E_1x = e_1, A^Tx + E_2^Tq \geq 0.
   \end{aligned}
   \label{eq:dual_pb}
 \end{equation}
@@ -342,8 +340,7 @@ following equivalent saddle-point form\footnote{Note that in
 \end{equation}
 The authors reported a $\mathcal{O}(1/\epsilon)$ convergence rate
 (which derives from the general EGT theory) for the outer-most
-iteration loop, though the cost of an iteration is presumably heavy
-since it entails computing a $softmax$ at each iteration.
+iteration loop.
 
 \cite{gilpinfirst} proposed a modified verson of the technqiues in
 \cite{hoda2010smoothing} and  proved a $\mathcal{O}\left(\left(\|A\| /
@@ -351,18 +348,18 @@ since it entails computing a $softmax$ at each iteration.
 terms of the number of calls made to a first-order oracle. Here
 $\delta = \delta(A, E_1, E_2, e_1, e_2) > 0$ is a certain
 \textit{condition number} for the game. Their ingenious idea was to
-show that \eqref{eq:gilpin} can futher be written in the form\\
-\[\mathrm{maximize}\{G(x, y):=G(x, y) :=
+show that \eqref{eq:gilpin} can futher be written in the form
+\[\mathrm{maximize}\{G(x, y):=
 max\{\langle x, Av\rangle - \langle u, Ay\rangle |
 (u,v) \in Q_1 \times Q_2|(x,y) \in Q_1 \times Q_2\},
 \]
-and then show that if $\mathcal{E}$ is the set of Nash equilibria for
-the game, then  there exists a scalar
-$\delta > 0$ such that $distance((x, y), \mathcal{E}) \le \dfrac{G(x, y)}{\delta}$,
+and then show there exists a scalar
+$\delta > 0$ such that ``distance between $(x, y)$ and the set of
+equilibria'' $\le \dfrac{G(x, y)}{\delta}$,
 for any pair of realization plans $(x, y) \in Q_1 \times Q_2$. Their
-algorithm is then to apply Nesterov smoothing with a geometrically
-decreasing sequence of tolerance levels on primal-dual gap function $G$.
-It should be noted however that
+algorithm is then derived by iteratively applying Nesterov smoothing
+with a geometrically decreasing sequence of tolerance levels on
+primal-dual gap function $G$. It should be noted however that
 \begin{itemize}
 \item[--] Though \cite{gilpinfirst} proved that we always have $\delta
   > 0$, this constant can be arbitrarily small; and most importantly.
@@ -502,8 +499,8 @@ Then a quadruplet $(y^*,p^*, x^*, q^*) \in \mathbb{R}^{n_2}
 \end{theorem}
 
 \begin{proof}
-Note that $\dom(g_1) = S_1$ and $\dom(g_2) = S_2$ and observe that the
-equilibria of the LCPs \eqref{eq:primal_pb}, \eqref{eq:dual_pb}, and
+Note that $dom(g_1) = S_1$ and $dom(g_2) = S_2$ and observe that since the
+equilibria of the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb}, and
 the equilibria of GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$) are contained
 in $S_1 \times S_2$, it suffices to show that at any point $(y, p, x,
 q) \in S_1 \times S_2$, the primal-dual gap between the primal
