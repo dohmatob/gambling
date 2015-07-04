@@ -234,7 +234,7 @@ if __name__ == "__main__":
     from primal_dual import primal_dual_sg_ne
     rng = np.random.RandomState(42)
     A = np.array([[-2., 3.], [3, -4]])
-    # A = rng.randn(10, 10)
+    A = rng.randn(10, 10)
     plt.figure(figsize=(13.5, 7))
     ax1 = plt.subplot2grid((1, 2), (0, 0))
     plt.grid("on")

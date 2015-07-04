@@ -98,12 +98,12 @@ Let $m$ and $n$ be positive integers.
 $\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ } z \geq
 0\}$ is the nonnegative $n$-dimensional \textit{orthant}.  Given two
 vectors $z, w \in \mathbb{R}^n$, their inner product will be denoted
-$\langle z, w\rangle$ The components of $z \in \mathbb{R}^n$ will be
+$\langle z, w\rangle := \sum_{j}z_jw_j$ The components of $z \in \mathbb{R}^n$ will be
 denoted $z_0$, $z_1$, ..., $z_{n-1}$ (indexing begins from $0$,
 not $1$). The notation ``$z \ge 0$'' means that all the components of $z$ are
 nonnegative. For a vector $z = (z_0, z_1, ..., z_{n-1}) \in
 \mathbb{R}^n$, $\|z\|$ denotes the $2$-\textit{norm} of $z$ defined
-by $\|z\| := \sqrt{\langle z, z\rangle} = \sqrt{\sum_{j=0}^{n - 1}{z_j^2}}$.
+by $\|z\| := \sqrt{\langle z, z\rangle}$.
 $(z)_+:=\text{max}(0, z) \in \mathbb{R}^{n}_+$ is the point-wise
 maximum of $z$ with $0$. For example, $((-2, \pi))_+ = (max(-2, 0),
 max(\pi, 0)) = (0, \pi)$.
@@ -197,20 +197,30 @@ and $q = (q_0, q_1, ..., q_{l_1 - 1}) \in \mathbb{R}^{l_1}$ are dual
 variables. 
 $A$ is the \textit{payoff matrix} and each $E_k$ is a matrix whose
 entries are $-1$, $0$ or $1$, and each $e_k$ is a vector of the form
-$[1, 0, ..., 0]$. In this so-called \textit{sequence-form}
+$(1, 0, ..., 0)$. In this so-called \textit{sequence-form}
 representation, the strategy profile of player $k$ is the polyhedron
 \begin{equation}
   Q_k := \{z \in \mathbb{R}^{n_k}_+ |\text{ }E_kz = e_k\}.
 \label{eq:polyhedron}
 \end{equation}
-Note that $\langle e_1, p\rangle = p_0$ and $\langle e_2, q\rangle = q_0$ by definition of $e_1$ and
-$e_2$. At a feasible point $(y, p, x, q)$, the \textit{primal-dual gap}
+%% Note that $\langle e_1, p\rangle = p_0$ and $\langle e_2, q\rangle = q_0$ by definition of $e_1$ and
+%% $e_2$. 
+At a feasible point $(y, p, x, q)$, the \textit{primal-dual gap}
 $\mathcal{G}(y, p, x, q)$ of these primal-dual pair of LCPs is given
 by\footnote{The inequality being due to \textit{weak duality}.}
 \begin{equation}
-  0 \le \mathcal{G}(y, p, x, q) := p_0 - (-q_0) = p_0 + q_0.
+  0 \le \mathcal{G}(y, p, x, q) := \langle e_1, p\rangle - (\langle
+  e_2, q\rangle) = \langle e_1, p\rangle + \langle
+  e_2, q\rangle = G(x, y),
   \label{eq:dgap}
 \end{equation}
+where
+\begin{eqnarray}
+G(x, y) :=
+\mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle |
+(u,v) \in Q_1 \times Q_2\}.
+\label{eq:xy_gap}
+\end{eqnarray}
 
 %\subsection{Characterization of equilibria}
 It was shown (see Theorem 3.14 of \cite{vonequilibrium}) that a pair
@@ -240,10 +250,19 @@ equilibria.
 %% \footnote{This value is the same for every equilibrium pair $(x^*, y^*)$.} of the game.
 
 \begin{remark}  
-It should be noted that for the the class of games considered here (sequential games with imcomplete information), the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb} are exceedingly larger than what state-of-the-art LCP solvers can handle. See \cite{hoda2010smoothing}.
+It should be noted that for the the class of games considered here
+(sequential games with imcomplete information), the LCPs
+\eqref{eq:primal_pb} and \eqref{eq:dual_pb} are exceedingly larger
+than what state-of-the-art LCP solvers can handle. See
+\cite{hoda2010smoothing}.
+
 \end{remark}
 
-Solving the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb} exactly is impossible in practice \textbf{Cite Koller!!!}, and such a precision doesn't have any fundamental advantage. Instead, it is customary compute so-called Nash $\epsilon$-equlibria.
+Solving the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb} exactly
+is impossible in practice \textbf{Cite Koller!!!}, and such a
+precision doesn't have any fundamental advantage. Instead, it is
+customary compute so-called Nash $\epsilon$-equlibria.
+
 
 \begin{definition}[\textbf{Nash $\epsilon$-equilibria}]
 Given $\epsilon > 0$, a Nash $\epsilon$-equilibrium is
@@ -347,22 +366,30 @@ iteration loop.
 \delta\right) ln\left(1 / \epsilon\right)\right)$ convergence rate in
 terms of the number of calls made to a first-order oracle. Here
 $\delta = \delta(A, E_1, E_2, e_1, e_2) > 0$ is a certain
-\textit{condition number} for the game. Their ingenious idea was to
-show that \eqref{eq:gilpin} can futher be written in the form
-\[\mathrm{maximize}\{G(x, y):=
-max\{\langle x, Av\rangle - \langle u, Ay\rangle |
-(u,v) \in Q_1 \times Q_2|(x,y) \in Q_1 \times Q_2\},
-\]
+\textit{condition number} for the game. The crux of their technique was to
+observe that \eqref{eq:gilpin} can further be written a the minimization of
+the primal-dual gap function $G(x, y)$ (defined in \eqref{eq:xy_gap})
+for the game\footnote{The minimizers of $G$ are precisely the
+  equilibria of the game.}, viz
+\begin{eqnarray}
+\mathrm{maximize}\{G(x,y)|(x,y) \in Q_1 \times Q_2\},
+\end{eqnarray}
 and then show there exists a scalar
-$\delta > 0$ such that ``distance between $(x, y)$ and the set of
-equilibria'' $\le \dfrac{G(x, y)}{\delta}$,
-for any pair of realization plans $(x, y) \in Q_1 \times Q_2$. Their
-algorithm is then derived by iteratively applying Nesterov smoothing
-with a geometrically decreasing sequence of tolerance levels on
+$\delta > 0$ such that for any pair of realization plans $(x, y) \in Q_1 \times Q_2$,
+\begin{eqnarray}
+\text{``distance between }(x, y)\text{ and the set of
+equilibria'' } \le G(x, y)/\delta.
+\end{eqnarray}
+Their
+algorithm is then derived by iteratively applying Nesterov smoothing \cite{nesterov2005a}
+with a geometrically decreasing sequence of tolerance levels
+$\epsilon_{n+1} = \epsilon_n / \gamma$ (with $\gamma > 1$)  on
 primal-dual gap function $G$. It should be noted however that
 \begin{itemize}
-\item[--] Though \cite{gilpinfirst} proved that we always have $\delta
-  > 0$, this constant can be arbitrarily small; and most importantly.
+\item[--] The constant $\delta > 0$ can be arbitrarily small, and so
+  the factor $\|A\| / \delta$ in the $\mathcal{O}\left(\left(\|A\| /
+\delta\right) ln\left(1 / \epsilon\right)\right)$ convergence rate can
+be arbitrarily large.
 \item[--] The reported linear convergence rate is not in terms of
   basic operations (addition, multiplication, matvec, clipping, etc.),
   but in terms of the number of calls to a first-order oracle. For
@@ -433,10 +460,10 @@ Define two proper closed convex functions
     \begin{aligned}
       g_1: \mathbb{R}^{n_2} &\times \mathbb{R}^{l_1} \rightarrow
       (-\infty, +\infty], \hspace{1em} g_1(y, p) :=
-        i_{\mathbb{R}^{n_2}_+}(y) + \langle e_1,p\rangle\\
+        i_{y \ge 0} + \langle e_1,p\rangle\\
         g_2: \mathbb{R}^{n_1} &\times \mathbb{R}^{l_2} \rightarrow
         (-\infty, +\infty],\hspace{1em} g_2(x, q) :=
-          i_{\mathbb{R}^{n_1}_+}(x) + \langle e_2, q\rangle
+          i_{x \ge 0} + \langle e_2, q\rangle
     \end{aligned}
     \right\}
     \label{eq:things}
@@ -466,9 +493,9 @@ Finally, define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
   \begin{aligned}
     \hat{\Psi}_1(y, p, x, q) &:=
     \Psi_1(y, p, x, q)+ g_1(y, p) \text{ if }y \ge 0, \hat{\Psi}_1(y,
-    p, x, q) := \infty \text{ else}\\
+    p, x, q) := \infty \text{ otherwise}\\
     \hat{\Psi}_2(y, p, x, q) &:= \Psi_2(y, p, x, q)+ g_2(x, q) \text{ if
-    }x \ge 0, \hat{\Psi}_2(y,p, x, q) := \infty \text{ else}.
+    }x \ge 0, \hat{\Psi}_2(y,p, x, q) := \infty \text{ otherwise}.
   \end{aligned}
   \right\}
 \end{eqnarray}
@@ -521,13 +548,13 @@ $a(x,y)$, can be computed as
     (i_{x' \ge 0} + \langle e_2,q\rangle)\\
     &= g_1(y,p)
       - \underset{x',q'}{\text{min}}\text{ }\Psi_2(y, p, x', q') + g_2(x',
-      q') = g_1(y,p) -\phi_2(y,p),
+      q') = g_1(y,p)
+      - \underbrace{\underset{x',q'}{\text{min}}\text{
+        }\hat{\Psi}_2(y, p, x', q')}_{\phi_2(y,p)},
   \end{aligned}
   \label{eq:a}
 \end{eqnarray*}
 
-where $-\infty \le \phi_2(y, p) := \underset{x',q'}{\text{min}}\text{
-}\hat{\Psi}_2(y, p, x', q') < +\infty$.
 Similarly, the unconstrained objective, say
 $b(x, q)$, in the dual LCP \eqref{eq:dual_pb} writes
 \begin{eqnarray*}
@@ -535,17 +562,18 @@ $b(x, q)$, in the dual LCP \eqref{eq:dual_pb} writes
  b(x, q) &= 
 -\langle q, e_2\rangle -i_{x \ge 0} - i_{A^Tx+E_2^Tq \ge 0} -
  i_{E_1x = e_1}\\
-    &= -g_2(x, q) + \underset{y' \geq
+ &= -g_2(x, q) + \underset{y' \geq
    0}{\text{min}}\text{ }\langle y', A^Tx + E_2^Tq\rangle +
  \underset{p'}{\text{min}}\text{ }\langle p', e_1-E_1x\rangle\\
     &= -g_2(x, q)
- +\underset{y',p'}{\text{max}}\text{ }\Psi_1(y', p', x, q) +
- g_1(y', p') = -g_2(x, q) + \phi_1(x, q),
+ +\underset{y',p'}{\text{min}}\text{ }\Psi_1(y', p', x, q) +
+ g_1(y', p') = -g_2(x, q)
+ +\underbrace{\underset{y',p'}{\text{min}}\text{ }\hat{\Psi}_1(y', p',
+   x, q)}_{\phi_1(x, q)}.
    \end{aligned}
 \end{eqnarray*}
-where $-\infty \le \phi_1(x, q) :=
-\underset{y',p'}{\text{min}}\text{ }\hat{\Psi}_1(y', p', x, q) < +\infty$.
-Thus, one can compute the primal-dual gap between the primal LCP
+Thus, noting that $-\infty \le \phi_1(x, q), \phi_2(y, p), < +\infty$,
+one can compute the primal-dual gap between the primal LCP
 \eqref{eq:primal_pb} and dual the LCP \eqref{eq:dual_pb} at $(y, p, x, q)$ as
 \begin{eqnarray*}
   \begin{split}
