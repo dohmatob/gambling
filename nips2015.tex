@@ -1,5 +1,5 @@
 \documentclass{article} % For LaTeX2e
-%\usepackage{nips14submit_e}
+\usepackage{nips14submit_e}
 %\documentclass[envcountsame]{llcns2e/llncs}
 \usepackage{url}
 \usepackage{times}
@@ -151,14 +151,13 @@ in case $f$ is differentiable at $x$. If $f$ is convex, its
 \end{eqnarray}
 For example, if $C$ is a closed convex subset of $\mathbb{R}^n$, then
 $\prox_C = \proj_C$, the orthogonal projector onto $C$. Thus proximal
-operators generalize orthongal projectors. One also has the useful
+operators generalize orthogonal projectors. One also has the useful
 characterization
 \begin{eqnarray}
   p = \prox_f(x)\text{ iff } x - p \in \partial f(p).
 \end{eqnarray}
 
-The interested reader should refer to
-\cite{combettes2011proximal} for
+The interested reader should refer to \cite{combettes2011proximal} for
 a more elaborate exposition of proximal operators and their
 use in modern convex-optimization.
 
@@ -168,18 +167,18 @@ The sequence-form for two-person zero-sum games was introduced in
 \cite{koller1994fast,von1996efficient,vonequilibrium}, where it was
 established that for sequential two-person zero-sum games with
 imcomplete information and perfect recall, there exist sparse matrices
-$A \in \mathbb{R}^{n_1
-  \times n_2}$, $E_1 \in \mathbb{R}^{l_1 \times n_1}$, $E_2 \in
-\mathbb{R}^{l_2 \times n_2}$, and vectors $e_1 \in \mathbb{R}^{l_1},
-e_2 \in \mathbb{R}^{l_2}$ such that $n_1$, $n_2$, $l_1$, and $l_2$ are
-all linear in the size of the game tree (number of states in the game)
-and such that Nash equilibria correspond to pairs $(x, y)$ of
-\textit{realization plans} which solve the primal LCP
+$A \in \mathbb{R}^{n_1 \times n_2}$, $E_1 \in \mathbb{R}^{l_1 \times
+  n_1}$, $E_2 \in \mathbb{R}^{l_2 \times n_2}$, and vectors $e_1 \in
+\mathbb{R}^{l_1}, e_2 \in \mathbb{R}^{l_2}$ such that $n_1$, $n_2$,
+$l_1$, and $l_2$ are all linear in the size of the game tree (number
+of states in the game) and such that Nash equilibria correspond to
+pairs $(x, y)$ of \textit{realization plans} which solve the primal
+LCP
 \begin{equation}
   \begin{aligned}
-     \text{minimize }\langle e_1, p\rangle, \hspace{.5em}\text{ subject to: }(y,p) \in
-     \mathbb{R}^{n_2} \times \mathbb{R}^{l_1},  y \ge 0, E_2y = e_2, -Ay +
-    E_1^Tp \geq 0.
+     \text{minimize }\langle e_1, p\rangle, \hspace{.5em}\text{
+       subject to: }(y,p) \in \mathbb{R}^{n_2} \times
+     \mathbb{R}^{l_1},  y \ge 0, E_2y = e_2, -Ay + E_1^Tp \geq 0.
   \end{aligned}
   \label{eq:primal_pb}
 \end{equation}
@@ -187,8 +186,9 @@ and such that Nash equilibria correspond to pairs $(x, y)$ of
 and the dual LCP
 \begin{equation}
   \begin{aligned}
-    \text{maximize}-\langle e_2, q\rangle,\hspace{.5em}\text{subject to: }(x,q) \in
-    \mathbb{R}^{n_1} \times \mathbb{R}^{l_2},  x \ge 0, E_1x = e_1, A^Tx + E_2^Tq \geq 0.
+    \text{maximize}-\langle e_2, q\rangle,\hspace{.5em}\text{subject
+      to: }(x,q) \in \mathbb{R}^{n_1} \times \mathbb{R}^{l_2},  x \ge
+    0, E_1x = e_1, A^Tx + E_2^Tq \geq 0.
   \end{aligned}
   \label{eq:dual_pb}
 \end{equation}
@@ -203,7 +203,16 @@ representation, the strategy profile of player $k$ is the polyhedron
   Q_k := \{z \in \mathbb{R}^{n_k}_+ |\text{ }E_kz = e_k\}.
 \label{eq:polyhedron}
 \end{equation}
-%% Note that $\langle e_1, p\rangle = p_0$ and $\langle e_2, q\rangle = q_0$ by definition of $e_1$ and
+
+Note that the LCPs above have the equivalent saddle point formulation
+\begin{equation}
+  \underset{y \in Q_2}{\text{minimize}}\text{ }\underset{x \in
+    Q_1}{\text{maximize}}\text{ }\langle x, Ay\rangle
+  \label{eq:gilpin}
+\end{equation}
+
+%% Note that $\langle e_1, p\rangle = p_0$ and $\langle e_2, q\rangle
+%% = q_0$ by definition of $e_1$ and
 %% $e_2$. 
 At a feasible point $(y, p, x, q)$, the \textit{primal-dual gap}
 $\mathcal{G}(y, p, x, q)$ of these primal-dual pair of LCPs is given
@@ -250,7 +259,7 @@ equilibria.
 %% \footnote{This value is the same for every equilibrium pair $(x^*, y^*)$.} of the game.
 
 \begin{remark}  
-It should be noted that for the the class of games considered here
+It should be noted that for the class of games considered here
 (sequential games with imcomplete information), the LCPs
 \eqref{eq:primal_pb} and \eqref{eq:dual_pb} are exceedingly larger
 than what state-of-the-art LCP solvers can handle. See
@@ -347,16 +356,7 @@ information like Texas Hold'em Poker, etc.
 
 In \cite{hoda2010smoothing}, a nested iterative procedure using the
 Excessive Gap Technique (EGT) \cite{nesterov2005excessive} was used to
-to solve the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb} in the
-following equivalent saddle-point form\footnote{Note that in
-  \cite{hoda2010smoothing}, the roles of $x$ and $y$ are swapped.}
-
-
-\begin{equation}
-  \underset{y \in Q_2}{\text{minimize}}\text{ }\underset{x \in
-    Q_1}{\text{maximize}}\text{ }\langle x, Ay\rangle
-  \label{eq:gilpin}
-\end{equation}
+to solve the equilibrium problem \eqref{eq:gilpin}.
 The authors reported a $\mathcal{O}(1/\epsilon)$ convergence rate
 (which derives from the general EGT theory) for the outer-most
 iteration loop.
@@ -383,8 +383,8 @@ equilibria'' } \le G(x, y)/\delta.
 Their
 algorithm is then derived by iteratively applying Nesterov smoothing \cite{nesterov2005a}
 with a geometrically decreasing sequence of tolerance levels
-$\epsilon_{n+1} = \epsilon_n / \gamma$ (with $\gamma > 1$)  on
-primal-dual gap function $G$. It should be noted however that
+$\epsilon_{n+1} = \epsilon_n / \gamma$ (with $\gamma > 1$)  $G$. It
+should be noted however that
 \begin{itemize}
 \item[--] The constant $\delta > 0$ can be arbitrarily small, and so
   the factor $\|A\| / \delta$ in the $\mathcal{O}\left(\left(\|A\| /
@@ -482,7 +482,8 @@ Also define two bilinear forms $\Psi_1$, $\Psi_2: \mathbb{R}^{n_2}
         \right],\hspace{.5em}
     \Psi_1(y, p, x, q)
     := \left\langle \begin{bmatrix}x\\q\end{bmatrix},
-      K\begin{bmatrix}y\\p\end{bmatrix}\right\rangle.
+      K\begin{bmatrix}y\\p\end{bmatrix}\right\rangle = \langle x,
+      Ay\rangle -\langle x, E_1^Tp\rangle + \langle q, E_2y\rangle.
 \end{equation}
 
 Finally, define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
@@ -711,70 +712,70 @@ but has a rich block-diagnoal structure which can be carefully
 exploited, as was done in \cite{hoda2010smoothing}.
 
 
-\begin{definition}(Kronecker product)
-Let $F \in \mathbb{R}^{m \times n}$ and $B \in \mathbb{R}^{r \times
-  s}$ be matrices. The kronecker product of $F$ and $B$ is defined by
+%% \begin{definition}(Kronecker product)
+%% Let $F \in \mathbb{R}^{m \times n}$ and $B \in \mathbb{R}^{r \times
+%%   s}$ be matrices. The kronecker product of $F$ and $B$ is defined by
 
-\begin{equation}
-F \otimes B:=\left[
-\begin{array}{cccc}
-F_{0,0}B & F_{0,1}B & \cdots & F_{0,n-1}B \\
-F_{1,0}B & F_{1,1}B & \cdots & F_{1,n-1}B \\
-\vdots & \vdots & \ddots & \vdots\\
-F_{m-1,0}B & F_{m-1,1}B & \cdots & F_{m-1,n-1}B 
-\end{array}\right] \in \mathbb{R}^{mr \times ns}
-\end{equation}
-\end{definition}
+%% \begin{equation}
+%% F \otimes B:=\left[
+%% \begin{array}{cccc}
+%% F_{0,0}B & F_{0,1}B & \cdots & F_{0,n-1}B \\
+%% F_{1,0}B & F_{1,1}B & \cdots & F_{1,n-1}B \\
+%% \vdots & \vdots & \ddots & \vdots\\
+%% F_{m-1,0}B & F_{m-1,1}B & \cdots & F_{m-1,n-1}B 
+%% \end{array}\right] \in \mathbb{R}^{mr \times ns}
+%% \end{equation}
+%% \end{definition}
 
-One notes that $(F \otimes B)^T = F^T \otimes B^T$.
-$F \otimes B$ can be very much larger than both $F$ and $B$ in
-dimensions. For example, if $r = n = r = s = 1000$, so that $F$ and
-$B$ are $10^3$-by-$10^3$ matrices, then $F \otimes B$ is a
-$10^6$-by-$10^6$ matrix! Fortunately, given a vector $x \in
-\mathbb{R}^{rs}$ one can compute the matvec product $(F \otimes B)x$
-without forming $F \otimes B$. Indeed, let $y := (F \otimes B)x$. We
-rewrite the row vector $x$ as an $s$-by-$r$ matrix $X = [X_0, X_1,
-  ..., X_{r-1}]$, where each column vector $X_i$ is the $i$th block of
-$s$ elements of $x$ read from left to right. Similarly, rewrite $y$ as
-as an $n$-by-$m$ matrix $Y = [Y_0, Y_1, ..., Y_{m-1}]$. Then one
-easily verfies that $Y$ is the matrix product of the ``small''
-matrices $B$, $X$, and $F^T$, i.e
+%% One notes that $(F \otimes B)^T = F^T \otimes B^T$.
+%% $F \otimes B$ can be very much larger than both $F$ and $B$ in
+%% dimensions. For example, if $r = n = r = s = 1000$, so that $F$ and
+%% $B$ are $10^3$-by-$10^3$ matrices, then $F \otimes B$ is a
+%% $10^6$-by-$10^6$ matrix! Fortunately, given a vector $x \in
+%% \mathbb{R}^{rs}$ one can compute the matvec product $(F \otimes B)x$
+%% without forming $F \otimes B$. Indeed, let $y := (F \otimes B)x$. We
+%% rewrite the row vector $x$ as an $s$-by-$r$ matrix $X = [X_0, X_1,
+%%   ..., X_{r-1}]$, where each column vector $X_i$ is the $i$th block of
+%% $s$ elements of $x$ read from left to right. Similarly, rewrite $y$ as
+%% as an $n$-by-$m$ matrix $Y = [Y_0, Y_1, ..., Y_{m-1}]$. Then one
+%% easily verfies that $Y$ is the matrix product of the ``small''
+%% matrices $B$, $X$, and $F^T$, i.e
 
-\begin{equation}
-  \label{eq:kron_matvec}
-  Y = BXF^T
-\end{equation}
+%% \begin{equation}
+%%   \label{eq:kron_matvec}
+%%   Y = BXF^T
+%% \end{equation}
 
-Now, in Texas Hold'em for example, the payoff matrix $A$ can be
-written as block-diagonal matrix whose blocks are sums of Kronecker
-products of much smaller sparse matrices as follows
+%% Now, in Texas Hold'em for example, the payoff matrix $A$ can be
+%% written as block-diagonal matrix whose blocks are sums of Kronecker
+%% products of much smaller sparse matrices as follows
 
-\begin{equation}
-  A = \begin{bmatrix}F_1 \otimes B_1\hspace{10em}\\\hspace{3em}F_2
-    \otimes B_2\hspace{7em}\\\hspace{6em}F_3 \otimes
-    B_3\hspace{4em}\\\hspace{10em}F_4 \otimes B_4 + S \end{bmatrix}
-\label{eq:factor_A}
-\end{equation}
-See \cite{hoda2010smoothing}. The matrices $F_i$ correspond to
-sequences of moves in round $i$ which end in a \textit{fold} action,
-and $S$ to the sequences which end in a \textit{showdown}. $B_i$
-encodes the betting structure of round $i$, while $W$ encodes the
-wind/lose/draw information determined by ranking the players' hands at
-showdown. The component matrices $F_i$, $B_i$, $S$, and $W$ are small
-enough to be explictly represented whereas it is infeasible to
-explicitly represent A. Furthermore, the matrices $F_i$, $B_i$,
-$S$, and $W$ are themselves sparse, which allows one to use the
-compressed row storage data structure that only stores nonzero entries
-(for example \textit{scipy.sparse.csr\_matrix}, in the Python
-programming language).
+%% \begin{equation}
+%%   A = \begin{bmatrix}F_1 \otimes B_1\hspace{10em}\\\hspace{3em}F_2
+%%     \otimes B_2\hspace{7em}\\\hspace{6em}F_3 \otimes
+%%     B_3\hspace{4em}\\\hspace{10em}F_4 \otimes B_4 + S \end{bmatrix}
+%% \label{eq:factor_A}
+%% \end{equation}
+%% See \cite{hoda2010smoothing}. The matrices $F_i$ correspond to
+%% sequences of moves in round $i$ which end in a \textit{fold} action,
+%% and $S$ to the sequences which end in a \textit{showdown}. $B_i$
+%% encodes the betting structure of round $i$, while $W$ encodes the
+%% wind/lose/draw information determined by ranking the players' hands at
+%% showdown. The component matrices $F_i$, $B_i$, $S$, and $W$ are small
+%% enough to be explictly represented whereas it is infeasible to
+%% explicitly represent A. Furthermore, the matrices $F_i$, $B_i$,
+%% $S$, and $W$ are themselves sparse, which allows one to use the
+%% compressed row storage data structure that only stores nonzero entries
+%% (for example \textit{scipy.sparse.csr\_matrix}, in the Python
+%% programming language).
 
-Such a representation of the payoff matrix $A$ trivializes matvec
-operations involving $A$ or $A^T$ (thanks to formula
-\eqref{eq:kron_matvec} above, applied to their diagonal blocks and
-exploiting the sparsity of these blocks themselves). Of course, one
-can always write the payoff matrix $A$ of a flop-type Poker game in a
-form similary to \eqref{eq:factor_A} by applying appropriate
-permutations to the enumeration of the players's sequences.
+%% Such a representation of the payoff matrix $A$ trivializes matvec
+%% operations involving $A$ or $A^T$ (thanks to formula
+%% \eqref{eq:kron_matvec} above, applied to their diagonal blocks and
+%% exploiting the sparsity of these blocks themselves). Of course, one
+%% can always write the payoff matrix $A$ of a flop-type Poker game in a
+%% form similary to \eqref{eq:factor_A} by applying appropriate
+%% permutations to the enumeration of the players's sequences.
 
 \paragraph{\textbf{Computing $\|K\|$.}} Power iteration (Perron-Frobenius)...
 

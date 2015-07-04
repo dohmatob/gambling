@@ -148,11 +148,11 @@ def gilpin_ne(A, epsilon=1e-4, max_iter=np.inf):
 
     The formal problem is:
 
-         minimize maximize <x, Ay>,
+         minimize maximize <y, Ax>,
          y in Q_2   x in Q_1
 
     """
-
+    A = A.T  # make compatible with nesterov_ne
     m, n = A.shape
     R = np.vstack((np.hstack((np.zeros((m, m)), -A)),
                    np.hstack((A.T, np.zeros((n, n))))))
@@ -230,25 +230,38 @@ def gilpin_ne(A, epsilon=1e-4, max_iter=np.inf):
     return x, y, values, gaps
 
 if __name__ == "__main__":
+    # matplotlib confs
+    import matplotlib
     import matplotlib.pyplot as plt
+    matplotlib.rcParams['text.latex.preamble'] = ['\\boldmath']
+    matplotlib.rc('font', family='serif', serif='cm10')
+    matplotlib.rc('text', usetex=True)
+    plt.rc('font', size=50)  # make the power in sci notation bigger
+
     from primal_dual import primal_dual_sg_ne
     rng = np.random.RandomState(42)
     A = np.array([[-2., 3.], [3, -4]])
     A = rng.randn(10, 10)
-    plt.figure(figsize=(13.5, 7))
-    ax1 = plt.subplot2grid((1, 2), (0, 0))
+    plt.figure(figsize=(17, 13))
+    ax1 = plt.subplot("111")
     plt.grid("on")
-    ax2 = plt.subplot2grid((1, 2), (0, 1))
+    plt.figure(figsize=(17, 13))
+    ax2 = plt.subplot("111")
     plt.grid("on")
-    for solver in ["primal_dual_sg", "nesterov", "gilpin"]:
-        x, u, values, gaps = eval("%s_ne" % solver)(A, epsilon=1e-4,
-                                                    max_iter=10000)
-        plt.grid("on")
-        ax1.loglog(gaps, label=solver)
-        ax1.set_xlabel("$k$")
-        ax1.set_ylabel("primal-dual gap")
-        ax2.semilogx(values, label=solver)
-        ax2.set_xlabel("$k$")
-        ax2.set_ylabel("game value")
-    plt.legend(loc="best")
+    for solver in ["primal-dual sg", "nesterov", "gilpin"]:
+        x, u, values, gaps = eval("%s_ne" % solver.replace(" ", "_").replace(
+            "-", "_"))(A, epsilon=1e-4, max_iter=100000)
+        ax1.loglog(gaps, label=solver, linewidth=4)
+        ax1.set_xlabel("\\textbf{$k$}", fontsize=50)
+        ax1.set_ylabel("\\textbf{primal-dual gap}", fontsize=50)
+
+        ax2.semilogx(values, label=solver, linewidth=4)
+        ax2.set_xlabel("\\textbf{$k$}", fontsize=50)
+        ax2.set_ylabel("\\textbf{game value}", fontsize=50)
+    for i, ax in enumerate([ax1, ax2]):
+        if i > 0:
+            ax.ticklabel_format(axis="y", style="sci", scilimits=(0., 0.))
+        ax.tick_params(axis='both', which='major', labelsize=50)
+        plt.legend(loc="best", prop=dict(size=45), handlelength=1.5)
+        plt.tight_layout()
     plt.show()
