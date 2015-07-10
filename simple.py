@@ -9,6 +9,8 @@ from sklearn.utils import check_random_state
 from sequence_form import Game
 from primal_dual import primal_dual_ne, primal_dual_sg_ne
 
+RNG = np.random.choice
+
 
 class Kuhn3112(Game):
     """Kuhn's 3-card Poker: http://en.wikipedia.org/wiki/Kuhn_poker"""
@@ -167,8 +169,6 @@ class Player(object):
     def choice(self, choices):
         """Invoked to make a choice from given list of choices.
 
-        XXX Use local rng!
-
         Parameters
         ----------
         start : string
@@ -182,7 +182,7 @@ class Player(object):
         c : string
             The made choice.
         """
-        return np.random.choice(choices, size=1)[0]
+        return RNG.choice(choices)
 
     def observe(self, player, choice):
         """Observe given player make a move, and memorize it."""

@@ -1,8 +1,8 @@
 all: clean
-	pdflatex nips2015.tex
-	bibtex nips2015
-	pdflatex nips2015.tex
-	pdflatex nips2015.tex
+	pdflatex paper.tex
+	bibtex paper
+	pdflatex paper.tex
+	pdflatex paper.tex
 
 
 experimental: clean
