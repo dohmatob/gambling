@@ -241,27 +241,29 @@ if __name__ == "__main__":
     from primal_dual import primal_dual_sg_ne
     rng = np.random.RandomState(42)
     A = np.array([[-2., 3.], [3, -4]])
-    A = rng.randn(10, 10)
-    plt.figure(figsize=(17, 13))
+    A = rng.randn(500, 500)
+    fig1 = plt.figure(figsize=(17, 13))
     ax1 = plt.subplot("111")
     plt.grid("on")
-    plt.figure(figsize=(17, 13))
+    fig2 = plt.figure(figsize=(17, 13))
     ax2 = plt.subplot("111")
     plt.grid("on")
     for solver in ["primal-dual sg", "nesterov", "gilpin"]:
         x, u, values, gaps = eval("%s_ne" % solver.replace(" ", "_").replace(
             "-", "_"))(A, epsilon=1e-4, max_iter=100000)
-        ax1.loglog(gaps, label=solver, linewidth=4)
+        ax1.loglog(gaps, label="\\textbf{%s}" % solver, linewidth=4)
         ax1.set_xlabel("\\textbf{$k$}", fontsize=50)
         ax1.set_ylabel("\\textbf{primal-dual gap}", fontsize=50)
 
-        ax2.semilogx(values, label=solver, linewidth=4)
+        ax2.semilogx(values, label="\\textbf{%s}" % solver, linewidth=4)
         ax2.set_xlabel("\\textbf{$k$}", fontsize=50)
         ax2.set_ylabel("\\textbf{game value}", fontsize=50)
-    for i, ax in enumerate([ax1, ax2]):
+    for i, (fig, ax) in enumerate(zip([fig1, fig2], [ax1, ax2])):
         if i > 0:
             ax.ticklabel_format(axis="y", style="sci", scilimits=(0., 0.))
         ax.tick_params(axis='both', which='major', labelsize=50)
-        plt.legend(loc="best", prop=dict(size=45), handlelength=1.5)
+        ax.legend(loc="best", prop=dict(size=45), handlelength=1.5)
         plt.tight_layout()
+        plt.figure(fig.number)
+        plt.savefig("%i.png" % i)
     plt.show()

@@ -2,7 +2,7 @@
 \usepackage{nips14submit_e}
 %\documentclass[envcountsame]{llcns2e/llncs}
 \usepackage{url}
-\usepackage{courrier}
+\usepackage{times}
 \usepackage{amsmath,amsfonts, amsthm}
 \usepackage{bbm}
 \usepackage{algorithm,algorithmicx}
@@ -80,7 +80,7 @@ A game-theoretic approach to playing games strategically optimally
 consists in computing Nash-equilibria (infact, approximations thereof)
 offline, and playing one's part of the equilibrium online. This
 technique is the driving-force behind solution concepts like CFR
-(\textbf{TODO: add Z.'s ref first!!!}) \cite{lanctot2009monte},
+\cite{zinkevich2008regret,lanctot2009monte},
 $\text{CFR}^{+}$ \textbf{TODO: add ref!!!}, and other variants, which
 have recently had profound success in Poker. However, solving games
 for equilibria remains a mathematical and computational challenge,
@@ -125,7 +125,7 @@ $i_C$ denotes its \textit{indicator function} defined by
 At times, we will write $i_{x \in C}$ for $i_C(x)$ (to ease notation,
 etc.). Let $f : \mathbb{R}^n \rightarrow (-\infty, +\infty]$ be a
   convex function. The \textit{effective domain} of $f$, denoted
-  $dom(f)$ is defined as
+  $dom(f)$, is defined as
 \begin{eqnarray}
   dom(f) := \{x \in \mathbb{R}^n | f(x) < +\infty\}.
 \end{eqnarray}
@@ -143,11 +143,11 @@ z \in \mathbb{R}^n\}.
 \end{eqnarray}
 Of course $\partial f(x)$ reduces to the singleton $\{\nabla f(x)\}$
 in case $f$ is differentiable at $x$. If $f$ is convex, its
-\textit{proximal operator} the function defined by
+\textit{proximal operator} is the function $\prox_f: \mathbb{R}^n
+\rightarrow \mathbb{R}^n$ defined by
 \begin{eqnarray}
-  \prox_f: \mathbb{R}^n \rightarrow \mathbb{R}^n,\hspace{.5em}x
-  \mapsto \underset{z \in \mathbb{R}^n}{\text{min }}\frac{1}{2}\|z
-  - x\|^2 + f(z),
+  \prox_f(x): = \underset{z \in \mathbb{R}^n}{\text{min }}\frac{1}{2}\|z
+  - x\|^2 + f(z).
 \end{eqnarray}
 For example, if $C$ is a closed convex subset of $\mathbb{R}^n$, then
 $\prox_C = \proj_C$, the orthogonal projector onto $C$. Thus proximal
@@ -483,10 +483,10 @@ Also define two bilinear forms $\Psi_1$, $\Psi_2: \mathbb{R}^{n_2}
     \Psi_1(y, p, x, q)
     := \left\langle \begin{bmatrix}x\\q\end{bmatrix},
       K\begin{bmatrix}y\\p\end{bmatrix}\right\rangle = \langle x,
-      Ay\rangle -\langle x, E_1^Tp\rangle + \langle q, E_2y\rangle.
+      Ay\rangle -\langle x, E_1^Tp\rangle + \langle q, E_2y\rangle,
 \end{equation}
 
-Finally, define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
+and, define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
 \mathbb{R}^{n_2} \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1}
 \times \mathbb{R}^{l_2} \rightarrow (-\infty, +\infty]$ by
 \begin{eqnarray}
@@ -501,19 +501,15 @@ Finally, define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
   \right\}
 \end{eqnarray}
 
-Define the sets $S_1 := \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$ and $S_2 :=
+Finally, define the sets $S_1 := \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$ and $S_2 :=
 \mathbb{R}^{n_1}_+ \times \mathbb{R}^{l_2}$ and consider the
-GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$): Find $(y^*,p^*, x^*, q^*) \in
+GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$): Find a quadruplet $(y^*,p^*, x^*, q^*) \in
 S_1 \times S_2$ such that
 \begin{eqnarray}
-  \left.
-  \begin{aligned}
-    \hat{\Psi}_1(y^*, p^*, x^*, q^*) \le \hat{\Psi}_1(y, &p, x^*,
-    q^*),\hspace{.5em} \hspace{.5em}\hat{\Psi}_2(y^*, p^*, x^*, q^*)
-    \le \hat{\Psi}_2(y^*, p^*, x, q)\\
-    &\forall (y,p, x, q) \in S_1 \times S_2.
-  \end{aligned}
-  \right\}
+    \hat{\Psi}_1(y^*, p^*, x^*, q^*) \le \hat{\Psi}_1(y, p, x^*,
+    q^*) \text{ and }\hat{\Psi}_2(y^*, p^*, x^*, q^*)
+    \le \hat{\Psi}_2(y^*, p^*, x, q) \forall (y,p, x, q) \in S_1
+    \times S_2.
   \label{eq:unconstrained_pb}
 \end{eqnarray}
 \label{thm:pd}
@@ -574,7 +570,7 @@ $b(x, q)$, in the dual LCP \eqref{eq:dual_pb} writes
    \end{aligned}
 \end{eqnarray*}
 Thus, noting that $-\infty \le \phi_1(x, q), \phi_2(y, p), < +\infty$,
-one can compute the primal-dual gap between the primal LCP
+one computes the primal-dual gap between the primal LCP
 \eqref{eq:primal_pb} and dual the LCP \eqref{eq:dual_pb} at $(y, p, x, q)$ as
 \begin{eqnarray*}
   \begin{split}
@@ -590,39 +586,25 @@ one can compute the primal-dual gap between the primal LCP
 \end{eqnarray*}
 where the second equality follows from the fact that $\Psi_1 + \Psi_2
 := 0$.
-
-%% For the dual-gap bound, note that $\forall (x', u', y', v') \in \mathbb{R}^{n_1}_+ \times \mathbb{R}^{l_2} \times \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$, one has
-%% \begin{eqnarray*}
-%%   \begin{split}
-%%     \underset{x \in \mathbb{R}^{n_1}, u \in \mathbb{R}^{l_2}}{max}\text{ }\begin{bmatrix}x\\u\end{bmatrix}^TK\begin{bmatrix}y'\\v'\end{bmatrix} + g_1(y', v') - g_2(x, u)
-%%       &= \underset{x \in \mathbb{R}^{n_1}_+, u \in \mathbb{R}^{l_2}}{max}\text{ }x^TAy' - v'^T(E_1x - e_1) + u^T(E_2y' - e_2)\\
-%%       &\ge \underset{x \in \mathbb{R}^{n_1}_+}{max}\text{ }x^TAy' - v'^T(E_1x - e_1) + \underset{u \in \mathbb{R}^{l_2}}{max}\text{ }u^T(E_2y' - e_2)\\
-%%       &\ge \underset{x \in Q_1}{max}\text{ }x^TAy + \underset{u \in \mathbb{R}^{l_2}}{max}\text{ }u^T(E_2y' - e_2)
-%%   \end{split}
-%% \end{eqnarray*}
-
-%% and
-%% \begin{eqnarray*}
-%%   \begin{split}
-%%     \underset{y \in \mathbb{R}^{n_2}, v \in \mathbb{R}^{l_1}}{min}\text{ }\begin{bmatrix}x'\\u'\end{bmatrix}^TK\begin{bmatrix}y\\v\end{bmatrix} + g_1(y, v) - g_2(x', u')
-%%       &= \underset{y \in \mathbb{R}^{n_2}_+, v \in \mathbb{R}^{l_1}}{min}\text{ }x'^TAy - v^T(E_1x' - e_1) + u'^T(E_2y - e_2)\\
-%%       &\le \underset{y \in \mathbb{R}^{n_2}_+}{min}\text{ }x'^TAy + u'^T(E_2y - e_2) - v^T(E_1x' - e_1)
-%%   \end{split}
-%% \end{eqnarray*}
 \end{proof}
 
-%% The rest of this section is concerned with applying Algorithm 39 of \cite{chambolle2010} to solve problem
-%% \eqref{eq:unconstrained_pb} and therefore by Theorem \ref{thm:pd}, the Nash equilibrium problems \eqref{eq:primal_pb} and \eqref{eq:dual_pb}.
+
+By Theorem \ref{thm:pd}, solviing for a Nash equilibrium for
+the game is equivalent to solving the GSP
+\eqref{eq:unconstrained_pb}, which as it turns out, is simpler
+conceptually. The rest of the paper will be devoted to
+developing an algorithm for solving the latter.
+
 
 % \subsection{The proposed algorithm and its $\mathcal{O}(1/\epsilon)$
 % convergence}
 
 \section{The proposed algorithm}
 \label{sec:algo}
-\subsection{Algorithm and convergence rate}
 We now derive the algorithm derive the algorithm which is the main object of
 this manuscript.
 
+\subsection{Algorithm and convergence rate}
 \begin{algorithm}
 \caption{Primal-dual algorithm for computing approximate Nash
   Equilbria in two-person zero-sum games with imcomplete information
