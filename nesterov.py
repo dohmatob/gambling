@@ -241,14 +241,14 @@ if __name__ == "__main__":
     from primal_dual import primal_dual_sg_ne
     rng = np.random.RandomState(42)
     A = np.array([[-2., 3.], [3, -4]])
-    A = rng.randn(100, 100)
+    A = rng.randn(20, 10)
     fig1 = plt.figure(figsize=(17, 13))
     ax1 = plt.subplot("111")
     plt.grid("on")
     fig2 = plt.figure(figsize=(17, 13))
     ax2 = plt.subplot("111")
     plt.grid("on")
-    for solver in ["primal-dual sg", "nesterov", "gilpin"][:1]:
+    for solver in ["nesterov", "gilpin", "primal-dual sg"]:
         x, u, values, gaps = eval("%s_ne" % solver.replace(" ", "_").replace(
             "-", "_"))(A, epsilon=1e-4, max_iter=100000)
         ax1.loglog(gaps, label="\\textbf{%s}" % solver, linewidth=4)

@@ -92,24 +92,21 @@ approximately, in a sense which will be made clear shortly.
 \paragraph{\textbf{General notions.}}
 Given a set $X$, $2^X$ denotes the \emph{powerset} of $X$, i.e the set
 of all subsets of $X$, or equivalently the set of all binary
-functions on $X$.
-
-Let $m$ and $n$ be positive integers.
-$\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ } z \geq
-0\}$ is the nonnegative $n$-dimensional \textit{orthant}.  Given two
+functions on $X$. Let $m$ and $n$ be positive integers. Given two
 vectors $z, w \in \mathbb{R}^n$, their inner product will be denoted
-$\langle z, w\rangle := \sum_{j}z_jw_j$ The components of $z \in \mathbb{R}^n$ will be
+$\langle z, w\rangle := \sum_{j}z_jw_j$. The components of $z$ will be
 denoted $z_0$, $z_1$, ..., $z_{n-1}$ (indexing begins from $0$,
-not $1$). The notation ``$z \ge 0$'' means that all the components of $z$ are
-nonnegative. For a vector $z = (z_0, z_1, ..., z_{n-1}) \in
-\mathbb{R}^n$, $\|z\|$ denotes the $2$-\textit{norm} of $z$ defined
-by $\|z\| := \sqrt{\langle z, z\rangle}$.
-$(z)_+:=\text{max}(0, z) \in \mathbb{R}^{n}_+$ is the point-wise
-maximum of $z$ with $0$. For example, $((-2, \pi))_+ = (max(-2, 0),
-max(\pi, 0)) = (0, \pi)$.
-The operator $(.)_+$ is the well-known
-(multi-dimensional) \textit{ramp} function.
-
+not $1$). The notation ``$z \ge 0$'' means that all the components of
+$z$ are nonnegative.
+$\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ } z \geq
+0\}$ is the nonnegative $n$-dimensional \textit{orthant}.  $\|z\|$ denotes the
+$2$-\textit{norm} of $z$ defined by $\|z\| := \sqrt{\langle z,
+  z\rangle}$. $(z)_+:=\text{max}(0, z) \in \mathbb{R}^{n}_+$ is the
+point-wise maximum of $z$ with $0$. For example, $((-2, \pi))_+ =
+(max(-2, 0), max(\pi, 0)) = (0, \pi)$. The operator $(.)_+$ is the
+well-known (multi-dimensional) \textit{ramp} function. The
+$n$-simplex denoted $\Delta_n$, is defined by $\Delta_n := \{z \in
+\mathbb{R}^n_+|z_0 + z_1 + ... z_{n - 1} = 1\}$.
 Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
   norm}, denoted $\|A\|$, is
  defined to be the largest \textit{singular value} of $A$, i.e the
@@ -151,8 +148,9 @@ in case $f$ is differentiable at $x$. If $f$ is convex, its
 \end{eqnarray}
 For example, if $C$ is a closed convex subset of $\mathbb{R}^n$, then
 $\prox_C = \proj_C$, the orthogonal projector onto $C$. Thus proximal
-operators generalize orthogonal projectors. One also has the useful
-characterization
+operators generalize orthogonal projectors. For example
+$\prox_{i_{\mathbb{R}^n_+}}(z) \equiv \proj_{\mathbb{R}^n_+}(z) \equiv
+(z)_+$. One also has the useful characterization
 \begin{eqnarray}
   p = \prox_f(x)\text{ iff } x - p \in \partial f(p).
 \end{eqnarray}
@@ -198,7 +196,7 @@ variables.
 $A$ is the \textit{payoff matrix} and each $E_k$ is a matrix whose
 entries are $-1$, $0$ or $1$, and each $e_k$ is a vector of the form
 $(1, 0, ..., 0)$. In this so-called \textit{sequence-form}
-representation, the strategy profile of player $k$ is the polyhedron
+representation, the strategy profile of player $k$ is the convex polyhedron
 \begin{equation}
   Q_k := \{z \in \mathbb{R}^{n_k}_+ |\text{ }E_kz = e_k\}.
 \label{eq:polyhedron}
@@ -215,10 +213,10 @@ Note that the LCPs above have the equivalent saddle point formulation
 %% = q_0$ by definition of $e_1$ and
 %% $e_2$. 
 At a feasible point $(y, p, x, q)$, the \textit{primal-dual gap}
-$\mathcal{G}(y, p, x, q)$ of these primal-dual pair of LCPs is given
+$\tilde{G}(y, p, x, q)$ of these primal-dual pair of LCPs is given
 by\footnote{The inequality being due to \textit{weak duality}.}
 \begin{equation}
-  0 \le \mathcal{G}(y, p, x, q) := \langle e_1, p\rangle - (\langle
+  0 \le \tilde{G}(y, p, x, q) := \langle e_1, p\rangle - (\langle
   e_2, q\rangle) = \langle e_1, p\rangle + \langle
   e_2, q\rangle = G(x, y),
   \label{eq:dgap}
@@ -246,7 +244,7 @@ $q$ such that
 
 Moreover, at equilibria, \textit{strong duality} holds and the value
 of the game equals $p_0 = -q_0$, i.e the primal-dual gap
-$\mathcal{G}(y, p, x, q)$ defined in \eqref{eq:dgap} vanishes at
+$\tilde{G}(y, p, x, q)$ defined in \eqref{eq:dgap} vanishes at
 equilibria.
 
 
@@ -282,7 +280,7 @@ vectors $p^*$ and $q^*$ for problems \eqref{eq:primal_pb} and
 doesn't exceed $\epsilon$. That is,
 
 \begin{equation}
-  0 \le \mathcal{G}(y^*, p^*, x^*, q^*) \le \epsilon.
+  0 \le \tilde{G}(y^*, p^*, x^*, q^*) \le \epsilon.
 \label{eq:approx_pb}
 \end{equation}
 \label{thm:approx_nash}
@@ -322,7 +320,7 @@ there exists a perturbation vector $v^*$ such that
 \begin{eqnarray}
 \|v^*\| \le \rho \text{ and}\hspace{.5em} v^* \in
 \partial_\epsilon[\hat{\Psi}_1(., ., x^*, q^*) +
-  \hat{\Psi}_2(y^*, p^*, , .)](y^*,p^*,x^*,q^*).
+  \hat{\Psi}_2(y^*, p^*, ., .)](y^*,p^*,x^*,q^*).
 \end{eqnarray}
 
 Such a vector $v^*$ is called a Nash $\epsilon$-residual at $(x^*,
@@ -339,6 +337,22 @@ equilibria since:
   \ref{thm:approx_nash}) correspond to Nash $(0^+,\epsilon)$-equilibria.
 \end{itemize}
 
+\paragraph{Matrix games on simplexes.} It should be noted that any
+matrix $A \in \mathbb{R}^{n_1 \times n_2}$ specifies a matrix
+  game with payoff matrix $A$, for which each player's strategy
+profile is a simplex; this simplex can be written in the form
+\eqref{eq:polyhedron} by taking $E_k := (1, 1, ..., 1) \in
+\mathbb{R}^{1 \times n_k}$ and $e_k = 1 \in \mathbb{R}^1$. Thus every
+matrix game on simplexes can be seen as a sequential game.  Thus the
+results presented in this manuscript can be trivially applied such
+games in particular. Here, the polyhedral strategy profiles $Q_k$
+defined in \eqref{eq:polyhedron} reduce to simplexes $\Delta_{n_k}$,
+and the primal-dual gap function $G(x,y)$ writes $G(x, y) =
+\mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle | (u,v) \in
+\Delta_{n_1} \times \Delta_{n_2}\} = \underset{0 \le j <
+  n_1}{\text{max }}(Ay)_j - \underset{0 \le i < n_2}{\text{min
+}}(A^Tx)_i$.
+
 \subsection{Our contribution}
 We develop a $\mathcal{O}(1/\text{min}(\rho,\epsilon))$ primal-dual
 algorithm (Algorithm \ref{Tab:algo}) for computing Nash $(\rho,
@@ -347,8 +361,6 @@ algorithm (Algorithm \ref{Tab:algo}) for computing Nash $(\rho,
 
 \section{Related work}
 \label{sec:related_work}
-\textbf{TODO: add note about interior-point methods!!!}
-
 We present a selection of algorithms that is representative of the
 efforts that have been made in the literature to compute Nash
 $\epsilon$-equilibria for two-person zero-sum games with imcomplete
@@ -373,7 +385,7 @@ the primal-dual gap function $G(x, y)$ (defined in \eqref{eq:xy_gap})
 for the game\footnote{The minimizers of $G$ are precisely the
   equilibria of the game.}, viz
 \begin{eqnarray}
-\mathrm{maximize}\{G(x,y)|(x,y) \in Q_1 \times Q_2\},
+\mathrm{minimize}\{G(x,y)|(x,y) \in Q_1 \times Q_2\},
 \end{eqnarray}
 and then show there exists a scalar
 $\delta > 0$ such that for any pair of realization plans $(x, y) \in Q_1 \times Q_2$,
@@ -390,11 +402,11 @@ should be noted however that
 \item[--] The constant $\delta > 0$ can be arbitrarily small, and so
   the factor $\|A\| / \delta$ in the $\mathcal{O}\left(\left(\|A\| /
 \delta\right) ln\left(1 / \epsilon\right)\right)$ convergence rate can
-be arbitrarily large.
+be arbitrarily large for ill-conditioned games.
 \item[--] The reported linear convergence rate is not in terms of
   basic operations (addition, multiplication, matvec, clipping, etc.),
   but in terms of the number of calls to a first-order oracle. For
-  example the projections $\proj_{Q_k}$ are applied at each iteration.%%  Of
+  example the complicated projections $\proj_{Q_k}$ are applied at each iteration.%%  Of
   %% course, the existence of a linear algorithm for solving
   %% \eqref{eq:gilpin} is improbable, as the usual strong-convexity
   %% conditions are absent.
@@ -600,7 +612,7 @@ developing an algorithm for solving the latter.
 % \subsection{The proposed algorithm and its $\mathcal{O}(1/\epsilon)$
 % convergence}
 
-\section{The proposed algorithm}
+\section{The proposed primal-dual algorithm}
 \label{sec:algo}
 We now derive the algorithm derive the algorithm which is the main object of
 this manuscript.
@@ -667,12 +679,12 @@ It is clear to see that the quadruplet $(\Psi_1, \Psi_2, g_1, g_2)$
 satisfies assumptions B.1, B.2, B.3, B.5, and B.6 of
 \cite{he2013accelerating} with $L_{xx} = L_{yy} = 0$ and $L_{xy} =
 L_{yx} = \|K\|$. Now, one easily computes the proximal operators $g_1$
-and $g_2$ as
-\begin{eqnarray*}
+and $g_2$ in closed-form as
+\begin{eqnarray}
   \prox_{\lambda g_1}(y, p) \equiv ((y)_+, p - \lambda
   e_1),\hspace{.5em} \prox_{\lambda g_2}(x, q) \equiv ((x)_+, q -
   \lambda e_2).
-  \end{eqnarray*}
+  \end{eqnarray}
 
 Algorithm \ref{Tab:algo} is then obtained from \cite[Algorithm
   T-BD]{he2013accelerating}, applied on the GSP
@@ -794,12 +806,7 @@ experimented it on real and simulated matrix games.
 \end{figure}
 
 \paragraph{\textbf{Matrix game on simplexes.}}
-Any matrix $A \in \mathbb{R}^{n_1 \times n_2}$ specifies a
-\textit{matrix game}. The strategy profile of player $k$ is a simplex;
-this simplex can be written in the form \eqref{eq:polyhedron} by
-taking $E_k := [1, 1, ..., 1] \in \mathbb{R}^{1 \times n_k}$ and $e_k
-= 1$. Thus every matrix game on simplexes can be seen as a sequential
-game. Now, as in \textbf{nesterov, c-p, etc.}, we generate a $1000
+As in \cite{nesterov2005a,chambolle2014ergodic}, we generate a $1000
 \times 1000$ random matrix whose entries are uniformly identically
 distributed in the closed interval $[-1, 1]$.
 
