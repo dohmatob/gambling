@@ -215,18 +215,15 @@ Note that the LCPs above have the equivalent saddle point formulation
 At a feasible point $(y, p, x, q)$, the \textit{primal-dual gap}
 $\tilde{G}(y, p, x, q)$ of these primal-dual pair of LCPs is given
 by\footnote{The inequality being due to \textit{weak duality}.}
-\begin{equation}
-  0 \le \tilde{G}(y, p, x, q) := \langle e_1, p\rangle - (\langle
-  e_2, q\rangle) = \langle e_1, p\rangle + \langle
-  e_2, q\rangle = G(x, y),
-  \label{eq:dgap}
-\end{equation}
-where
 \begin{eqnarray}
-G(x, y) :=
-\mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle |
+  \begin{split}
+  0 \le \tilde{G}(y, p, x, q) &:= \langle e_1, p\rangle - (\langle
+  e_2, q\rangle) = \langle e_1, p\rangle + \langle
+  e_2, q\rangle\\
+  &= G(x, y) := \mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle |
 (u,v) \in Q_1 \times Q_2\}.
-\label{eq:xy_gap}
+\end{split}
+  \label{eq:dgap}
 \end{eqnarray}
 
 %\subsection{Characterization of equilibria}
@@ -381,7 +378,7 @@ terms of the number of calls made to a first-order oracle. Here
 $\delta = \delta(A, E_1, E_2, e_1, e_2) > 0$ is a certain
 \textit{condition number} for the game. The crux of their technique was to
 observe that \eqref{eq:gilpin} can further be written a the minimization of
-the primal-dual gap function $G(x, y)$ (defined in \eqref{eq:xy_gap})
+the primal-dual gap function $G(x, y)$ (defined in \eqref{eq:dgap})
 for the game\footnote{The minimizers of $G$ are precisely the
   equilibria of the game.}, viz
 \begin{eqnarray}
@@ -678,15 +675,10 @@ in at most $2d_0\|K\|max(5d_0/\rho, 1/\epsilon)$ iterations.
 It is clear to see that the quadruplet $(\Psi_1, \Psi_2, g_1, g_2)$
 satisfies assumptions B.1, B.2, B.3, B.5, and B.6 of
 \cite{he2013accelerating} with $L_{xx} = L_{yy} = 0$ and $L_{xy} =
-L_{yx} = \|K\|$. Now, one easily computes the proximal operators $g_1$
-and $g_2$ in closed-form as
-\begin{eqnarray}
-  \prox_{\lambda g_1}(y, p) \equiv ((y)_+, p - \lambda
-  e_1),\hspace{.5em} \prox_{\lambda g_2}(x, q) \equiv ((x)_+, q -
-  \lambda e_2).
-  \end{eqnarray}
-
-Algorithm \ref{Tab:algo} is then obtained from \cite[Algorithm
+L_{yx} = \|K\|$. Now, one easily computes the proximal operator of
+$g_j$ in closed-form as $\prox_{\lambda g_j}(z, v) \equiv ((z)_+,
+v - \lambda e_j)$. With all these ingredients in place, Algorithm
+\ref{Tab:algo} is then obtained from \cite[Algorithm
   T-BD]{he2013accelerating}, applied on the GSP
 \eqref{eq:unconstrained_pb} with the choice of parameters: $\sigma = 1
 \in (0, 1]$, $\sigma_x = \sigma_y = 0 \in [0, \sigma)$,

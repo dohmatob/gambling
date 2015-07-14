@@ -238,7 +238,7 @@ if __name__ == "__main__":
     matplotlib.rc('text', usetex=True)
     plt.rc('font', size=50)  # make the power in sci notation bigger
 
-    from primal_dual import primal_dual_sg_ne
+    from primal_dual import primal_dual_sg_ne as elvis_ne
     rng = np.random.RandomState(42)
     A = np.array([[-2., 3.], [3, -4]])
     A = rng.randn(20, 10)
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     fig2 = plt.figure(figsize=(17, 13))
     ax2 = plt.subplot("111")
     plt.grid("on")
-    for solver in ["nesterov", "gilpin", "primal-dual sg"]:
+    for solver in ["nesterov", "gilpin", "elvis"]:
         x, u, values, gaps = eval("%s_ne" % solver.replace(" ", "_").replace(
             "-", "_"))(A, epsilon=1e-4, max_iter=100000)
         ax1.loglog(gaps, label="\\textbf{%s}" % solver, linewidth=4)
