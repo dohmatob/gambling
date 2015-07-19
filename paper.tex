@@ -71,8 +71,8 @@
 \end{abstract}
 
 \textbf{keywords}: sequential game; imcomplete information; perfect
-recall; sequence-form; approximate Nash equilibrium; primal-dual
-algoithm; convex-optimization; enlarged subgradient
+recall; approximate Nash equilibrium; primal-dual
+algoithm; convex-optimization
 
 \section{Introduction}
 \label{sec:intro}
@@ -88,7 +88,7 @@ especially in sequential games with imperfect information. This paper
 proposes a simple and fast algorithm for solving for such equilibria
 approximately, in a sense which will be made clear shortly.
 
-\subsection{Notation and terminology}
+\subsection{Notation, terminology, and some aspects of modern convex analysis}
 \paragraph{\textbf{General notions.}}
 Given a set $X$, $2^X$ denotes the \emph{powerset} of $X$, i.e the set
 of all subsets of $X$, or equivalently the set of all binary
@@ -112,7 +112,7 @@ Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
  defined to be the largest \textit{singular value} of $A$, i.e the
  largest \textit{eigenvalue} of $A^TA$ (or equivalently, of $AA^T$).
 
-\paragraph{\textbf{Convex analysis.}}
+\paragraph{\textbf{Modern convex analysis.}}
 Given a subset $C$ of $\mathbb{R}^n$,
 $i_C$ denotes its \textit{indicator function} defined by
 \begin{eqnarray}
@@ -159,7 +159,8 @@ The interested reader should refer to \cite{combettes2011proximal} for
 a more elaborate exposition of proximal operators and their
 use in modern convex-optimization.
 
-\subsection{Statement of the problem}
+\subsection{Nash-equilibrium concepts and statement of the problem}
+\subsubsection{Preliminaries}
 The sequence-form for two-person zero-sum games was introduced in
 \cite{koller1992complexity}, and the theory was further developed in
 \cite{koller1994fast,von1996efficient,vonequilibrium}, where it was
@@ -226,7 +227,6 @@ by\footnote{The inequality being due to \textit{weak duality}.}
   \label{eq:dgap}
 \end{eqnarray}
 
-%\subsection{Characterization of equilibria}
 It was shown (see Theorem 3.14 of \cite{vonequilibrium}) that a pair
 $(x, y) \in Q_1 \times Q_2$ of realization plans is a solution to the
 LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb} (i.e is a Nash
@@ -244,6 +244,24 @@ of the game equals $p_0 = -q_0$, i.e the primal-dual gap
 $\tilde{G}(y, p, x, q)$ defined in \eqref{eq:dgap} vanishes at
 equilibria.
 
+\subsubsection{A note about matrix games on simplexes.} It should be
+noted
+that any matrix $A \in \mathbb{R}^{n_1 \times n_2}$ specifies a matrix
+  game with payoff matrix $A$, for which each player's strategy
+profile is a simplex; this simplex can be written in the form
+\eqref{eq:polyhedron} by taking $E_k := (1, 1, ..., 1) \in
+\mathbb{R}^{1 \times n_k}$ and $e_k = 1 \in \mathbb{R}^1$. Thus every
+matrix game on simplexes can be seen as a sequential game.  Thus the
+results presented in this manuscript can be trivially applied such
+games in particular. Here, the polyhedral strategy profiles $Q_k$
+defined in \eqref{eq:polyhedron} reduce to simplexes $\Delta_{n_k}$,
+and the primal-dual gap function $G(x,y)$ writes
+\begin{eqnarray}G(x, y) =
+\mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle | (u,v) \in
+\Delta_{n_1} \times \Delta_{n_2}\} = \underset{0 \le j <
+  n_1}{\text{max }}(Ay)_j - \underset{0 \le i < n_2}{\text{min
+}}(A^Tx)_i.
+\end{eqnarray}
 
 %% As usual, the ``minimax'' notation in problem \eqref{eq:primal_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution if (and only if)
 %% \begin{equation}
@@ -253,21 +271,12 @@ equilibria.
 %% Such pairs $(x^*, y^*)$ correspond to the Nash equilibria of the game, and ${x^*}^TAy^*$ is the \textit{value}
 %% \footnote{This value is the same for every equilibrium pair $(x^*, y^*)$.} of the game.
 
-\begin{remark}  
-It should be noted that for the class of games considered here
-(sequential games with imcomplete information), the LCPs
-\eqref{eq:primal_pb} and \eqref{eq:dual_pb} are exceedingly larger
-than what state-of-the-art LCP solvers can handle. See
-\cite{hoda2010smoothing}.
-
-\end{remark}
-
+\subsubsection{Approximate feasibility and optimality}
 Solving the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb} exactly
 is impossible in practice (indeed, this system of problems is NP-hard
-\cite{koller1992complexity}) and such a
-precision doesn't have any fundamental practical advantage. Instead, it is
-customary compute so-called Nash $\epsilon$-equlibria.
-
+\cite{koller1992complexity}) and such a precision doesn't have any
+fundamental practical advantage. Instead, it is customary compute
+``approximate'' Nash equilibria.
 
 \begin{definition}[\textbf{Nash $\epsilon$-equilibria}]
 Given $\epsilon > 0$, a Nash $\epsilon$-equilibrium is
@@ -283,7 +292,7 @@ doesn't exceed $\epsilon$. That is,
 \label{thm:approx_nash}
 \end{definition}
 
-Let us introduce the notion of $\epsilon$-subgradients
+Let us now, introduce the notion of $\epsilon$-subgradients
 \cite{he2013accelerating}.
 
 \begin{definition}[$\epsilon$-subgradient]
@@ -309,14 +318,14 @@ This approximation concept for subgradients yields the following
 concept of approximate Nash equlibria (adapted from
 \cite{he2013accelerating}).
 
-\begin{definition}[\textbf{Nash $(\rho,\epsilon)$-equilibria}]
-Given $\rho > 0$ and $\epsilon > 0$, a Nash
-$(\rho,\epsilon$)-equilibrium for the GSP \eqref{eq:unconstrained_pb}
+\begin{definition}[\textbf{Nash $(\epsilon_1,\epsilon_2)$-equilibria}]
+Given tolerance levels $\epsilon_1, \epsilon_2 > 0$, a Nash
+$(\epsilon_1,\epsilon_2)$-equilibrium for the GSP \eqref{eq:unconstrained_pb}
 is any quadruplet $(x^*, y^*, x^*, q^*)$ for which
 there exists a perturbation vector $v^*$ such that
 \begin{eqnarray}
-\|v^*\| \le \rho \text{ and}\hspace{.5em} v^* \in
-\partial_\epsilon[\hat{\Psi}_1(., ., x^*, q^*) +
+\|v^*\| \le \epsilon_1 \text{ and}\hspace{.5em} v^* \in
+\partial_{\epsilon_2}[\hat{\Psi}_1(., ., x^*, q^*) +
   \hat{\Psi}_2(y^*, p^*, ., .)](y^*,p^*,x^*,q^*).
 \end{eqnarray}
 
@@ -329,31 +338,15 @@ y^*, x^*, q^*)$.
 The above definition is a generalization of the notion of Nash
 equilibria since:
 \begin{itemize}
-\item Exact Nash equilibria correspond to Nash $(0^+,0^+)$-equilibria.
+\item Exact Nash equilibria correspond to Nash $(0,0)$-equilibria.
 \item Nash $\epsilon$-equilibria (in the sense of Definition
-  \ref{thm:approx_nash}) correspond to Nash $(0^+,\epsilon)$-equilibria.
+  \ref{thm:approx_nash}) correspond to Nash $(0,\epsilon)$-equilibria.
 \end{itemize}
 
-\paragraph{Matrix games on simplexes.} It should be noted that any
-matrix $A \in \mathbb{R}^{n_1 \times n_2}$ specifies a matrix
-  game with payoff matrix $A$, for which each player's strategy
-profile is a simplex; this simplex can be written in the form
-\eqref{eq:polyhedron} by taking $E_k := (1, 1, ..., 1) \in
-\mathbb{R}^{1 \times n_k}$ and $e_k = 1 \in \mathbb{R}^1$. Thus every
-matrix game on simplexes can be seen as a sequential game.  Thus the
-results presented in this manuscript can be trivially applied such
-games in particular. Here, the polyhedral strategy profiles $Q_k$
-defined in \eqref{eq:polyhedron} reduce to simplexes $\Delta_{n_k}$,
-and the primal-dual gap function $G(x,y)$ writes $G(x, y) =
-\mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle | (u,v) \in
-\Delta_{n_1} \times \Delta_{n_2}\} = \underset{0 \le j <
-  n_1}{\text{max }}(Ay)_j - \underset{0 \le i < n_2}{\text{min
-}}(A^Tx)_i$.
-
 \subsection{Our contribution}
-We develop a $\mathcal{O}(1/\text{min}(\rho,\epsilon))$ primal-dual
-algorithm (Algorithm \ref{Tab:algo}) for computing Nash $(\rho,
-  \epsilon$)-equilibria for sequential two-person zero-sum games with
+We develop a $\mathcal{O}(1/\epsilon)$ primal-dual
+algorithm (Algorithm \ref{Tab:algo}) for computing Nash $(\epsilon,
+  0)$-equilibria in sequential two-person zero-sum games with
   imcomplete information and perfect recall.
 
 \section{Related work}
@@ -362,7 +355,6 @@ We present a selection of algorithms that is representative of the
 efforts that have been made in the literature to compute Nash
 $\epsilon$-equilibria for two-person zero-sum games with imcomplete
 information like Texas Hold'em Poker, etc.
-
 
 In \cite{hoda2010smoothing}, a nested iterative procedure using the
 Excessive Gap Technique (EGT) \cite{nesterov2005excessive} was used to
@@ -439,6 +431,12 @@ Sampling techniques like the CFR (CounterFactual Regret minimization)
 and its many variants
 \cite{MartinZinkevichNIPS2007,lanctot2009monte,Bowling09012015} have
 also become state-of-the-art.
+
+Finally, let us note that for the class of games considered here
+(sequential games with imcomplete information), the LCPs
+\eqref{eq:primal_pb} and \eqref{eq:dual_pb} are exceedingly larger
+than what state-of-the-art LCP and interior-point solvers can
+handle. See for example \cite{hoda2010smoothing}.
 
 
 \section{Reformulation as a Generalized Saddle-point Problem (GSP)}
@@ -528,7 +526,9 @@ Then a quadruplet $(y^*,p^*, x^*, q^*) \in \mathbb{R}^{n_2}
   \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
   \mathbb{R}^{l_2}$ solves the Nash equilibrium LCPs
   \eqref{eq:primal_pb} and \eqref{eq:dual_pb} iff it solves
-  GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$).
+  GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$). In order words, GSP($\Psi_1$,
+  $\Psi_2$, $g_1$, $g_2$) is equivalent to the Nash equilibrium LCPs
+  \eqref{eq:primal_pb} and \eqref{eq:dual_pb}.
   \label{thm:pd}
 \end{theorem}
 
@@ -557,7 +557,8 @@ $a(x,y)$, can be computed as
       - \underset{x',q'}{\text{min}}\text{ }\Psi_2(y, p, x', q') + g_2(x',
       q') = g_1(y,p)
       - \underbrace{\underset{x',q'}{\text{min}}\text{
-        }\hat{\Psi}_2(y, p, x', q')}_{\phi_2(y,p)},
+        }\hat{\Psi}_2(y, p, x', q')}_{\phi_2(y,p)}\\
+      &= g_1(y, p) - \phi_2(y, p).
   \end{aligned}
   \label{eq:a}
 \end{eqnarray*}
@@ -576,10 +577,12 @@ $b(x, q)$, in the dual LCP \eqref{eq:dual_pb} writes
  +\underset{y',p'}{\text{min}}\text{ }\Psi_1(y', p', x, q) +
  g_1(y', p') = -g_2(x, q)
  +\underbrace{\underset{y',p'}{\text{min}}\text{ }\hat{\Psi}_1(y', p',
-   x, q)}_{\phi_1(x, q)}.
+   x, q)}_{\phi_1(x, q)}\\
+ &= -g_2(x, q) + \phi_1(x, q). 
    \end{aligned}
 \end{eqnarray*}
-Thus, noting that $-\infty \le \phi_1(x, q), \phi_2(y, p), < +\infty$,
+Thus, noting that $-\infty \le \phi_1(x, q), \phi_2(y, p), < +\infty$
+(so that all the operations below are valid),
 one computes the primal-dual gap between the primal LCP
 \eqref{eq:primal_pb} and dual the LCP \eqref{eq:dual_pb} at $(y, p, x, q)$ as
 \begin{eqnarray*}
@@ -594,7 +597,7 @@ one computes the primal-dual gap between the primal LCP
   g_1, g_2) \text{ at }(y, p, x, q),
   \end{split}
 \end{eqnarray*}
-where the second equality follows from the fact that $\Psi_1 + \Psi_2
+where the second equality follows from the zero-sum condition $\Psi_1 + \Psi_2
 := 0$.
 \end{proof}
 
@@ -621,7 +624,7 @@ this manuscript.
   and perfect recall}
 \label{Tab:algo}
 \begin{algorithmic}[1]
-\Require $\rho >0$, $\epsilon > 0$; $(y^{(0)},p^{(0)},x^{(0)},q^{(0)})
+\Require $\epsilon > 0$; $(y^{(0)},p^{(0)},x^{(0)},q^{(0)})
 \in \mathbb{R}^{n_2}
   \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
   \mathbb{R}^{l_2}$.
@@ -630,8 +633,7 @@ $({y^*},{p^*},{x^*},{q^*}) \in S_1 \times S_2$ for
 the GSP \eqref{eq:unconstrained_pb}.
 \State  $\lambda \leftarrow 1/\|K\|$, ${v}_a^{(0)} \leftarrow 0$, $k
 \leftarrow 0$
-\While{$\|\tilde{\epsilon}_a^{(k)}\| \ge \epsilon$ or
-  $\|{v}_{a}^{(k)}\|/k \ge \rho$}
+\While{$\|{v}_{a}^{(k)}\|/k \ge \epsilon$}
 \State $y^{(k + 1)} \leftarrow (y^{(k)} - \lambda (A^Tx^{(k)} +
 E_2^Tq^{(k)}))_+$, \hspace{.5em}$p^{(k+1)} \leftarrow p^{(k)} -
 \lambda(e_1-E_1x^{(k)})$
@@ -653,22 +655,23 @@ y^{(k+1)},\Delta p^{(k+1)},\Delta x^{(k+1)},\Delta q^{(k+1)})$
 \end{algorithmic}
 \end{algorithm}
 
-\begin{theorem}[Ergodic $\mathcal{O}(1/k)$ convergence]
+\begin{theorem}[Ergodic $\mathcal{O}(1/\epsilon)$ convergence]
 Let $d_0$ be the euclidean distance between the starting point
 $(y^{(0)},p^{(0)},x^{(0)},q^{(0)})$ of Algorithm \ref{Tab:algo} and the
 set of equilibria for the GSP \eqref{eq:unconstrained_pb}.
-Then given any $\epsilon > 0$ and $\rho > 0$, there exists an index
-$k_0 \le 2d_0\|K\|max(5d_0/\rho, 1/\epsilon)$ such that the following
-error bounds hold:
+Then given any $\epsilon > 0$, there exists an index
+$k_0 \le \frac{2d_0\|K\|}{\epsilon}$ such that after $k_0$ iterations
+the algorithm produces the following a quadruplet
+$(y^{k_0},p^{k_0},x^{k_0},q^{k_0})$ and a vector $v^{k_0}$ such that
 \begin{eqnarray}
-\|\tilde{v}_a^{k_0}\| \le \rho \text{ and }
-\|\tilde{\epsilon}_a^{k_0}\| \le \epsilon
+\|v^{k_0}\| \le \epsilon \text{ and}\hspace{.5em} v^{k_0} \in
+\partial[\hat{\Psi}_1(., ., x^{k_0}, q^{k_0}) +
+  \hat{\Psi}_2(y^{k_0}, p^{k_0}, ., .)](y^{k_0},p^{k_0},x^{k_0},q^{k_0}).
 \end{eqnarray}
 
-where $\tilde{v}_a^{(k_0)} := v_a^{(k_0)}/k_0$.
-Thus Algorithm \ref{Tab:algo} outputs an $(\rho,\epsilon)$-Nash
+Thus Algorithm \ref{Tab:algo} outputs an $(\epsilon,0)$-Nash
 equilibrium for the GSP \eqref{eq:unconstrained_pb}
-in at most $2d_0\|K\|max(5d_0/\rho, 1/\epsilon)$ iterations.
+in at most $\frac{2d_0\|K\|}{\epsilon}$ iterations.
 \end{theorem}
 
 \begin{proof}
@@ -885,7 +888,7 @@ Finally, one checks that
  iterations are shown in Figure \ref{Tab:dgap_curve}.
 
 
-\section{Conclusion}
+\section{Concluding remarks}
 Making use of the sequence-form representation
 \cite{koller1992complexity,von1996efficient,vonequilibrium}, we have
 deviced a primal-dual algorithm for computing Nash equilibria in
@@ -895,7 +898,6 @@ very low constant cost per iteration, and enjoys a rigorous
 convergence theory with a proven $\mathcal{O}(1/min(\rho,\epsilon))$ convergence
 in terms of basic operations (matvec products, clipping, etc.), to a
 Nash $(\rho,\epsilon)$-equilibrium of the game.
-
 Equilibrium problems are saddle-point convex-concave problems, and as
 such a natural choice for algorithms for solving them would be in the
 family of primal-dual algorithms. The author believes such primal-dual
@@ -903,10 +905,14 @@ schemes will receive more attention in the algorithmic game theory
 community in future.
 
 
-\medskip \noindent
-%% \paragraph{About the author:} I'm a first-year PhD student in Computer Science at Universit\'e de Parix XI. My thesis focuses on novel techniques for optimization on Lie groups (of diffeomorphisms), and other structured manifolds, the aim being to obtain better algorithms for nonlinear registration of fMRI brain images and enhance the charting of human functional connectomes.
+%% \paragraph{About the author:} I'm a first-year PhD student in Computer
+%% Science at Universit\'e de Parix XI. My thesis focuses on novel
+%% techniques for optimization on Lie groups (of diffeomorphisms), and
+%% other structured manifolds, the aim being to obtain better algorithms
+%% for nonlinear registration of fMRI brain images and enhance the
+%% charting of human functional connectomes.
 
-\small
+\pagebreak
 \bibliographystyle{llcns2e/splncs03}
 \bibliography{bib}
 
