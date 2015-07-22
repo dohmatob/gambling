@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def _matrix2texstr(A, name="A", exclude=None):
     if exclude is None: exclude = []
     vals = dict((val, []) for val in np.unique(A))

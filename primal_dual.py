@@ -13,6 +13,7 @@ from scipy import linalg
 _norm = lambda *args: sqrt(np.sum(np.concatenate(args) ** 2))
 
 
+@profile
 def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
                    proj_C2=lambda y: np.maximum(y, 0.), init=None,
                    epsilon=1e-4, max_iter=10000, callback=None):

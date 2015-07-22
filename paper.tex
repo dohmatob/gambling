@@ -394,8 +394,9 @@ should be noted however that
 be arbitrarily large for ill-conditioned games.
 \item[--] The reported linear convergence rate is not in terms of
   basic operations (addition, multiplication, matvec, clipping, etc.),
-  but in terms of the number of calls to a first-order oracle. For
-  example the complicated projections $\proj_{Q_k}$ are applied at each iteration.%%  Of
+  but in terms of the number of calls to a first-order oracle. Most
+  notably, the complicated projections $\proj_{Q_k}$ are applied at
+  each iteration.%%  Of
   %% course, the existence of a linear algorithm for solving
   %% \eqref{eq:gilpin} is improbable, as the usual strong-convexity
   %% conditions are absent.
@@ -419,10 +420,8 @@ algorithm is known nor is likely to exist for the polyhedra $Q_k$
 defined in \eqref{eq:polyhedron}, the strategy profiles for players in
 the games considered here. It should however be noted that such this
 projection can still be done iteratively using, for example, the
-algorithm in proposition 4.2 of \cite{combettes2010dualization}%%  or any
-%% CQ algorithm (since this projection sub-problem, is, in fact a
-%% \textit{split-feasibility problem}), for example
-. Unfortunately, as
+algorithm in proposition 4.2 of \cite{combettes2010dualization} or the
+algorithms developed in \cite{tran2015splitting}. Unfortunately, as
 with any nested iterative scheme, one would have to solve this
 sub-problem with finer and finer precision.
 
@@ -614,8 +613,8 @@ developing an algorithm for solving the latter.
 
 \section{The proposed primal-dual algorithm}
 \label{sec:algo}
-We now derive the algorithm derive the algorithm which is the main object of
-this manuscript.
+We now derive and establish the theoretical properties of the
+algorithm which is the main object of this manuscript.
 
 \subsection{Algorithm and convergence rate}
 \begin{algorithm}
@@ -628,7 +627,7 @@ this manuscript.
 \in \mathbb{R}^{n_2}
   \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
   \mathbb{R}^{l_2}$.
-\Ensure A Nash $(\rho, \epsilon)$-equilibrium
+\Ensure A Nash $(\epsilon,0)$-equilibrium
 $({y^*},{p^*},{x^*},{q^*}) \in S_1 \times S_2$ for
 the GSP \eqref{eq:unconstrained_pb}.
 \State  $\lambda \leftarrow 1/\|K\|$, ${v}_a^{(0)} \leftarrow 0$, $k
@@ -895,9 +894,9 @@ deviced a primal-dual algorithm for computing Nash equilibria in
 two-person zero-sum sequential games with imcomplete information (like
 Texas Hold'em, etc.). Our algorithm is simple to implement, with a
 very low constant cost per iteration, and enjoys a rigorous
-convergence theory with a proven $\mathcal{O}(1/min(\rho,\epsilon))$ convergence
+convergence theory with a proven $\mathcal{O}(1/\epsilon)$ convergence
 in terms of basic operations (matvec products, clipping, etc.), to a
-Nash $(\rho,\epsilon)$-equilibrium of the game.
+Nash $(\epsilon,0)$-equilibrium of the game.
 Equilibrium problems are saddle-point convex-concave problems, and as
 such a natural choice for algorithms for solving them would be in the
 family of primal-dual algorithms. The author believes such primal-dual
