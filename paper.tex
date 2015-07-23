@@ -1,5 +1,4 @@
-\documentclass{article} % For LaTeX2e
-\usepackage{nips14submit_e}
+\documentclass{article} % For LaTeX2e\usepackage{nips14submit_e}
 %\documentclass[envcountsame]{llcns2e/llncs}
 \usepackage{url}
 \usepackage{times}
@@ -815,7 +814,7 @@ Figure \ref{Tab:dgap_curve}\textit{(a)}...
   \caption{Convergence curves of Algorithm
     \ref{Tab:algo}. \textbf{Top row}: Evolution of ergodic
     primal-dual gap. \textbf{Bottom row}: Evolution of
-    value of game.}
+    value of game...}
   \label{Tab:dgap_curve}
 \end{figure}
 
@@ -854,11 +853,16 @@ $E_2y^* - e_2 = [-7.04 \times 10^{-7}, 2.27 \times 10^{-6}, -3.29
       10^{-7}]^T$.
 Finally, one checks that ${x^*}^TAy^* = {-0.05555}$,
  which agrees to 5 d.p with the value of $-1 / 18$ computed
- analytically by H. W. Kuhn in his 1950 paper \cite{kuhn}. The
- evolution of the dual gap and the expected value of the game across
- iterations are shown in Figure \ref{Tab:dgap_curve}.
-More details (payoff matrix, etc.) are provided in
-the supplementary materials...
+ analytically by H. W. Kuhn in his 1950 paper \cite{kuhn}. More
+ details (payoff matrix, etc.) are provided in the supplementary
+ materials. The  evolution of the dual gap and the expected value of
+ the game across iterations are shown in Figure \ref{Tab:dgap_curve}.
+We have not benchmarked this against the algorithms proposed in
+\cite{nesterov2005a} and Gilpin's et al. \cite{gilpinfirst} because
+implementing them for such games would require us to compute the
+complicated projections $\prox_{Q_k}$.  We recall that
+avoiding these projections was one of the goals of the present
+manuscript.
 
 \section{Concluding remarks}
 Making use of the sequence-form representation
@@ -866,7 +870,7 @@ Making use of the sequence-form representation
 deviced a simple and efficient primal-dual algorithm for computing
 Nash equilibria in two-person zero-sum sequential games with
 imcomplete information (like Texas Hold'em, etc.). Our algorithm is
-simple to implement, with a very low constant cost per iteration, and
+simple to implement, with a low constant cost per iteration, and
 enjoys a rigorous convergence theory with a proven
 $\mathcal{O}(1/\epsilon)$ convergence in terms of basic operations
 (matvec products, clipping, etc.), to a Nash

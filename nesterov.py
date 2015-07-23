@@ -243,7 +243,7 @@ if __name__ == "__main__":
     from primal_dual import primal_dual_sg_ne as alg_1_ne
     rng = np.random.RandomState(42)
     A = np.array([[-2., 3.], [3, -4]])
-    A = rng.randn(50, 50)
+    A = rng.randn(1000, 1000)
     fig1 = plt.figure(figsize=(13.5, 10))
     ax1 = plt.subplot("111")
     plt.grid("on")
