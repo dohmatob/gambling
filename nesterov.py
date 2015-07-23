@@ -229,6 +229,8 @@ def gilpin_ne(A, epsilon=1e-4, max_iter=np.inf):
 
     return x, y, values, gaps
 
+_cap = lambda name: name[0].upper() + name[1:].lower()
+
 if __name__ == "__main__":
     # matplotlib confs
     import matplotlib
@@ -238,32 +240,34 @@ if __name__ == "__main__":
     matplotlib.rc('text', usetex=True)
     plt.rc('font', size=50)  # make the power in sci notation bigger
 
-    from primal_dual import primal_dual_sg_ne as elvis_ne
+    from primal_dual import primal_dual_sg_ne as alg_1_ne
     rng = np.random.RandomState(42)
     A = np.array([[-2., 3.], [3, -4]])
-    A = rng.randn(20, 10)
-    fig1 = plt.figure(figsize=(17, 13))
+    A = rng.randn(50, 50)
+    fig1 = plt.figure(figsize=(13.5, 10))
     ax1 = plt.subplot("111")
     plt.grid("on")
-    fig2 = plt.figure(figsize=(17, 13))
+    fig2 = plt.figure(figsize=(13.5, 10))
     ax2 = plt.subplot("111")
     plt.grid("on")
-    for solver in ["nesterov", "gilpin", "elvis"]:
+    for solver in ["alg 1", "gilpin", "nesterov"]:
         x, u, values, gaps = eval("%s_ne" % solver.replace(" ", "_").replace(
             "-", "_"))(A, epsilon=1e-4, max_iter=100000)
-        ax1.loglog(gaps, label="\\textbf{%s}" % solver, linewidth=4)
-        ax1.set_xlabel("\\textbf{$k$}", fontsize=50)
+        ax1.loglog(gaps, label="\\textbf{%s}" % _cap(solver), linewidth=6)
         ax1.set_ylabel("\\textbf{primal-dual gap}", fontsize=50)
-
-        ax2.semilogx(values, label="\\textbf{%s}" % solver, linewidth=4)
-        ax2.set_xlabel("\\textbf{$k$}", fontsize=50)
+        if solver == "alg 1":
+            ax1.loglog(1. / np.arange(1, len(gaps) + 1), linestyle="--",
+                       dashes=(20, 10), label="$\\mathcal{O}(1/k)$",
+                       linewidth=6, color="k")
+        ax2.semilogx(values, label="\\textbf{%s}" % _cap(solver), linewidth=6)
+        ax2.set_xlabel("\\textbf{$k$ (iteration count)}", fontsize=50)
         ax2.set_ylabel("\\textbf{game value}", fontsize=50)
     for i, (fig, ax) in enumerate(zip([fig1, fig2], [ax1, ax2])):
+        plt.figure(fig.number)
         if i > 0:
             ax.ticklabel_format(axis="y", style="sci", scilimits=(0., 0.))
         ax.tick_params(axis='both', which='major', labelsize=50)
         ax.legend(loc="best", prop=dict(size=45), handlelength=1.5)
         plt.tight_layout()
-        plt.figure(fig.number)
-        plt.savefig("%i.png" % i)
+        plt.savefig("%i.pdf" % i)
     plt.show()

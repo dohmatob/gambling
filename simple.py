@@ -455,17 +455,17 @@ if __name__ == "__main__":
 
     rng = check_random_state(42)
     max_iter = 10000
-    game_clses = ["simplex", SimplifiedPoker, Kuhn3112]
+    game_clses = ["simplex", SimplifiedPoker, Kuhn3112][1:]
     for cnt, game_cls in enumerate(game_clses):
         if game_cls == "simplex":
             game = None
             name = game_cls
-            A = rng.uniform(-1, 1, size=(100, 100))
+            A = rng.uniform(-1, 1, size=(50, 50))
             x, y, p, q, init, values, dgaps = primal_dual_sg_ne(
                 A, max_iter=max_iter, strict=False)
         else:
             game = game_cls()
-            name = game.__class__.__name__
+            name = game_cls.__name__
             E1, e1 = game.constraints[1]
             E2, e2 = game.constraints[2]
             A = game.payoff_matrix
@@ -489,22 +489,13 @@ if __name__ == "__main__":
         plt.figure(figsize=(13.5, 10))
         ax = plt.subplot("111")
         plt.grid("on")
-        ax.semilogx(values, linewidth=4)
+        ax.semilogx(values, linewidth=6, label="\\textbf{Alg 1}")
         value_ = "%.0e" % value
         m, e = re.search("(.+?)e(.+)", value_).groups()
         m = float(m)
         m = "" if m >= 0 else "-"
         e = re.sub("\-0*", "-", e)
-        kwargs = {}
         plt.xlabel("\\textbf{$k$ (iteration count)}", fontsize=50)
-        if cnt == 0:
-            kwargs["label"] = "$\\langle x^*,Ay^*\\rangle$"
-            ax.set_ylabel(("\\textbf{$\\langle x^{(k)}, Ay^{(k)} "
-                           "\\rangle$"), fontsize=50)
-        ax.axhline(
-            -1. / 18. if isinstance(game, Kuhn3112) else value,
-            linestyle="--", dashes=(30, 10), color="b",
-            linewidth=4, **kwargs)
         plt.legend(loc="best", prop=dict(size=45), handlelength=1.5)
         ax.ticklabel_format(axis="y", style="sci", scilimits=(0., 0.))
         ax.tick_params(axis='both', which='major', labelsize=50)
@@ -515,12 +506,11 @@ if __name__ == "__main__":
         plt.figure(figsize=(13.5, 10))
         plt.grid("on")
         plt.loglog(cst / np.arange(1, len(dgaps) + 1), linestyle="--",
-                   dashes=(30, 10), label="$\\mathcal{O}(1/k)$", linewidth=4,
-                   color="b")
-        plt.loglog(np.abs(dgaps), label="\\textbf{Algorithm 1}", linewidth=4)
-        if cnt == 0:
-            plt.ylabel("\\textbf{$||\\tilde{v}^{a}_k||$}", fontsize=50)
-            plt.legend(loc="best", prop=dict(size=45), handlelength=1.5)
+                   dashes=(20, 10), label="$\\mathcal{O}(1/k)$", linewidth=6,
+                   color="k")
+        plt.loglog(np.abs(dgaps), label="\\textbf{Alg 1}", linewidth=6)
+        plt.ylabel("\\textbf{$||\\tilde{v}^k_a||$}", fontsize=50)
+        plt.legend(loc="best", prop=dict(size=45), handlelength=1.5)
         plt.tick_params(axis='both', which='major', labelsize=50)
         plt.tight_layout()
         plt.savefig("%s_dgap.pdf" % name)
