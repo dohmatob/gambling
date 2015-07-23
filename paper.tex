@@ -113,18 +113,18 @@ Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
  largest \textit{eigenvalue} of $A^TA$ (or equivalently, of $AA^T$).
 
 \subsection{Nash-equilibrium concepts and statement of the problem}
-The sequence-form for two-person zero-sum games was introduced in
+The sequence-form representation for two-person zero-sum games with
+imcomplete information was introduced in
 \cite{koller1992complexity}, and the theory was further developed in
 \cite{koller1994fast,von1996efficient,vonequilibrium}, where it was
-established that for sequential two-person zero-sum games with
-imcomplete information and perfect recall, there exist sparse matrices
+established that for such games, there exist sparse matrices
 $A \in \mathbb{R}^{n_1 \times n_2}$, $E_1 \in \mathbb{R}^{l_1 \times
   n_1}$, $E_2 \in \mathbb{R}^{l_2 \times n_2}$, and vectors $e_1 \in
 \mathbb{R}^{l_1}, e_2 \in \mathbb{R}^{l_2}$ such that $n_1$, $n_2$,
 $l_1$, and $l_2$ are all linear in the size of the game tree (number
 of states in the game) and such that Nash equilibria correspond to
 pairs $(x, y)$ of \textit{realization plans} which solve the primal
-LCP
+LCP (Linear Convex Program)
 \begin{equation}
   \begin{aligned}
      \text{minimize }\langle e_1, p\rangle, \hspace{.5em}\text{
@@ -217,16 +217,6 @@ doesn't exceed $\epsilon$. That is,
 \label{thm:approx_nash}
 \end{definition}
 
-\paragraph{Our contribution.}
-Developing on an alternative notion of approximate equilibria
-homologuous to that presented in Definition \ref{thm:approx_nash}, we
-device a primal-dual algorithm (Algorithm \ref{Tab:algo}) for
-computing approximate Nash equilibria in sequential two-person
-zero-sum games with imcomplete information and perfect recall. We also
-prove that the number of iterations required by the algorithm to
-produce an approximation equilibrium to a precision $\epsilon$ is
-$\mathcal{O}(1/\epsilon)$.
-
 \paragraph{A note about matrix games on simplexes.} It should be
 noted
 that any matrix $A \in \mathbb{R}^{n_1 \times n_2}$ specifies a matrix
@@ -253,6 +243,38 @@ and the primal-dual gap function $G(x,y)$ writes
 %% \end{equation}
 %% Such pairs $(x^*, y^*)$ correspond to the Nash equilibria of the game, and ${x^*}^TAy^*$ is the \textit{value}
 %% \footnote{This value is the same for every equilibrium pair $(x^*, y^*)$.} of the game.
+
+\subsection{Our contribution}
+One cannot directly attack the LCPs \eqref{eq:primal_pb} and
+\eqref{eq:dual_pb} via a traditional primal-dual algorithm
+(for example \cite{chambolle2010,chambolle2014ergodic}) because
+computing the euclidean projections $\proj_{Q_k}$ is very difficult
+(in fact, such subproblems would have to be solved
+iteratively\footnote{An ``exception to the rule'' is the case where
+  the $Q_k's$ are simplexes, so that the projections can be computed
+  exactly using \cite{duchi2008efficient}.}). Also,
+the primal-dual gap might explode even at ``nearly feasible'' points,
+leaving a primal-dual algorithm with no clear indication whatsoever,
+on whether progress is being made or not. So need to way to
+\begin{itemize}
+\item[--] avoid having to compute the projections $\proj_{Q_k}$,
+\item[--] have control over how far we are from the set of equilibria and
+  avoid infinite (and thus non-informative) primal-dual gaps.
+\end{itemize}
+
+Developing on an alternative notion of approximate equilibria (see
+Definition \ref{thm:cool_notion})
+homologuous to that presented in Definition \ref{thm:approx_nash}, we
+device a primal-dual algorithm (Algorithm \ref{Tab:algo}) for
+computing approximate Nash equilibria in sequential two-person
+zero-sum games with imcomplete information and perfect recall. We also
+prove (Theorem \ref{thm:pd})
+that the number of iterations required by the algorithm to
+produce an approximation equilibrium to a precision $\epsilon$ is
+$\mathcal{O}(1/\epsilon)$.%%  The source of approximation in our scheme
+%% is that we explicitly control how close we are to the feasible set
+%% $Q_1 \times Q_2$.
+
 
 \section{Related work}
 \label{sec:related_work}
@@ -343,25 +365,9 @@ than what state-of-the-art LCP and interior-point solvers can
 handle. See for example \cite{hoda2010smoothing}.
 
 
-\section{Reformulation as a Generalized Saddle-point Problem (GSP)}
+\section{Our contributions}
+\subsection{Reformulation as a Generalized Saddle-point Problem (GSP)}
 \label{sec:gsp}
-One cannot directly attack the LCPs \eqref{eq:primal_pb} and
-\eqref{eq:dual_pb} via a traditional primal-dual algorithm
-(for example \cite{chambolle2010,chambolle2014ergodic}) because
-computing the euclidean projections $\proj_{Q_k}$ is very difficult
-(in fact, such subproblems would have to be solved
-iteratively\footnote{An ``exception to the rule'' is the case where
-  the $Q_k's$ are simplexes, so that the projections can be computed
-  exactly using \cite{duchi2008efficient}.}). Also,
-the primal-dual gap might explode even at ``nearly feasible'' points,
-leaving a primal-dual algorithm with no clear on whether progress is
-being made or not. So need to way to
-\begin{itemize}
-\item[--] avoid having to compute the projections $\proj_{Q_k}$,
-\item[--] have control over how far we are from the set of equilibria and
-  avoid infinite (and thus non-informative) primal-dual gaps.
-\end{itemize}
-
 In the next theorem, we show that the said LCP problems can be
 conveniently written as a \textit{Generalized Saddle-point Problem
   (GSP)} in the sense of \cite{he2013accelerating}.
@@ -516,9 +522,9 @@ developing an algorithm for solving the latter.
 % \subsection{The proposed algorithm and its $\mathcal{O}(1/\epsilon)$
 % convergence}
 
-\section{A more amenable notion of approximate equilibrium}
-\subsection{Interlude: Proximal calculus}
-Let us introduce some notions in modern convex analysis which will be
+\subsection{A more amenable notion of approximate equilibria}
+\subsubsection{Interlude: Proximal calculus}
+Let us introduce some notions from modern convex analysis which will be
 useful in what follows. Given a subset $C$ of $\mathbb{R}^n$,
 $i_C$ denotes its \textit{indicator function} defined by
 \begin{eqnarray}
@@ -598,7 +604,7 @@ there exists a perturbation vector $v^*$ such that
   \hat{\Psi}_2(y^*, p^*, ., .)](y^*,p^*,x^*,q^*).
 \end{eqnarray}
 
-Such a vector $v^*$ is called a Nash $\epsilon$-residual at $(x^*,
+Such a vector $v^*$ is called a Nash $(\epsilon_1, \epsilon_2)$-residual at $(x^*,
 y^*, x^*, q^*)$.
 \label{thm:cool_notion}
 \end{definition}
@@ -613,12 +619,11 @@ equilibria since:
 \end{itemize}
 
 
-\section{The proposed primal-dual algorithm}
+\subsection{The proposed primal-dual algorithm}
 \label{sec:algo}
 We now derive and establish the theoretical properties of the
 algorithm which is the main object of this manuscript.
 
-\subsection{Algorithm and convergence rate}
 \begin{algorithm}
 \caption{Primal-dual algorithm for computing approximate Nash
   Equilbria in two-person zero-sum games with imcomplete information
@@ -700,106 +705,112 @@ pre-multiplying vectors by $A$ and $A^T$. For \textit{flop-type} poker
 games like \textit{Texas Hold'em} and  \textit{Rhode Island Hold'em},
 $A$ (and thus $A^T$ too)  is very big (up $10^{100}$ rows and columns!)
 but has a rich block-diagnoal structure which can be carefully
-exploited, as was done in \cite{hoda2010smoothing}.
+exploited, as was done in \cite{hoda2010smoothing}. For the purpose of
+completeness, we explain the details of the tricks used in
+\cite{hoda2010smoothing} for speeding up the computation of these
+matvec products.
 
+\begin{definition}(Kronecker product)
+Let $F \in \mathbb{R}^{m \times n}$ and $B \in \mathbb{R}^{r \times
+  s}$ be matrices. The kronecker product of $F$ and $B$ is defined by
 
-%% \begin{definition}(Kronecker product)
-%% Let $F \in \mathbb{R}^{m \times n}$ and $B \in \mathbb{R}^{r \times
-%%   s}$ be matrices. The kronecker product of $F$ and $B$ is defined by
+\begin{equation}
+F \otimes B:=\left[
+\begin{array}{cccc}
+F_{0,0}B & F_{0,1}B & \cdots & F_{0,n-1}B \\
+F_{1,0}B & F_{1,1}B & \cdots & F_{1,n-1}B \\
+\vdots & \vdots & \ddots & \vdots\\
+F_{m-1,0}B & F_{m-1,1}B & \cdots & F_{m-1,n-1}B 
+\end{array}\right] \in \mathbb{R}^{mr \times ns}
+\end{equation}
+\end{definition}
 
-%% \begin{equation}
-%% F \otimes B:=\left[
-%% \begin{array}{cccc}
-%% F_{0,0}B & F_{0,1}B & \cdots & F_{0,n-1}B \\
-%% F_{1,0}B & F_{1,1}B & \cdots & F_{1,n-1}B \\
-%% \vdots & \vdots & \ddots & \vdots\\
-%% F_{m-1,0}B & F_{m-1,1}B & \cdots & F_{m-1,n-1}B 
-%% \end{array}\right] \in \mathbb{R}^{mr \times ns}
-%% \end{equation}
-%% \end{definition}
+One notes that $(F \otimes B)^T = F^T \otimes B^T$.
+$F \otimes B$ can be very much larger than both $F$ and $B$ in
+dimensions. For example, if $r = n = r = s = 1000$, so that $F$ and
+$B$ are $10^3$-by-$10^3$ matrices, then $F \otimes B$ is a
+$10^6$-by-$10^6$ matrix! Fortunately, given a vector $x \in
+\mathbb{R}^{rs}$ one can compute the matvec product $(F \otimes B)x$
+without forming $F \otimes B$. Indeed, let $y := (F \otimes B)x$. We
+rewrite the row vector $x$ as an $s$-by-$r$ matrix $X = [X_0, X_1,
+  ..., X_{r-1}]$, where each column vector $X_i$ is the $i$th block of
+$s$ elements of $x$ read from left to right. Similarly, rewrite $y$ as
+as an $n$-by-$m$ matrix $Y = [Y_0, Y_1, ..., Y_{m-1}]$. Then one
+easily verfies that $Y$ is the matrix product of the ``small''
+matrices $B$, $X$, and $F^T$, i.e
 
-%% One notes that $(F \otimes B)^T = F^T \otimes B^T$.
-%% $F \otimes B$ can be very much larger than both $F$ and $B$ in
-%% dimensions. For example, if $r = n = r = s = 1000$, so that $F$ and
-%% $B$ are $10^3$-by-$10^3$ matrices, then $F \otimes B$ is a
-%% $10^6$-by-$10^6$ matrix! Fortunately, given a vector $x \in
-%% \mathbb{R}^{rs}$ one can compute the matvec product $(F \otimes B)x$
-%% without forming $F \otimes B$. Indeed, let $y := (F \otimes B)x$. We
-%% rewrite the row vector $x$ as an $s$-by-$r$ matrix $X = [X_0, X_1,
-%%   ..., X_{r-1}]$, where each column vector $X_i$ is the $i$th block of
-%% $s$ elements of $x$ read from left to right. Similarly, rewrite $y$ as
-%% as an $n$-by-$m$ matrix $Y = [Y_0, Y_1, ..., Y_{m-1}]$. Then one
-%% easily verfies that $Y$ is the matrix product of the ``small''
-%% matrices $B$, $X$, and $F^T$, i.e
+\begin{equation}
+  \label{eq:kron_matvec}
+  Y = BXF^T
+\end{equation}
 
-%% \begin{equation}
-%%   \label{eq:kron_matvec}
-%%   Y = BXF^T
-%% \end{equation}
+Now, in Texas Hold'em for example, the payoff matrix $A$ can be
+written as block-diagonal matrix whose blocks are sums of Kronecker
+products of much smaller sparse matrices as follows
 
-%% Now, in Texas Hold'em for example, the payoff matrix $A$ can be
-%% written as block-diagonal matrix whose blocks are sums of Kronecker
-%% products of much smaller sparse matrices as follows
+\begin{equation}
+  A = \begin{bmatrix}F_1 \otimes B_1\hspace{10em}\\\hspace{3em}F_2
+    \otimes B_2\hspace{7em}\\\hspace{6em}F_3 \otimes
+    B_3\hspace{4em}\\\hspace{10em}F_4 \otimes B_4 + S \end{bmatrix}
+\label{eq:factor_A}
+\end{equation}
+See \cite{hoda2010smoothing}. The matrices $F_i$ correspond to
+sequences of moves in round $i$ which end in a \textit{fold} action,
+and $S$ to the sequences which end in a \textit{showdown}. $B_i$
+encodes the betting structure of round $i$, while $W$ encodes the
+wind/lose/draw information determined by ranking the players' hands at
+showdown. The component matrices $F_i$, $B_i$, $S$, and $W$ are small
+enough to be explictly represented whereas it is infeasible to
+explicitly represent A. Furthermore, the matrices $F_i$, $B_i$,
+$S$, and $W$ are themselves sparse, which allows one to use the
+compressed row storage data structure that only stores nonzero entries
+(for example \textit{scipy.sparse.csr\_matrix}, in the Python
+programming language).
 
-%% \begin{equation}
-%%   A = \begin{bmatrix}F_1 \otimes B_1\hspace{10em}\\\hspace{3em}F_2
-%%     \otimes B_2\hspace{7em}\\\hspace{6em}F_3 \otimes
-%%     B_3\hspace{4em}\\\hspace{10em}F_4 \otimes B_4 + S \end{bmatrix}
-%% \label{eq:factor_A}
-%% \end{equation}
-%% See \cite{hoda2010smoothing}. The matrices $F_i$ correspond to
-%% sequences of moves in round $i$ which end in a \textit{fold} action,
-%% and $S$ to the sequences which end in a \textit{showdown}. $B_i$
-%% encodes the betting structure of round $i$, while $W$ encodes the
-%% wind/lose/draw information determined by ranking the players' hands at
-%% showdown. The component matrices $F_i$, $B_i$, $S$, and $W$ are small
-%% enough to be explictly represented whereas it is infeasible to
-%% explicitly represent A. Furthermore, the matrices $F_i$, $B_i$,
-%% $S$, and $W$ are themselves sparse, which allows one to use the
-%% compressed row storage data structure that only stores nonzero entries
-%% (for example \textit{scipy.sparse.csr\_matrix}, in the Python
-%% programming language).
+Such a representation of the payoff matrix $A$ trivializes matvec
+operations involving $A$ or $A^T$ (thanks to formula
+\eqref{eq:kron_matvec} above, applied to their diagonal blocks and
+exploiting the sparsity of these blocks themselves). Of course, one
+can always write the payoff matrix $A$ of a flop-type Poker game in a
+form similary to \eqref{eq:factor_A} by applying appropriate
+permutations to the enumeration of the players's sequences.
 
-%% Such a representation of the payoff matrix $A$ trivializes matvec
-%% operations involving $A$ or $A^T$ (thanks to formula
-%% \eqref{eq:kron_matvec} above, applied to their diagonal blocks and
-%% exploiting the sparsity of these blocks themselves). Of course, one
-%% can always write the payoff matrix $A$ of a flop-type Poker game in a
-%% form similary to \eqref{eq:factor_A} by applying appropriate
-%% permutations to the enumeration of the players's sequences.
-
-\paragraph{\textbf{Computing $\|K\|$.}} Power iteration (Perron-Frobenius)...
+\paragraph{\textbf{Computing $\|K\|$.}}
+Also the 2-norm $\|K\|$ of the linear operator $K$, can be efficiently
+computed using the power iteration (Perron-Frobenius).
 
 \section{Experimental results}
 \label{sec:results}
 To access the practical quality of the proposed algorithm, we
-experimented it on real games.
-
-\subsection{Basic test-bed: Matrix games on simplexes}
+tested it on simulated and real games.
+\paragraph{Basic test-bed: Matrix games on simplexes.}
 As in \cite{nesterov2005a,chambolle2014ergodic}, we generate a $1000
 \times 1000$ random matrix whose entries are uniformly identically
-distributed in the closed interval $[-1, 1]$.
+distributed in the closed interval $[-1, 1]$. We compared our proposed
+Algorithm \ref{Tab:algo} with Nesterov's \cite{nesterov2005a} and Gilpin's et
+al. \cite{gilpinfirst}. The results of the benchmarks are shown in
+Figure \ref{Tab:dgap_curve}\textit{(a)}...
 
 
 \begin{figure}[!htpb]
   \subfigure[Matrix game on simplexes]{
-    \includegraphics[width=.33\linewidth]{0.pdf}
+    \includegraphics[width=.5\linewidth]{0.pdf}
   }
-  \hspace{-2em}
-  \subfigure[Toy Poker]{
-    \includegraphics[width=.33\linewidth]{SimplifiedPoker_dgap.pdf}
-  }
+  %% \hspace{-2em}
+  %% \subfigure[Toy Poker]{
+  %%   \includegraphics[width=.5\linewidth]{SimplifiedPoker_dgap.pdf}
+  %% }
   \hspace{-2em}
   \subfigure[Kuhn 3-card Poker]{
-    \includegraphics[width=.33\linewidth]{Kuhn3112_dgap.pdf}
+    \includegraphics[width=.5\linewidth]{Kuhn3112_dgap.pdf}
   }
   \vspace{-1em}
+  \hspace{-2em}
+  \includegraphics[width=.5\linewidth]{1.pdf}
+  %% \hspace{-1em}
+  %% \includegraphics[width=.5\linewidth]{SimplifiedPoker_NE.pdf}
   \hspace{-1em}
-  \includegraphics[width=.34\linewidth]{1.pdf}
-  \hspace{-1em}
-  \includegraphics[width=.33\linewidth]{SimplifiedPoker_NE.pdf}
-  \hspace{-1em}
-  \includegraphics[width=.33\linewidth]{Kuhn3112_NE.pdf}
+  \includegraphics[width=.5\linewidth]{Kuhn3112_NE.pdf}
   \caption{Convergence curves of Algorithm
     \ref{Tab:algo}. \textbf{Top row}: Evolution of ergodic
     primal-dual gap. \textbf{Bottom row}: Evolution of
@@ -807,39 +818,81 @@ distributed in the closed interval $[-1, 1]$.
   \label{Tab:dgap_curve}
 \end{figure}
 
-\subsection{Sequential games with imcomplete information}
-\paragraph{\textbf{Toy Poker game...}}
-%% The sequence-form representation for this Toy Poker game is given by
-%% (showing only nonzero entries):\\
-
-%% $E_1 \in \mathbb{R}^{3 \times 5}$ with $E_1(0,0) = E_1(1,1) =
-%% E_1(1,2) = E_1(2,3) = E_1(2,4) = {1}$,
-%% $E_1(1,0) = E_1(2,0) = {-1}$; \\
-
-%% $E_2 \in \mathbb{R}^{3 \times 5}$ with $E_2(0,0) = E_2(1,1) = E_2(1,2)
-%% = E_2(2,3) = E_2(2,4) = {1}$, $E_2(1,0) = E_2(2,0) =
-%% {-1}$; and \\
-
-%% $A \in \mathbb{R}^{5 \times 5}$ with $A(2,0) =
-%% A(4,0) = {-0.5}$, $A(1,3) = {1}$, $A(3,1) =
-%% {-1}$, $A(1,2) = A(1,4) = A(3,2) = A(3,4) = {0.25}$.
-
-
-\paragraph{{Kuhn 3-card Poker}} is a simplified form of poker
-developed by Harold W. Kuhn. It is a zero sum two player game. The
+\paragraph{Experiments on sequential games with imcomplete information: Kuhn 3-card
+  poker.} This game is a simplified form of poker
+developed by Harold W. Kuhn. It is a two-person zero-sum game which is
+simply enough to serve as an example but contains all the complexity
+traits of a imcomplete information sequential game. The
 deck includes only three playing cards, for example a King, Queen, and
 Jack. One card is dealt to each player, then the first player must bet
 or pass, then the second player may bet or pass. If any player chooses
 to bet the opposing player must bet as well ("call") in order to stay
 in the round. After both players pass or bet the player with the
-highest card wins the pot. Kuhn demonstrated that there are many game
-theoretic optimal strategies for the first player in this game, but
-only one for the second player, and that, when played optimally, the
-first player should expect to lose at a rate of −1/18 per hand. The
+highest card wins the pot. The
 sequence-form representation of the game has $n_1 = n_2 = 13$
 sequences and $l_1 = l_2 = 7$ information
-sets per player. More details (payoff matrix, etc.) are provided in
-the supp. mats. %% , and its
+sets per player. The pair $(x^*, y^*) \in \mathbb{R}^{13} \times
+\mathbb{R}^{13}$ of realization plans given by
+\begin{eqnarray*}
+  \begin{split}
+    x^* &= [1, 0.759, 0.759, 0, 0.241, 1, 0.425, 0.575, 0, 0.275, 0,
+      0.275, 0.725]^T,\\
+    y^* &= [1, 1, 0, 0.667, 0.333, 0.667, 0.333, 1, 0, 0, 1, 0, 1]^T
+    \end{split}
+\end{eqnarray*}
+is a Nash $10^{-4}$-equlibrium computed in 1500 iterations of
+Algorithm  \ref{Tab:algo}. The convergence curves are shown
+in Fig \ref{Tab:dgap_curve}. One easy checks that this equilibrium is
+feasible. Indeed, $E_1x^* - e_1 = [4.76 \times 10^{-5}, -1.91 \times 10^{-5}, 5.67
+      \times 10^{-5}, 8.23 \times 10^{-6}, 2.90 \times 10^{-5},
+      -8.62 \times 10^{-7}, -1.96 \times 10^{-5}]^T$
+and
+$E_2y^* - e_2 = [-7.04 \times 10^{-7}, 2.27 \times 10^{-6}, -3.29
+  \times 10^{-6}, -1.50 \times 10^{-6},
+      2.92 \times 10^{-6}, -4.97 \times 10^{-7}, -5.85 \times
+      10^{-7}]^T$.
+Finally, one checks that ${x^*}^TAy^* = {-0.05555}$,
+ which agrees to 5 d.p with the value of $-1 / 18$ computed
+ analytically by H. W. Kuhn in his 1950 paper \cite{kuhn}. The
+ evolution of the dual gap and the expected value of the game across
+ iterations are shown in Figure \ref{Tab:dgap_curve}.
+More details (payoff matrix, etc.) are provided in
+the supplementary materials...
+
+\section{Concluding remarks}
+Making use of the sequence-form representation
+\cite{koller1992complexity,von1996efficient,vonequilibrium}, we have
+deviced a simple and efficient primal-dual algorithm for computing
+Nash equilibria in two-person zero-sum sequential games with
+imcomplete information (like Texas Hold'em, etc.). Our algorithm is
+simple to implement, with a very low constant cost per iteration, and
+enjoys a rigorous convergence theory with a proven
+$\mathcal{O}(1/\epsilon)$ convergence in terms of basic operations
+(matvec products, clipping, etc.), to a Nash
+$(\epsilon,0)$-equilibrium of the game. Equilibrium problems are
+saddle-point convex-concave problems, and as
+such a natural choice for algorithms for solving them would be in the
+family of primal-dual algorithms. We believe such primal-dual
+schemes will receive more attention in the algorithmic game theory
+community in future.
+
+The author's implementation of the proposed algorithm is available
+upon request.
+
+%% \paragraph{About the author:} I'm a first-year PhD student in Computer
+%% Science at Universit\'e de Parix XI. My thesis focuses on novel
+%% techniques for optimization on Lie groups (of diffeomorphisms), and
+%% other structured manifolds, the aim being to obtain better algorithms
+%% for nonlinear registration of fMRI brain images and enhance the
+%% charting of human functional connectomes.
+%\pagebreak
+\bibliographystyle{llcns2e/splncs03}
+\bibliography{bib}
+
+
+\section{Supplementary materials}
+...
+ %% , and its
 %% sequence-form is given by:\\
 
 %% $E_1 \in \mathbb{R}^{7 \times 13}$ with $E_1(0,0) = E_1(1,9) =
@@ -862,74 +915,23 @@ the supp. mats. %% , and its
 %% $A(4,5) = A(4,9) = A(5,3) = A(8,1) = A(8,9) = A(9,3) = A(9,7) =
 %% A(12,1) = A(12,5) = {0.166667}$.\\
 
-The pair $(x^*, y^*) \in \mathbb{R}^{13} \times \mathbb{R}^{13}$ of
-realization plans given by
 
-\begin{eqnarray*}
-  \begin{split}
-    x^* &= [1, 0.759, 0.759, 0, 0.241, 1, 0.425, 0.575, 0, 0.275, 0,
-      0.275, 0.725]^T,\\
-    y^* &= [1, 1, 0, 0.667, 0.333, 0.667, 0.333, 1, 0, 0, 1, 0, 1]^T
-    \end{split}
-\end{eqnarray*}
-is a Nash $10^{-4}$-equlibrium computed in 1500 iterations of
-Algorithm  \ref{Tab:algo}. The convergence curves are shown
-in Fig \ref{Tab:dgap_curve}. One easy checks that this equilibrium is
-feasible. Indeed,
+%\paragraph{\textbf{Toy Poker game...}}
+%% The sequence-form representation for this Toy Poker game is given by
+%% (showing only nonzero entries):\\
 
-\begin{eqnarray*}
-  \begin{split}
-    E_1x^* - e_1 = [&4.76 \times 10^{-5}, -1.91 \times 10^{-5}, 5.67
-      \times 10^{-5}, 8.23 \times 10^{-6}, 2.90 \times 10^{-5}, \\&
-      -8.62 \times 10^{-7}, -1.96 \times 10^{-5}]^T
-    \end{split}
-\end{eqnarray*}
-and
+%% $E_1 \in \mathbb{R}^{3 \times 5}$ with $E_1(0,0) = E_1(1,1) =
+%% E_1(1,2) = E_1(2,3) = E_1(2,4) = {1}$,
+%% $E_1(1,0) = E_1(2,0) = {-1}$; \\
 
-\begin{eqnarray*}
-  \begin{split}
-    E_2y^* - e_2 = [&-7.04 \times 10^{-7}, 2.27 \times 10^{-6}, -3.29
-      \times 10^{-6}, -1.50 \times 10^{-6},\\
-      &2.92 \times 10^{-6}, -4.97 \times 10^{-7}, -5.85 \times
-      10^{-7}]^T
-    \end{split}
-\end{eqnarray*}
-Finally, one checks that
-\begin{eqnarray*}
-  {x^*}^TAy^* = {-0.05555},
-\end{eqnarray*}
- which agrees to 5 d.p with the value of $-1 / 18$ computed
- analytically by H. W. Kuhn in his 1950 paper \cite{kuhn}. The
- evolution of the dual gap and the expected value of the game across
- iterations are shown in Figure \ref{Tab:dgap_curve}.
+%% $E_2 \in \mathbb{R}^{3 \times 5}$ with $E_2(0,0) = E_2(1,1) = E_2(1,2)
+%% = E_2(2,3) = E_2(2,4) = {1}$, $E_2(1,0) = E_2(2,0) =
+%% {-1}$; and \\
+
+%% $A \in \mathbb{R}^{5 \times 5}$ with $A(2,0) =
+%% A(4,0) = {-0.5}$, $A(1,3) = {1}$, $A(3,1) =
+%% {-1}$, $A(1,2) = A(1,4) = A(3,2) = A(3,4) = {0.25}$.
 
 
-\section{Concluding remarks}
-Making use of the sequence-form representation
-\cite{koller1992complexity,von1996efficient,vonequilibrium}, we have
-deviced a primal-dual algorithm for computing Nash equilibria in
-two-person zero-sum sequential games with imcomplete information (like
-Texas Hold'em, etc.). Our algorithm is simple to implement, with a
-very low constant cost per iteration, and enjoys a rigorous
-convergence theory with a proven $\mathcal{O}(1/\epsilon)$ convergence
-in terms of basic operations (matvec products, clipping, etc.), to a
-Nash $(\epsilon,0)$-equilibrium of the game.
-Equilibrium problems are saddle-point convex-concave problems, and as
-such a natural choice for algorithms for solving them would be in the
-family of primal-dual algorithms. The author believes such primal-dual
-schemes will receive more attention in the algorithmic game theory
-community in future.
-
-
-%% \paragraph{About the author:} I'm a first-year PhD student in Computer
-%% Science at Universit\'e de Parix XI. My thesis focuses on novel
-%% techniques for optimization on Lie groups (of diffeomorphisms), and
-%% other structured manifolds, the aim being to obtain better algorithms
-%% for nonlinear registration of fMRI brain images and enhance the
-%% charting of human functional connectomes.
-
-\pagebreak
-\bibliographystyle{llcns2e/splncs03}
-\bibliography{bib}
 
 \end{document}
