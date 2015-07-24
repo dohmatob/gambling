@@ -233,6 +233,7 @@ and the primal-dual gap function $G(x,y)$ writes
 \Delta_{n_1} \times \Delta_{n_2}\} = \underset{0 \le j <
   n_1}{\text{max }}(Ay)_j - \underset{0 \le i < n_2}{\text{min
 }}(A^Tx)_i.
+\label{eq:mg_pd}
 \end{eqnarray}
 
 %% As usual, the ``minimax'' notation in problem \eqref{eq:primal_pb} means that a pair $(x^*, y^*) \in Q_1 \times Q_2$ is a solution if (and only if)
@@ -814,7 +815,15 @@ Figure \ref{Tab:dgap_curve}\textit{(a)}...
   \caption{Convergence curves of Algorithm
     \ref{Tab:algo}. \textbf{Top row}: Evolution of ergodic
     primal-dual gap. \textbf{Bottom row}: Evolution of
-    value of game...}
+    value of game. In \textit{(a)}, one can see the linear (i.e
+    exponential) of the algorithm in \cite{gilpinfirst}, inbetween
+    consecutive breakpoints on the $\epsilon$ grid. The duality gaps
+    are computed according to formula \eqref{eq:mg_pd}. The
+    first-order smoothing algorithm from \cite{nesterov2005a} jitters around as the
+    iterations go on because even the smoothed problem becomes heavily
+    ill-conditioned near solutions. On the other hand, our propsed
+    algorithm seems to beat both of the aforementioned algorithms, and
+  its proven $\mathcal{O}(1/\epsilon)$ convergence rate is clearly verified.}
   \label{Tab:dgap_curve}
 \end{figure}
 
@@ -831,10 +840,24 @@ in the round. After both players pass or bet the player with the
 highest card wins the pot. The
 sequence-form representation of the game has $n_1 = n_2 = 13$
 sequences and $l_1 = l_2 = 7$ information
-sets per player. More
- details (payoff matrix, etc.) are provided in the supplementary
- materials. The pair $(x^*, y^*) \in \mathbb{R}^{13} \times
-\mathbb{R}^{13}$ of realization plans given by
+sets per player. The sequence-form of the game is given by\\\\
+$E_1 \in \mathbb{R}^{7 \times 13}$ with $E_1(0,0) = E_1(1,9) =
+E_1(1,12) = E_1(2,1) = E_1(2,4) = E_1(3,5) =
+E_1(3,8) = E_1(4,2) = E_1(4,3) = E_1(5,6) = E_1(5,7) = E_1(6,10) =
+E_1(6,11) = {1}$, $E_1(1,0) = E_1(2,0) = E_1(3,0) = E_1(4,1) =
+E_1(5,5) = E_1(6,9) = {-1}$; $E_2 \in \mathbb{R}^{7 \times 13}$ with
+$E_2(0,0) = E_2(1,7) = E_2(1,8) = E_2(2,9) = E_2(2,10) = E_2(3,5) =
+E_2(3,6) = E_2(4,11) = E_2(4,12) = E_2(5,1) = E_2(5,2) = E_2(6,3) =
+E_2(6,4) = {1}$, $E_2(1,0) = E_2(2,0) = E_2(3,0) = E_2(4,0) =
+E_2(5,0) = E_2(6,0) = {-1}$; and $A \in \mathbb{R}^{13 \times
+  13}$ with $A(3,8) = A(3,12) = A(4,6) = A(4,10) = A(7,12) = A(8,10) =
+{-0.333333}$, $A(1,7) = A(1,11) = A(2,8) = A(2,12) = A(5,11) =
+A(6,4) = A(6,12) = A(10,4) = A(10,8) = {-0.166667}$, $A(7,4) =
+A(8,2) = A(11,4) = A(11,8) = A(12,2) = A(12,6) = {0.333333}$,
+$A(4,5) = A(4,9) = A(5,3) = A(8,1) = A(8,9) = A(9,3) = A(9,7) =
+A(12,1) = A(12,5) = {0.166667}$.\\
+
+The pair of vectors $(x^*, y^*) \in \mathbb{R}^{13 + 13}$ plans given by
 \begin{eqnarray*}
   \begin{split}
     x^* &= [1, 0.759, 0.759, 0, 0.241, 1, 0.425, 0.575, 0, 0.275, 0,
@@ -842,17 +865,18 @@ sets per player. More
     y^* &= [1, 1, 0, 0.667, 0.333, 0.667, 0.333, 1, 0, 0, 1, 0, 1]^T
     \end{split}
 \end{eqnarray*}
-is a Nash $10^{-4}$-equlibrium computed in 1500 iterations of
+is a Nash $(10^{-4},0)$-equlibrium computed in 1500 iterations of
 Algorithm  \ref{Tab:algo}. The convergence curves are shown
 in Fig \ref{Tab:dgap_curve}. One easy checks that this equilibrium is
-feasible. Indeed, $E_1x^* - e_1 = [4.76 \times 10^{-5}, -1.91 \times 10^{-5}, 5.67
+feasible. Indeed, one computes \\\\
+$E_1x^* - e_1 = [4.76 \times 10^{-5}, -1.91 \times 10^{-5}, 5.67
       \times 10^{-5}, 8.23 \times 10^{-6}, 2.90 \times 10^{-5},
       -8.62 \times 10^{-7}, -1.96 \times 10^{-5}]^T$
 and
 $E_2y^* - e_2 = [-7.04 \times 10^{-7}, 2.27 \times 10^{-6}, -3.29
   \times 10^{-6}, -1.50 \times 10^{-6},
       2.92 \times 10^{-6}, -4.97 \times 10^{-7}, -5.85 \times
-      10^{-7}]^T$.
+      10^{-7}]^T$.\\\\
 Finally, one checks that ${x^*}^TAy^* = {-0.05555}$,
  which agrees to 5 d.p with the value of $-1 / 18$ computed
  analytically by H. W. Kuhn in his 1950 paper \cite{kuhn}. The
@@ -893,29 +917,6 @@ upon request.
 %\pagebreak
 \bibliographystyle{llcns2e/splncs03}
 \bibliography{bib}
-
-
-\section{Supplementary materials}
-\subsection{Sequence-form representation for Kuhn 3-card poker}
-$E_1 \in \mathbb{R}^{7 \times 13}$ with $E_1(0,0) = E_1(1,9) =
-E_1(1,12) = E_1(2,1) = E_1(2,4) = E_1(3,5) =
-E_1(3,8) = E_1(4,2) = E_1(4,3) = E_1(5,6) = E_1(5,7) = E_1(6,10) =
-E_1(6,11) = {1}$, $E_1(1,0) = E_1(2,0) = E_1(3,0) = E_1(4,1) =
-E_1(5,5) = E_1(6,9) = {-1}$; \\
-
- $E_2 \in \mathbb{R}^{7 \times 13}$ with
-$E_2(0,0) = E_2(1,7) = E_2(1,8) = E_2(2,9) = E_2(2,10) = E_2(3,5) =
-E_2(3,6) = E_2(4,11) = E_2(4,12) = E_2(5,1) = E_2(5,2) = E_2(6,3) =
-E_2(6,4) = {1}$, $E_2(1,0) = E_2(2,0) = E_2(3,0) = E_2(4,0) =
-E_2(5,0) = E_2(6,0) = {-1}$; and \\
-
- $A \in \mathbb{R}^{13 \times
-  13}$ with $A(3,8) = A(3,12) = A(4,6) = A(4,10) = A(7,12) = A(8,10) =
-{-0.333333}$, $A(1,7) = A(1,11) = A(2,8) = A(2,12) = A(5,11) =
-A(6,4) = A(6,12) = A(10,4) = A(10,8) = {-0.166667}$, $A(7,4) =
-A(8,2) = A(11,4) = A(11,8) = A(12,2) = A(12,6) = {0.333333}$,
-$A(4,5) = A(4,9) = A(5,3) = A(8,1) = A(8,9) = A(9,3) = A(9,7) =
-A(12,1) = A(12,5) = {0.166667}$.\\
 
 
 %\paragraph{\textbf{Toy Poker game...}}
