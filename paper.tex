@@ -1,7 +1,7 @@
 \documentclass{article} % For LaTeX2e
 \usepackage{nips14submit_e}
 \usepackage{url}
-\usepackage{times}
+\usepackage{sans}
 \usepackage{amsmath,amsfonts, amsthm}
 \usepackage{bbm}
 \usepackage{algorithm,algorithmicx}
@@ -27,10 +27,10 @@
 \title{
   %\hrule\hrule\bigskip\bigskip
   A simple and efficient algorithm for computing approximate
-  Nash equilibria in two-person zero-sum sequential games with imcomplete
+  Nash equilibria in sequential games with imcomplete
   information}
-\author{Elvis DOHMATOB
-\\Parietal team, Inria Saclay Ile-de-France, Saclay, France
+\author{Elvis DOHMATOB%, Gael VAROQUAUX, Bertrand THIRION
+\\\\Parietal team, Inria Saclay Ile-de-France, Saclay, France
 \\\texttt{firstname.lastname@inria.fr}
 }
 
@@ -115,7 +115,7 @@ Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
 The sequence-form representation for two-person zero-sum games with
 imcomplete information was introduced in
 \cite{koller1992complexity}, and the theory was further developed in
-\cite{koller1994fast,von1996efficient,vonequilibrium}, where it was
+\cite{koller1994fast,von1996efficient,vonequilibrium} where it was
 established that for such games, there exist sparse matrices
 $A \in \mathbb{R}^{n_1 \times n_2}$, $E_1 \in \mathbb{R}^{l_1 \times
   n_1}$, $E_2 \in \mathbb{R}^{l_2 \times n_2}$, and vectors $e_1 \in
@@ -230,9 +230,9 @@ defined in \eqref{eq:polyhedron} reduce to simplexes $\Delta_{n_k}$,
 and the primal-dual gap function $G(x,y)$ writes
 \begin{eqnarray}G(x, y) =
 \mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle | (u,v) \in
-\Delta_{n_1} \times \Delta_{n_2}\} = \underset{0 \le j <
-  n_1}{\text{max }}(Ay)_j - \underset{0 \le i < n_2}{\text{min
-}}(A^Tx)_i.
+\Delta_{n_1} \times \Delta_{n_2}\} = \underset{0 \le i <
+  n_1}{\text{max }}(Ay)_i - \underset{0 \le j < n_2}{\text{min
+}}(A^Tx)_j.
 \label{eq:mg_pd}
 \end{eqnarray}
 
@@ -253,7 +253,7 @@ computing the euclidean projections $\proj_{Q_k}$ is very difficult
 iteratively\footnote{An ``exception to the rule'' is the case where
   the $Q_k's$ are simplexes, so that the projections can be computed
   exactly using \cite{duchi2008efficient}.}). Also,
-the primal-dual gap might explode even at ``nearly feasible'' points,
+the primal-dual gap might explode nearly the set of feasible points,
 leaving a primal-dual algorithm with no clear indication whatsoever,
 on whether progress is being made or not. So need to way to
 \begin{itemize}
@@ -365,10 +365,11 @@ than what state-of-the-art LCP and interior-point solvers can
 handle. See for example \cite{hoda2010smoothing}.
 
 
-\section{Our contributions}
-\subsection{Reformulation as a Generalized Saddle-point Problem (GSP)}
+\section{Methods}
+\subsection{The Generalized Saddle-point Problem (GSP) connection}
 \label{sec:gsp}
-In the next theorem, we show that the said LCP problems can be
+In the next theorem, we show that the LCPs \eqref{eq:primal_pb}
+and \eqref{eq:dual_pb} can be
 conveniently written as a \textit{Generalized Saddle-point Problem
   (GSP)} in the sense of \cite{he2013accelerating}.
 \begin{theorem}
@@ -422,23 +423,24 @@ and, define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
 Finally, define the sets $S_1 := \mathbb{R}^{n_2}_+ \times \mathbb{R}^{l_1}$ and $S_2 :=
 \mathbb{R}^{n_1}_+ \times \mathbb{R}^{l_2}$ and consider the
 GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$): Find a quadruplet $(y^*,p^*, x^*, q^*) \in
-S_1 \times S_2$ such that
+S_1 \times S_2$ such that $\forall (y,p, x, q) \in S_1
+    \times S_2$, it holds that
 \begin{eqnarray}
     \hat{\Psi}_1(y^*, p^*, x^*, q^*) \le \hat{\Psi}_1(y, p, x^*,
     q^*) \text{ and }\hat{\Psi}_2(y^*, p^*, x^*, q^*)
-    \le \hat{\Psi}_2(y^*, p^*, x, q) \forall (y,p, x, q) \in S_1
-    \times S_2.
+    \le \hat{\Psi}_2(y^*, p^*, x, q).
   \label{eq:unconstrained_pb}
 \end{eqnarray}
 \label{thm:pd}
 
-Then a quadruplet $(y^*,p^*, x^*, q^*) \in \mathbb{R}^{n_2}
+Then GSP($\Psi_1$,
+  $\Psi_2$, $g_1$, $g_2$) is equivalent to the Nash equilibrium LCPs
+  \eqref{eq:primal_pb} and \eqref{eq:dual_pb}, i.e
+a quadruplet $(y^*,p^*, x^*, q^*) \in \mathbb{R}^{n_2}
   \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
   \mathbb{R}^{l_2}$ solves the Nash equilibrium LCPs
   \eqref{eq:primal_pb} and \eqref{eq:dual_pb} iff it solves
-  GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$). In order words, GSP($\Psi_1$,
-  $\Psi_2$, $g_1$, $g_2$) is equivalent to the Nash equilibrium LCPs
-  \eqref{eq:primal_pb} and \eqref{eq:dual_pb}.
+  GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$). 
   \label{thm:pd}
 \end{theorem}
 
@@ -522,18 +524,29 @@ developing an algorithm for solving the latter.
 % \subsection{The proposed algorithm and its $\mathcal{O}(1/\epsilon)$
 % convergence}
 
-\subsection{A more amenable notion of approximate equilibria}
-\subsubsection{Interlude: Proximal calculus}
-Let us introduce some notions from modern convex analysis which will be
-useful in what follows. Given a subset $C$ of $\mathbb{R}^n$,
-$i_C$ denotes its \textit{indicator function} defined by
+\subsection{Interlude: Proximal calculus}
+Let us introduce some powerful modern convex-analytical notions which will be
+essential in the sequel.
+Given a subset $C$ of
+$\mathbb{R}^n$, $i_C$ denotes its \textit{indicator function} defined
+by
 \begin{eqnarray}
   i_C(x) = 0 \text{ if } x \in C\text{ and }+\infty\text{
     otherwise.}
 \end{eqnarray}
 At times, we will write $i_{x \in C}$ for $i_C(x)$ (to ease notation,
-etc.). Let $f : \mathbb{R}^n \rightarrow (-\infty, +\infty]$ be a
-  convex function. The \textit{effective domain} of $f$, denoted
+etc.). For example, we will write $i_{z \ge 0}$ for
+$i_{\mathbb{R}^n_+}(z)$, etc. Let $f : \mathbb{R}^n \rightarrow
+(-\infty, +\infty]$ be a
+  convex function. The \textit{orthogonal projector} onto $C$, is the
+  ``closes-point function''
+
+  \begin{eqnarray}
+    \proj_C: \mathbb{R}^n \rightarrow C, x \mapsto \underset{z \in
+      C}{\text{argmin }}\frac{1}{2}\|z-x\|^2.
+\end{eqnarray}
+
+The \textit{effective domain} of $f$, denoted
   $dom(f)$, is defined as
 \begin{eqnarray}
   dom(f) := \{x \in \mathbb{R}^n | f(x) < +\infty\}.
@@ -566,12 +579,15 @@ $\prox_{i_{\mathbb{R}^n_+}}(z) \equiv \proj_{\mathbb{R}^n_+}(z) \equiv
 \begin{eqnarray}
   p = \prox_f(x)\text{ iff } x - p \in \partial f(p).
 \end{eqnarray}
+Thus given $\gamma > 0$, the operator $\prox_{\gamma f}$ can (and
+should) be thought of as performing an \textit{implicit} gradient step
+of size $\gamma$.
 
-The interested reader should refer to \cite{combettes2011proximal} for
-a more elaborate exposition of proximal operators and their
-use in modern convex-optimization.
+The interested reader should refer to \cite{combettes2011proximal} and
+the references therewithing, for a more elaborate exposition on
+proximal calculus and its use in modern convex-optimization.
 
-\subsubsection{Yet another notion of approximate equilibrium}
+\subsection{A more comfortable notion of approximate Nash equilibrium}
 Given a scalar $\epsilon > 0$ and a function $f:\mathbb{R}^n
 \rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged subgradient (or
 $\epsilon$-subgradient, for short) of $f$ is the set-valued function
@@ -620,7 +636,7 @@ equilibria since:
 \end{itemize}
 
 
-\subsection{The proposed primal-dual algorithm}
+\subsection{The proposed algorithm}
 \label{sec:algo}
 We now derive and establish the theoretical properties of the
 algorithm which is the main object of this manuscript.
@@ -700,8 +716,8 @@ v - \lambda e_j)$. With all these ingredients in place, Algorithm
 \end{proof}
 
 \subsection{Practical considerations}
-\paragraph{\textbf{Efficient computation of $Ay$ and $A^Tx$.}}
-In Algorithms \ref{Tab:algo} most of the time is spent
+\paragraph{\textbf{\textit(a) Efficient computation of $Ay$ and $A^Tx$.}}
+In Algorithms \ref{Tab:algo}, most of the time is spent
 pre-multiplying vectors by $A$ and $A^T$. For \textit{flop-type} poker
 games like \textit{Texas Hold'em} and  \textit{Rhode Island Hold'em},
 $A$ (and thus $A^T$ too)  is very big (up $10^{100}$ rows and columns!)
@@ -776,7 +792,7 @@ can always write the payoff matrix $A$ of a flop-type Poker game in a
 form similary to \eqref{eq:factor_A} by applying appropriate
 permutations to the enumeration of the players's sequences.
 
-\paragraph{\textbf{Computing $\|K\|$.}}
+\paragraph{\textit(b) Computing $\|K\|$.}
 Also the 2-norm $\|K\|$ of the linear operator $K$, can be efficiently
 computed using the power iteration (Perron-Frobenius).
 
@@ -784,50 +800,8 @@ computed using the power iteration (Perron-Frobenius).
 \label{sec:results}
 To access the practical quality of the proposed algorithm, we
 tested it on simulated and real games.
-\paragraph{Basic test-bed: Matrix games on simplexes.}
-As in \cite{nesterov2005a,chambolle2014ergodic}, we generate a $1000
-\times 1000$ random matrix whose entries are uniformly identically
-distributed in the closed interval $[-1, 1]$. We compare our proposed
-Algorithm \ref{Tab:algo} with Nesterov's \cite{nesterov2005a} and Gilpin's et
-al. \cite{gilpinfirst}. The results of the benchmarks are shown in
-Figure \ref{Tab:dgap_curve}\textit{(a)}...
-
-
-\begin{figure}[!htpb]
-  \subfigure[Matrix game on simplexes]{
-    \includegraphics[width=.5\linewidth]{0.pdf}
-  }
-  %% \hspace{-2em}
-  %% \subfigure[Toy Poker]{
-  %%   \includegraphics[width=.5\linewidth]{SimplifiedPoker_dgap.pdf}
-  %% }
-  \hspace{-2em}
-  \subfigure[Kuhn 3-card Poker]{
-    \includegraphics[width=.5\linewidth]{Kuhn3112_dgap.pdf}
-  }
-  \vspace{-1em}
-  \hspace{-2em}
-  \includegraphics[width=.5\linewidth]{1.pdf}
-  %% \hspace{-1em}
-  %% \includegraphics[width=.5\linewidth]{SimplifiedPoker_NE.pdf}
-  \hspace{-1em}
-  \includegraphics[width=.5\linewidth]{Kuhn3112_NE.pdf}
-  \caption{Convergence curves of Algorithm
-    \ref{Tab:algo}. \textbf{Top row}: Evolution of ergodic
-    primal-dual gap. \textbf{Bottom row}: Evolution of
-    value of game. In \textit{(a)}, one can see the linear (i.e
-    exponential) of the algorithm in \cite{gilpinfirst}, inbetween
-    consecutive breakpoints on the $\epsilon$ grid. The duality gaps
-    are computed according to formula \eqref{eq:mg_pd}. The
-    first-order smoothing algorithm from \cite{nesterov2005a} jitters around as the
-    iterations go on because even the smoothed problem becomes heavily
-    ill-conditioned near solutions. On the other hand, our propsed
-    algorithm seems to beat both of the aforementioned algorithms, and
-  its proven $\mathcal{O}(1/\epsilon)$ convergence rate is clearly verified.}
-  \label{Tab:dgap_curve}
-\end{figure}
-
-\paragraph{Experiments on sequential games with imcomplete information: Kuhn 3-card
+\paragraph{\textit(a) Experiments on sequential games with imcomplete
+  information: Kuhn 3-card
   poker.} This game is a simplified form of poker
 developed by Harold W. Kuhn. It is a two-person zero-sum game which is
 simply enough to serve as an example but contains all the complexity
@@ -884,9 +858,54 @@ Finally, one checks that ${x^*}^TAy^* = {-0.05555}$,
  the game across iterations are shown in Figure \ref{Tab:dgap_curve}.
 We have not benchmarked this against the algorithms proposed in
 \cite{nesterov2005a} and Gilpin's et al. \cite{gilpinfirst} because
-implementing them for such games would require us to compute the
-complicated projections $\prox_{Q_k}$.  We recall that
+implementing them from scratch for such games would require us to
+compute the complicated projections $\prox_{Q_k}$.  We recall that
 avoiding these projections was one of the goals of the manuscript.
+
+
+\paragraph{\textit(b) Basic test-bed: Matrix games on simplexes.}
+As in \cite{nesterov2005a,chambolle2014ergodic}, we generate a $1000
+\times 1000$ random matrix whose entries are uniformly identically
+distributed in the closed interval $[-1, 1]$. We compare our proposed
+Algorithm \ref{Tab:algo} with Nesterov's \cite{nesterov2005a} and
+Gilpin's et al. \cite{gilpinfirst}. The results of the benchmarks are
+shown in Figure \ref{Tab:dgap_curve}\textit{(a)}.
+
+
+\begin{figure}[!htpb]
+  \subfigure[$10^3 \times 10^3$ matrix game on simplexes]{
+    \includegraphics[width=.5\linewidth]{0.pdf}
+  }
+  %% \hspace{-2em}
+  %% \subfigure[Toy Poker]{
+  %%   \includegraphics[width=.5\linewidth]{SimplifiedPoker_dgap.pdf}
+  %% }
+  \hspace{-2em}
+  \subfigure[Kuhn 3-card poker]{
+    \includegraphics[width=.5\linewidth]{Kuhn3112_dgap.pdf}
+  }
+  \vspace{-1em}
+  \hspace{-.5em}
+  \includegraphics[width=.5\linewidth]{1.pdf}
+  %% \hspace{-1em}
+  %% \includegraphics[width=.5\linewidth]{SimplifiedPoker_NE.pdf}
+  %\hspace{.5em}
+  \includegraphics[width=.49\linewidth]{Kuhn3112_NE.pdf}
+  \caption{Convergence curves of Algorithm
+    \ref{Tab:algo}. In \textit{(a)}, the duality gaps
+    are computed according to formula \eqref{eq:mg_pd}. One can see
+    the linear (i.e exponential) behavior of the algorithm in
+    \cite{gilpinfirst}, inbetween consecutive breakpoints on the
+    $\epsilon$ grid (though the rate of exponential growth seems to by
+    quite close to $1$ here). The first-order smoothing algorithm from
+    \cite{nesterov2005a} jitters around as the iterations go on
+    because even the smoothed problem becomes heavily ill-conditioned
+    near solutions. On the other hand, our proposed
+    algorithm seems to beat both of the aforementioned algorithms, and
+  its proven $\mathcal{O}(1/\epsilon)$ convergence rate is clearly
+  verified empirically.}
+  \label{Tab:dgap_curve}
+\end{figure}
 
 \section{Concluding remarks}
 Making use of the sequence-form representation
@@ -905,15 +924,16 @@ family of primal-dual algorithms. We believe such primal-dual
 schemes will receive more attention in the algorithmic game theory
 community in future.
 
-The author's implementation of the proposed algorithm is available
-upon request.
+\paragraph{Software.} The authors' implementation of the proposed
+algorithm is available upon request.
 
-%% \paragraph{About the author:} I'm a first-year PhD student in Computer
-%% Science at Universit\'e de Parix XI. My thesis focuses on novel
-%% techniques for optimization on Lie groups (of diffeomorphisms), and
-%% other structured manifolds, the aim being to obtain better algorithms
-%% for nonlinear registration of fMRI brain images and enhance the
-%% charting of human functional connectomes.
+%% \paragraph{About the author:} The first author is first-year PhD
+%% student in Computer Science at Universit\'e de Parix XI. My thesis
+%% focuses on novel techniques for optimization on Lie groups (of
+%% diffeomorphisms), and other structured manifolds, the aim being to
+%% obtain better algorithms for nonlinear registration of fMRI brain
+%% images and enhance the charting of human functional connectomes.
+
 %\pagebreak
 \bibliographystyle{llcns2e/splncs03}
 \bibliography{bib}
