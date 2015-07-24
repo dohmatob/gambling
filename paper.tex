@@ -786,7 +786,7 @@ tested it on simulated and real games.
 \paragraph{Basic test-bed: Matrix games on simplexes.}
 As in \cite{nesterov2005a,chambolle2014ergodic}, we generate a $1000
 \times 1000$ random matrix whose entries are uniformly identically
-distributed in the closed interval $[-1, 1]$. We compared our proposed
+distributed in the closed interval $[-1, 1]$. We compare our proposed
 Algorithm \ref{Tab:algo} with Nesterov's \cite{nesterov2005a} and Gilpin's et
 al. \cite{gilpinfirst}. The results of the benchmarks are shown in
 Figure \ref{Tab:dgap_curve}\textit{(a)}...
@@ -831,7 +831,9 @@ in the round. After both players pass or bet the player with the
 highest card wins the pot. The
 sequence-form representation of the game has $n_1 = n_2 = 13$
 sequences and $l_1 = l_2 = 7$ information
-sets per player. The pair $(x^*, y^*) \in \mathbb{R}^{13} \times
+sets per player. More
+ details (payoff matrix, etc.) are provided in the supplementary
+ materials. The pair $(x^*, y^*) \in \mathbb{R}^{13} \times
 \mathbb{R}^{13}$ of realization plans given by
 \begin{eqnarray*}
   \begin{split}
@@ -853,16 +855,14 @@ $E_2y^* - e_2 = [-7.04 \times 10^{-7}, 2.27 \times 10^{-6}, -3.29
       10^{-7}]^T$.
 Finally, one checks that ${x^*}^TAy^* = {-0.05555}$,
  which agrees to 5 d.p with the value of $-1 / 18$ computed
- analytically by H. W. Kuhn in his 1950 paper \cite{kuhn}. More
- details (payoff matrix, etc.) are provided in the supplementary
- materials. The  evolution of the dual gap and the expected value of
+ analytically by H. W. Kuhn in his 1950 paper \cite{kuhn}. The
+ evolution of the dual gap and the expected value of
  the game across iterations are shown in Figure \ref{Tab:dgap_curve}.
 We have not benchmarked this against the algorithms proposed in
 \cite{nesterov2005a} and Gilpin's et al. \cite{gilpinfirst} because
 implementing them for such games would require us to compute the
 complicated projections $\prox_{Q_k}$.  We recall that
-avoiding these projections was one of the goals of the present
-manuscript.
+avoiding these projections was one of the goals of the manuscript.
 
 \section{Concluding remarks}
 Making use of the sequence-form representation
