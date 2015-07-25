@@ -5,6 +5,7 @@ zero-sum games.
 """
 # author: Elvis Dohmatob <gmdopp@gmail.com>
 
+import numbers
 from math import sqrt
 import numpy as np
 from scipy import linalg
@@ -19,13 +20,50 @@ def _check_subgradient(f, x, g, n=10):
     rng = check_random_state(42)
     p = len(x)
     for z in rng.randn(n, p):
+        z += x
+        print f(z), f(x) + np.dot(g, z - x)
         if f(z) < f(x) + np.dot(g, z - x): return False
     return True
 
 
+class _GSPEnergy(object):
+    """This object is useful for checking
+    v \in \partial [Phi_1(., ., x_, q_) + Phi_2(y_, p_, ., .)](y_, p_, x_, q_)
+    """
+    def __init__(self, K, e1, e2, y_, p_, x_, q_):
+        self.K = K
+        self.e1 = np.array([e1]) if isinstance(e1, numbers.Number) else e1
+        self.e2 = np.array([e2]) if isinstance(e2, numbers.Number) else e2
+        self.y_ = y_
+        self.p_ = p_
+        self.x_ = x_
+        self.q_ = q_
+        self.l1_ = len(self.e1)
+        self.l2_ = len(self.e2)
+        self.n2_ = K.shape[0] - self.l1_
+        self.n1_ = K.shape[1] - self.l2_
+        self.yp_ = np.concatenate((y_, p_))
+        self.xq_ = np.concatenate((x_, q_))
+
+    def __call__(self, ypxq):
+        yp = ypxq[:self.K.shape[1]]
+        y, p = yp[:self.n2_], yp[self.n2_:]
+        y = np.maximum(0., y)
+        yp = np.concatenate((y, p))
+        xq = ypxq[self.K.shape[1]:]
+        x, q = xq[:self.n1_], xq[self.n1_:]
+        x = np.maximum(0., x)
+        xq = np.concatenate((x, q))
+        if not np.all(y >= 0.) or not np.all(x >= 0.): return np.inf
+        a = self.xq_.dot(self.K.dot(yp)) + self.e1.dot(p)
+        b = -xq.dot(self.K.dot(self.yp_)) + self.e2.dot(q)
+        return a + b
+
+
 def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
                    proj_C2=lambda y: np.maximum(y, 0.), init=None,
-                   epsilon=1e-4, max_iter=10000, callback=None):
+                   epsilon=1e-4, max_iter=10000, check_ergodic=True,
+                   callback=None):
     """Primal-Dual algorithm for computing Nash equlibrium for two-person
     zero-sum game with payoff matrix A and contraint sets
 
@@ -53,6 +91,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         # XXX use power iteration to compute ||K||^2
         K = np.vstack((np.hstack((A, -E1.T)), np.hstack((E2, zeros))))
         norm_K = linalg.norm(K, 2)
+
     sigma = init.get("sigma", 1.)
     lambd = init.get("lambd", .9 * sigma / norm_K)
     y = init.get("y", np.zeros(n2))
@@ -67,6 +106,11 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     gaps = []
 
     # main loop
+    k = None
+    deltas_y = []
+    deltas_p = []
+    deltas_x = []
+    deltas_q = []
     for k in range(max_iter):
         # invoke callback
         if callback and callback(locals()): break
@@ -87,22 +131,28 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         x += lambd * (A.dot(y) - E1.T.dot(p))
         x = proj_C1(x)
         delta_x = x - old_x
+        if check_ergodic: deltas_x.append(delta_x)
 
         # q update
         delta_q = lambd * (E2.dot(y) - e2)
         q += delta_q
+        if check_ergodic: deltas_q.append(delta_q)
 
         # u update (again)
         y -= lambd * (A.T.dot(delta_x) + E2.T.dot(delta_q))
+        delta_y = y - old_y
+        if check_ergodic: deltas_y.append(delta_y)
 
         # p update (again)
         p += lambd * E1.dot(delta_x)
+        delta_p = p - old_p
+        if check_ergodic: deltas_p.append(delta_p)
 
         # compute game value and primal-dual gap at current iterates
         value = x.dot(A.dot(y))
         values.append(value)
-        delta_y_sum += y - old_y
-        delta_p_sum += p - old_p
+        delta_y_sum += delta_y
+        delta_p_sum += delta_p
         delta_x_sum += delta_x
         delta_q_sum += delta_q
         gap = _norm(delta_y_sum, delta_p_sum, delta_x_sum,
@@ -124,6 +174,21 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     init["p"] = p.copy()
     init["x"] = x.copy()
     init["q"] = q.copy()
+
+    # Check that we produced a small pertubation vector in the subgradient
+    # of the GSP energy at the claimed (approx) equilibrium point.
+    if check_ergodic:
+        gsp_energy = _GSPEnergy(K, e1, e2, y, p, x, q)
+        print "Checking subgradient optimality condition for some iterate..."
+        for k, deltas in enumerate(zip(deltas_y, deltas_p, deltas_x,
+                                       deltas_q)):
+            v = np.concatenate(deltas)
+            if _check_subgradient(gsp_energy, np.concatenate((y, p, x, q)), v,
+                                  23) and _norm(v) <= epsilon:
+                print "OK (k = %i)." % k
+                break
+        else:
+            print "Failed."
 
     return x, y, p, q, init, values, gaps
 

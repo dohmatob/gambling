@@ -69,9 +69,9 @@
   real games (Kuhn poker).
 \end{abstract}
 
-\textbf{keywords}: sequential game; incomplete information; perfect
-recall; approximate Nash equilibrium; primal-dual
-algorithm; convex-optimization
+\textbf{keywords}: algorithmic-game theory; sequential game;
+incomplete information; perfect recall; approximate Nash equilibrium;
+primal-dual algorithm; convex-optimization
 
 \section{Introduction}
 \label{sec:intro}
@@ -706,8 +706,8 @@ It is clear to see that the quadruplet $(\Psi_1, \Psi_2, g_1, g_2)$
 satisfies assumptions B.1, B.2, B.3, B.5, and B.6 of
 \cite{he2013accelerating} with $L_{xx} = L_{yy} = 0$ and $L_{xy} =
 L_{yx} = \|K\|$. Now, one easily computes the proximal operator of
-$g_j$ in closed-form as $\prox_{\lambda g_j}(z, v) \equiv ((z)_+,
-v - \lambda e_j)$. With all these ingredients in place, Algorithm
+$g_j$ in closed-form as $\prox_{\lambda g_j}(a, b) \equiv ((a)_+,
+b - \lambda e_j)$. With all these ingredients in place, Algorithm
 \ref{Tab:algo} is then obtained from \cite[Algorithm
   T-BD]{he2013accelerating}, applied on the GSP
 \eqref{eq:unconstrained_pb} with the choice of parameters: $\sigma = 1
@@ -722,9 +722,10 @@ v - \lambda e_j)$. With all these ingredients in place, Algorithm
 \subsection{Practical considerations}
 \paragraph{\textbf{\textit(a) Efficient computation of $Ay$ and $A^Tx$.}}
 In Algorithms \ref{Tab:algo}, most of the time is spent
-pre-multiplying vectors by $A$ and $A^T$. For \textit{flop-type} poker
+pre-multiplying vectors by $A$ and $A^T$ (precisely 3 such operations
+are done per iteration). For \textit{flop-type} poker
 games like \textit{Texas Hold'em} and  \textit{Rhode Island Hold'em},
-$A$ (and thus $A^T$ too)  is very big (up $10^{100}$ rows and columns!)
+$A$ (and thus $A^T$ too)  is very big (up $10^{14}$ rows and columns!)
 but has a rich block-diagnoal structure which can be carefully
 exploited, as was done in \cite{hoda2010smoothing}. For the purpose of
 completeness, we explain the details of the tricks used in
