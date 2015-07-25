@@ -13,6 +13,16 @@ from scipy import linalg
 _norm = lambda *args: sqrt(np.sum(np.concatenate(args) ** 2))
 
 
+def _check_subgradient(f, x, g, n=10):
+    """Checks that g is a sub-gradient of f at x."""
+    from sklearn.utils import check_random_state
+    rng = check_random_state(42)
+    p = len(x)
+    for z in rng.randn(n, p):
+        if f(z) < f(x) + np.dot(g, z - x): return False
+    return True
+
+
 def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
                    proj_C2=lambda y: np.maximum(y, 0.), init=None,
                    epsilon=1e-4, max_iter=10000, callback=None):
@@ -58,6 +68,9 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
 
     # main loop
     for k in range(max_iter):
+        # invoke callback
+        if callback and callback(locals()): break
+
         # save previous iterates
         old_y = y.copy()
         old_p = p.copy()
@@ -96,12 +109,9 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
                     delta_q_sum) / lambd / (k + 1.)
         gaps.append(gap)
 
-        # invoke callback
-        if callback and callback(locals()): break
+        # check convergence
         print ("Iter %03i/%03i: game value = %g, primal-dual gap (perturbed) ="
                " %.2e") % (k + 1, max_iter, value, gap)
-
-        # check convergence
         if gap < epsilon:
             print "Converged (gap < gap epsilon = %.2e)." % epsilon
             break
