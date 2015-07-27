@@ -29,7 +29,7 @@
   A simple and efficient algorithm for computing approximate
   Nash equilibria in sequential games with imcomplete
   information}
-\author{Elvis DOHMATOB, Gael VAROQUAUX, Bertrand THIRION
+\author{Elvis DOHMATOB%, Gael VAROQUAUX, Bertrand THIRION
 \\\\Parietal team, Inria Saclay Ile-de-France, Saclay, France
 \\\texttt{firstname.lastname@inria.fr}
 }
@@ -54,7 +54,7 @@
 \begin{abstract}We present a simple primal-dual algorithm for
   computing approximate Nash equilibria in two-person zero-sum
   sequential games with  incomplete information and perfect recall
-  (like Texas Hold'em Poker). Our algorithm only performs basic
+  (like Texas Hold'em poker). Our algorithm only performs basic
   iterations (i.e iterations involving no calls to external
   first-order oracles, etc.)
   and is applicable to a broad class of two-person zero-sum games
@@ -82,7 +82,7 @@ strategy) of the equilibrium online. This
 technique is the driving-force behind solution concepts like CFR
 \cite{zinkevich2008regret,lanctot2009monte,Bowling09012015},
 $\text{CFR}^{+}$ \cite{tammelin14} and other variants, etc., which
-have recently had profound success in Poker. However, solving games
+have recently had profound success in poker. However, solving games
 for equilibria remains a mathematical and computational challenge,
 especially in sequential games with imperfect information. This paper
 proposes a simple and efficient algorithm for solving for such
@@ -95,17 +95,17 @@ functions on $X$. Let $m$ and $n$ be positive integers. Given two
 vectors $z, w \in \mathbb{R}^n$, their inner product will be denoted
 $\langle z, w\rangle := \sum_{j}z_jw_j$. The components of $z$ will be
 denoted $z_0$, $z_1$, ..., $z_{n-1}$ (indexing begins from $0$,
-not $1$). The notation ``$z \ge 0$'' means that all the components of
+not $1$). $\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ }
+z \geq 0\}$ is the nonnegative $n$th \textit{orthant}.
+The notation ``$z \ge 0$'' means that all the components of
 $z$ are nonnegative.
-$\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ } z \geq
-0\}$ is the nonnegative $n$-dimensional \textit{orthant}.  $\|z\|$ denotes the
-$2$-\textit{norm} of $z$ defined by $\|z\| := \sqrt{\langle z,
-  z\rangle}$. $(z)_+:=\text{max}(0, z) \in \mathbb{R}^{n}_+$ is the
-point-wise maximum of $z$ with $0$. For example, $((-2, \pi))_+ =
-(max(-2, 0), max(\pi, 0)) = (0, \pi)$. The operator $(.)_+$ is the
-well-known (multi-dimensional) \textit{ramp} function. The
-$n$-simplex denoted $\Delta_n$, is defined by $\Delta_n := \{z \in
-\mathbb{R}^n_+|\sum_j z_j = 1\}$.
+$\|z\|$ denotes the $2$-\textit{norm} of $z$ defined by $\|z\| :=
+\sqrt{\langle z, z\rangle}$. $(z)_+:=\text{max}(0, z) \in
+\mathbb{R}^{n}_+$ is the point-wise maximum of $z$ with $0$. For
+example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The
+operator $(.)_+$ is the well-known (multi-dimensional) \textit{ramp}
+function. The $n$-simplex denoted $\Delta_n$, is defined by $\Delta_n
+:= \{z \in \mathbb{R}^n_+|\sum_j z_j = 1\}$.
 Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
   norm}, denoted $\|A\|$, is
  defined to be the largest \textit{singular value} of $A$, i.e the
@@ -254,9 +254,9 @@ computing the euclidean projections $\proj_{Q_k}$ is very difficult
 iteratively\footnote{An ``exception to the rule'' is the case where
   the $Q_k's$ are simplexes, so that the projections can be computed
   exactly using \cite{duchi2008efficient}.}). Also,
-the primal-dual gap might explode nearly the set of feasible points,
-leaving a primal-dual algorithm with no clear indication whatsoever,
-on whether progress is being made or not. So need to way to
+the primal-dual gap might explode even at points arbitrarily close to
+the set of feasible points, leaving the algorithm with no indication
+whatsoever, on whether progress is being made or not. So need to way to
 \begin{itemize}
 \item[--] avoid having to compute the projections $\proj_{Q_k}$,
 \item[--] have control over how far we are from the set of equilibria and
@@ -265,15 +265,16 @@ on whether progress is being made or not. So need to way to
 
 Developing on an alternative notion of approximate equilibria (see
 Definition \ref{thm:cool_notion})
-homologuous to that presented in Definition \ref{thm:approx_nash}, we
+homologous to that presented in Definition \ref{thm:approx_nash}, we
 device a primal-dual algorithm (Algorithm \ref{Tab:algo}) for
 computing approximate Nash equilibria in sequential two-person
 zero-sum games with incomplete information and perfect recall. We also
-prove (Theorem \ref{thm:pd})
-that the number of iterations required by the algorithm to
-produce an approximation equilibrium to a precision $\epsilon$ is
-$\mathcal{O}(1/\epsilon)$. These contributions will be elaborated in
-section \ref{sec:gsp}. %%  The source of approximation in our scheme
+prove (Theorem \ref{thm:pd}) that --in an ergodic sense-- the number of
+iterations required by the algorithm to produce an approximation
+equilibrium to a precision $\epsilon$ is $\mathcal{O}(1/\epsilon)$,
+with explicit values for the constants involved this worst-case cost.
+These contributions will be elaborated in section \ref{sec:gsp}.
+%%  The source of approximation in our scheme
 %% is that we explicitly control how close we are to the feasible set
 %% $Q_1 \times Q_2$.
 
@@ -283,8 +284,7 @@ section \ref{sec:gsp}. %%  The source of approximation in our scheme
 We present a selection of algorithms that is representative of the
 efforts that have been made in the literature to compute Nash
 $\epsilon$-equilibria for two-person zero-sum games with incomplete
-information like Texas Hold'em Poker, etc.
-
+information like Texas Hold'em poker, etc.
 First and foremost, let us note that for the class of games considered
 here (sequential games with incomplete information), the LCPs
 \eqref{eq:primal_pb} and \eqref{eq:dual_pb} are exceedingly larger
@@ -297,7 +297,6 @@ to solve the equilibrium problem \eqref{eq:gilpin}.
 The authors reported a $\mathcal{O}(1/\epsilon)$ convergence rate
 (which derives from the general EGT theory) for the outer-most
 iteration loop.
-
 \cite{gilpinfirst} proposed a modified verson of the technqiues in
 \cite{hoda2010smoothing} and  proved a $\mathcal{O}\left(\left(\|A\| /
 \delta\right) ln\left(1 / \epsilon\right)\right)$ convergence rate in
@@ -529,9 +528,8 @@ developing an algorithm for solving the latter.
 % convergence}
 
 \subsection{Interlude: Proximal calculus}
-Let us introduce some powerful modern convex-analytical notions which will be
-essential in the sequel.
-Given a subset $C$ of
+Let us introduce some basic but powerful modern convex-analytical
+notions which will be essential in the sequel. Given a subset $C$ of
 $\mathbb{R}^n$, $i_C$ denotes its \textit{indicator function} defined
 by
 \begin{eqnarray}
@@ -793,7 +791,7 @@ Such a representation of the payoff matrix $A$ trivializes matvec
 operations involving $A$ or $A^T$ (thanks to formula
 \eqref{eq:kron_matvec} above, applied to their diagonal blocks and
 exploiting the sparsity of these blocks themselves). Of course, one
-can always write the payoff matrix $A$ of a flop-type Poker game in a
+can always write the payoff matrix $A$ of a flop-type poker game in a
 form similary to \eqref{eq:factor_A} by applying appropriate
 permutations to the enumeration of the players's sequences.
 
@@ -882,7 +880,7 @@ shown in Figure \ref{Tab:dgap_curve}\textit{(a)}.
     \includegraphics[width=.5\linewidth]{0.pdf}
   }
   %% \hspace{-2em}
-  %% \subfigure[Toy Poker]{
+  %% \subfigure[Toy poker]{
   %%   \includegraphics[width=.5\linewidth]{SimplifiedPoker_dgap.pdf}
   %% }
   \hspace{-2em}
