@@ -128,9 +128,10 @@ pairs $(x, y)$ of \textit{realization plans} which solve the primal
 LCP (Linear Convex Program)
 \begin{equation}
   \begin{aligned}
-     \text{minimize }\langle e_1, p\rangle, \hspace{.5em}\text{
-       subject to: }(y,p) \in \mathbb{R}^{n_2} \times
-     \mathbb{R}^{l_1},  y \ge 0, E_2y = e_2, -Ay + E_1^Tp \geq 0.
+    \underset{(y,p) \in \mathbb{R}^{n_2} \times
+     \mathbb{R}^{l_1}}{\text{minimize }}\langle e_1,
+    p\rangle \hspace{.5em}\text{
+       subject to: } y \ge 0, E_2y = e_2, -Ay + E_1^Tp \geq 0.
   \end{aligned}
   \label{eq:primal_pb}
 \end{equation}
@@ -138,8 +139,10 @@ LCP (Linear Convex Program)
 and the dual LCP
 \begin{equation}
   \begin{aligned}
-    \text{maximize}-\langle e_2, q\rangle,\hspace{.5em}\text{subject
-      to: }(x,q) \in \mathbb{R}^{n_1} \times \mathbb{R}^{l_2},  x \ge
+    \underset{(x,q) \in \mathbb{R}^{n_1} \times
+      \mathbb{R}^{l_2}}{\text{maximize }}-\langle e_2,
+    q\rangle\hspace{.5em}\text{subject
+      to: } x \ge
     0, E_1x = e_1, A^Tx + E_2^Tq \geq 0.
   \end{aligned}
   \label{eq:dual_pb}
@@ -287,7 +290,7 @@ device a primal-dual algorithm that (Algorithm \ref{Tab:algo}) for
 computing approximate Nash equilibria in sequential two-person
 zero-sum games with incomplete information and perfect recall, and
 which satisfies the above crucial requirements (1)--(2). We also
-prove (Theorem \ref{thm:pd}) that --in an ergodic sense-- the number of
+prove (Theorem \ref{thm:pd}) that --in an ergodic / Ces\`ario sense-- the number of
 iterations required by the algorithm to produce an approximation
 equilibrium to a precision $\epsilon$ is $\mathcal{O}(1/\epsilon)$,
 with explicit values for the constants involved this worst-case cost.
@@ -363,14 +366,14 @@ be arbitrarily large for ill-conditioned games.
 
 The primal-dual algorithm first developed in \cite{chambolle2010}, was
 proposed in \cite{chambolle2014ergodic} as a way of solving matrix
-games on. It should be stressed that such matrix games on simplexes are
-considerably simpler than the games considered here. Indeed, the
-authors in \cite{chambolle2014ergodic} used the fact that computing the
-orthogonal projection of a point onto a simplex can be done in linear
-time as in \cite{duchi2008efficient}. In contrast, no such efficient
-algorithm is known nor is likely to exist, for the polytopes $Q_k$
-defined in \eqref{eq:polytope}.%% , the strategy profiles for players in
-%% the games considered here.
+games on simplexes. It should be stressed that such matrix games on
+simplexes are considerably simpler than the games considered
+here. Indeed, the authors in \cite{chambolle2014ergodic} used the fact
+that computing the orthogonal projection of a point onto a simplex can
+be done in linear time as in \cite{duchi2008efficient}. In contrast,
+no such efficient algorithm is known nor is likely to exist, for the
+polytopes $Q_k$ defined in \eqref{eq:polytope}.%% , the strategy
+%% profiles for players in %% the games considered here.
 That notwithstanding, such projections can still be done iteratively
 using for example, the algorithm in proposition 4.2 of
 \cite{combettes2010dualization} or the algorithms developed in
@@ -392,7 +395,10 @@ such games.
 In the next theorem, we show that the LCPs \eqref{eq:primal_pb}
 and \eqref{eq:dual_pb} can be
 conveniently written as a \textit{Generalized Saddle-point Problem
-  (GSP)} in the sense of \cite{he2013accelerating}.
+  (GSP)} in the sense of \cite{he2013accelerating}. The crux of idea
+is to remove the linear constraints in the definitions of the strategy
+polytopes $Q_k$, by modifying the payoff matrix to yield an equivalent
+saddle-point problem.
 \begin{theorem}
 Define two proper closed convex functions
   \begin{eqnarray}
@@ -667,16 +673,15 @@ manuscript, and establish the theoretical properties.
   and perfect recall}
 \label{Tab:algo}
 \begin{algorithmic}[1]
-\Require $\epsilon > 0$; $(y^{(0)},p^{(0)},x^{(0)},q^{(0)})
-\in \mathbb{R}^{n_2}
+\Require $\epsilon > 0$; $(y^{(0)},p^{(0)},x^{(0)},q^{(0)}) \in \mathbb{R}^{n_2}
   \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
   \mathbb{R}^{l_2}$.
 \Ensure A Nash $(\epsilon,0)$-equilibrium
 $({y^*},{p^*},{x^*},{q^*}) \in S_1 \times S_2$ for
 the GSP \eqref{eq:unconstrained_pb}.
-\State  $\lambda \leftarrow 1/\|K\|$, ${v}_a^{(0)} \leftarrow 0$, $k
+\State  $\lambda \leftarrow 1/\|K\|$, ${v}^{(0)} \leftarrow 0$, $k
 \leftarrow 0$
-\While{$\|{v}_{a}^{(k)}\| \ge \epsilon$}
+\While{ $ k = 0$ or  $\frac{1}{k\lambda}\|v^{(k)}\| \ge \epsilon$}
 \State $y^{(k + 1)} \leftarrow (y^{(k)} - \lambda (A^Tx^{(k)} +
 E_2^Tq^{(k)}))_+$, \hspace{.5em}$p^{(k+1)} \leftarrow p^{(k)} -
 \lambda(e_1-E_1x^{(k)})$
@@ -690,27 +695,27 @@ e_2)$, \hspace{.5em}$q^{(k+1)} \leftarrow q^{(k)} + \Delta q^{(k+1)}$
 y^{(k+1)}-y^{(k)}$
 \State $p^{(k+1)} \leftarrow p^{(k+1)} + \lambda E_1\Delta x^{(k+1)}$,
 \hspace{.5em} $\Delta p^{(k+1)} \leftarrow p^{(k+1)}-p^{(k)}$
-\State ${v}_a^{(k+1)} \leftarrow \frac{1}{\lambda}\frac{1}{k+1}(y^{(k+1)} -
-y^{(0)}, p^{(k+1)} - p^{(0)}, x^{(k+1)} - x^{(0)}, q^{(k+1)} - q^{(0)})$ 
+\State ${v}^{(k+1)} \leftarrow {v}^{(k)} + (\Delta
+y^{(k+1)},\Delta p^{(k+1)},\Delta x^{(k+1)},\Delta q^{(k+1)})$ 
 \State $k \leftarrow k + 1$
 \EndWhile
 \end{algorithmic}
 \end{algorithm}
 
-\begin{theorem}[Ergodic $\mathcal{O}(1/\epsilon)$ convergence]
+\begin{theorem}[Ergodic / Ces\`ario $\mathcal{O}(1/\epsilon)$ convergence]
 Let $d_0$ be the orthogonal distance between the starting point
 $(y^{(0)},p^{(0)},x^{(0)},q^{(0)})$ of Algorithm \ref{Tab:algo} and the
 set of equilibria for the GSP \eqref{eq:unconstrained_pb}.
 Then given any $\epsilon > 0$, there exists an index
 $k_0 \le \frac{2d_0\|K\|}{\epsilon}$ such that after $k_0$ iterations
 the algorithm produces the following a quadruplet
-$(y^{k_0},p^{k_0},x^{k_0},q^{k_0})$ and a vector $v_a^{k_0}$ such that
+$(y^{k_0},p^{k_0},x^{k_0},q^{k_0})$ and a vector $v^{k_0}$ such that
 \begin{eqnarray}
 \|v_a^{k_0}\| \le \epsilon \text{ and}\hspace{.5em} v_a^{k_0} \in
 \partial[\hat{\Psi}_1(., ., x^{k_0}, q^{k_0}) +
-  \hat{\Psi}_2(y^{k_0}, p^{k_0}, ., .)](y^{k_0},p^{k_0},x^{k_0},q^{k_0}).
+  \hat{\Psi}_2(y^{k_0}, p^{k_0}, ., .)](y^{k_0},p^{k_0},x^{k_0},q^{k_0}),
 \end{eqnarray}
-
+where $v_a^{(k_0)} := \frac{1}{k\lambda}v^{(k_0)}$.
 Thus Algorithm \ref{Tab:algo} outputs an $(\epsilon,0)$-Nash
 equilibrium for the GSP \eqref{eq:unconstrained_pb}
 in at most $\frac{2d_0\|K\|}{\epsilon}$ iterations.
@@ -730,10 +735,7 @@ b - \lambda e_j)$. With all these ingredients in place, Algorithm
     $\lambda_{xy} := \frac{1}{\sigma L_{xy}}\sqrt{(\sigma^2 -
         \sigma_x^2)(\sigma^2 - \sigma_y^2)} = \sigma / \|K\| =
       1/\|K\|$, and $\lambda = \lambda_{xy} \in (0,
-      \lambda_{xy}]$. Finally, note that $v_a^{(k+1)}$ as defined in
-  line 8 of Algorithm \ref{Tab:algo} simply correponds to the the
-  average difference in the iterates (this is a teloscopic sum),
-  scaled by $\lambda$. The convergence result follows immediately from
+      \lambda_{xy}]$. The convergence result follows immediately from
   \cite[Theorem 4.2]{he2013accelerating}.
 \end{proof}
 
