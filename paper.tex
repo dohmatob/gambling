@@ -12,6 +12,7 @@
 \usepackage{algpseudocode}
 \usepackage{pifont}
 \usepackage[FIGTOPCAP]{subfigure}
+\usepackage{caption}
 
 \newtheorem{theorem}{Theorem} \newtheorem{lemma}[theorem]{Lemma}
 
@@ -112,6 +113,7 @@ Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
  largest \textit{eigenvalue} of $A^TA$ (or equivalently, of $AA^T$).
 
 \subsection{Nash-equilibrium concepts and statement of the problem}
+
 The sequence-form representation for two-person zero-sum games with
 incomplete information was introduced in
 \cite{koller1992complexity}, and the theory was further developed in
@@ -146,30 +148,32 @@ The vectors $p = (p_0, p_1, ..., p_{l_2 - 1}) \in \mathbb{R}^{l_2}$
 and $q = (q_0, q_1, ..., q_{l_1 - 1}) \in \mathbb{R}^{l_1}$ are dual
 variables. 
 $A$ is the \textit{payoff matrix} and each $E_k$ is a matrix whose
-entries are $-1$, $0$ or $1$, and each $e_k$ is a vector of the form
-$(1, 0, ..., 0)$. In this so-called \textit{sequence-form}
-representation, the strategy profile of player $k$ is the convex polyhedron
-\begin{equation}
-  Q_k := \{z \in \mathbb{R}^{n_k}_+ |\text{ }E_kz = e_k\}.
-\label{eq:polyhedron}
-\end{equation}
+entries are $-1$, $0$ or $1$, with exactly 1 entry equal -1 per row, and each $e_k$ is a vector of the form
+$(1, 0, ..., 0)$.
 
+\begin{figure}[!h]
+\begin{minipage}{.65\linewidth}
+%\caption*{\textbf{Sparse-Variation.}
 Note that the LCPs above have the equivalent saddle point formulation
 \begin{equation}
   \underset{y \in Q_2}{\text{minimize}}\text{ }\underset{x \in
-    Q_1}{\text{maximize}}\text{ }\langle x, Ay\rangle
+    Q_1}{\text{maximize}}\text{ }\langle x, Ay\rangle,
   \label{eq:gilpin}
 \end{equation}
-
-%% Note that $\langle e_1, p\rangle = p_0$ and $\langle e_2, q\rangle
-%% = q_0$ by definition of $e_1$ and
-%% $e_2$. 
+where the \textit{convex polytope} (by which we mean a bounded convex
+polyhedron)
+\begin{equation}
+  Q_k := \{z \in \mathbb{R}^{n_k}_+ |\text{ }E_kz = e_k\} \subseteq
+  [0, 1]^{n_k}
+\label{eq:polytope}
+\end{equation}
+is the the strategy profile of player $k$ in this representation.
 At a feasible point $(y, p, x, q)$ for the LCPs, the \textit{primal-dual gap}
 $\tilde{G}(y, p, x, q)$ of these primal-dual pair is given
 by\footnote{The inequality being due to \textit{weak duality}.}
 \begin{eqnarray}
   \begin{split}
-  0 \le \tilde{G}(y, p, x, q) &:= \langle e_1, p\rangle - (-\langle
+  0 &\le \tilde{G}(y, p, x, q) := \langle e_1, p\rangle - (-\langle
   e_2, q\rangle) = \langle e_1, p\rangle + \langle
   e_2, q\rangle\\
   &= G(x, y) := \mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle |
@@ -177,6 +181,16 @@ by\footnote{The inequality being due to \textit{weak duality}.}
 \end{split}
   \label{eq:dgap}
 \end{eqnarray}
+%}
+\end{minipage}
+\hspace{.5em}
+\begin{minipage}{.4\linewidth}
+  \includegraphics[width=1\linewidth]{grain4.png}
+  \caption{A convex polytope}
+  \label{fig:roi}
+\end{minipage}
+\end{figure}
+
 In \eqref{eq:dgap}, the quantity $G(x, y)$ is nothing but the primal-dual
 gap for the equivalent saddle point problem \eqref{eq:gilpin}.
 It was shown (see Theorem 3.14 of \cite{vonequilibrium}) that a pair
@@ -222,12 +236,12 @@ noted
 that any matrix $A \in \mathbb{R}^{n_1 \times n_2}$ specifies a matrix
   game with payoff matrix $A$, for which each player's strategy
 profile is a simplex; this simplex can be written in the form
-\eqref{eq:polyhedron} by taking $E_k := (1, 1, ..., 1) \in
+\eqref{eq:polytope} by taking $E_k := (1, 1, ..., 1) \in
 \mathbb{R}^{1 \times n_k}$ and $e_k = 1 \in \mathbb{R}^1$. Thus every
 matrix game on simplexes can be seen as a sequential game.  Thus the
 results presented in this manuscript can be trivially applied such
 games in particular. Here, the polyhedral strategy profiles $Q_k$
-defined in \eqref{eq:polyhedron} reduce to simplexes $\Delta_{n_k}$,
+defined in \eqref{eq:polytope} reduce to simplexes $\Delta_{n_k}$,
 and the primal-dual gap function $G(x,y)$ writes
 \begin{eqnarray}G(x, y) =
 \mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle | (u,v) \in
@@ -249,7 +263,7 @@ and the primal-dual gap function $G(x,y)$ writes
 One cannot directly attack the LCPs \eqref{eq:primal_pb} and
 \eqref{eq:dual_pb} via a traditional primal-dual algorithm
 (for example \cite{chambolle2010,chambolle2014ergodic}) because
-computing the euclidean projections $\proj_{Q_k}$ is very difficult
+computing the orthogonal projections $\proj_{Q_k}$ is very difficult
 (in fact, such subproblems would have to be solved
 iteratively\footnote{An ``exception to the rule'' is the case where
   the $Q_k's$ are simplexes, so that the projections can be computed
@@ -349,10 +363,10 @@ simplexes as was done in \cite{chambolle2014ergodic}, for example.
 It should be stressed that such matrix games are
 considerably simpler than the games considered here. Indeed, the
 authors in \cite{chambolle2014ergodic} use the fact that computing the
-euclidean projection of a point onto a simplex can be done in linear
+orthogonal projection of a point onto a simplex can be done in linear
 time as in \cite{duchi2008efficient}. In contrast, no such efficient
 algorithm is known nor is likely to exist for the polyhedra $Q_k$
-defined in \eqref{eq:polyhedron}, the strategy profiles for players in
+defined in \eqref{eq:polytope}, the strategy profiles for players in
 the games considered here. It should however be noted that such this
 projection can still be done iteratively using, for example, the
 algorithm in proposition 4.2 of \cite{combettes2010dualization} or the
@@ -512,16 +526,17 @@ one computes the primal-dual gap between the primal LCP
   g_1, g_2) \text{ at }(y, p, x, q),
   \end{split}
 \end{eqnarray*}
-where the second equality follows from the zero-sum condition $\Psi_1 + \Psi_2
-:= 0$.
+where the second equality follows from the zero-sum condition $\Psi_1
++ \Psi_2 := 0$.
 \end{proof}
 
 
 By Theorem \ref{thm:pd}, solviing for a Nash equilibrium for
 the game is equivalent to solving the GSP
 \eqref{eq:unconstrained_pb}, which as it turns out, is simpler
-conceptually. The rest of the paper will be devoted to
-developing an algorithm for solving the latter.
+conceptually (for example, we no longer need to compute the
+complicated orthogonal projections $\proj_{Q_k}$). The rest of the
+paper will be devoted to developing an algorithm for solving the latter.
 
 
 % \subsection{The proposed algorithm and its $\mathcal{O}(1/\epsilon)$
@@ -681,7 +696,7 @@ y^{(k+1)},\Delta p^{(k+1)},\Delta x^{(k+1)},\Delta q^{(k+1)})$
 \end{algorithm}
 
 \begin{theorem}[Ergodic $\mathcal{O}(1/\epsilon)$ convergence]
-Let $d_0$ be the euclidean distance between the starting point
+Let $d_0$ be the orthogonal distance between the starting point
 $(y^{(0)},p^{(0)},x^{(0)},q^{(0)})$ of Algorithm \ref{Tab:algo} and the
 set of equilibria for the GSP \eqref{eq:unconstrained_pb}.
 Then given any $\epsilon > 0$, there exists an index
