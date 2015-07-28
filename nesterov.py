@@ -250,7 +250,7 @@ if __name__ == "__main__":
     fig2 = plt.figure(figsize=(13.5, 10))
     ax2 = plt.subplot("111")
     plt.grid("on")
-    for solver in ["alg 1", "gilpin", "nesterov"][:1]:
+    for solver in ["alg 1", "gilpin", "nesterov"]:
         x, u, values, gaps = eval("%s_ne" % solver.replace(" ", "_").replace(
             "-", "_"))(A, epsilon=1e-4, max_iter=100000)
         ax1.loglog(gaps, label="\\textbf{%s}" % _cap(solver), linewidth=6)
