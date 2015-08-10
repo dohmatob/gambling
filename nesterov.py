@@ -15,7 +15,7 @@ def proj_simplex(v, z=1.):
     """
     # deterministic O(n log n)
     u = np.sort(v)[::-1]  # sort v in increasing order
-    aux = (np.cumsum(u) - z) / np.arange(1., len(v) + 1.)
+    aux = (u.cumsum() - z) / np.arange(1., len(v) + 1.)
     return np.maximum(v - aux[np.nonzero(u > aux)[0][-1]], 0.)
 
 

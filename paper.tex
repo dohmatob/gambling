@@ -89,7 +89,7 @@ especially in sequential games with imperfect information. This paper
 proposes a simple and efficient algorithm for solving for such
 equilibria approximately, in a sense which will be made clear shortly.
 
-\subsection{Notation and terminology}
+\paragraph{Notation and terminology.}
 Given a set $X$, $2^X$ denotes the \emph{powerset} of $X$, i.e the set
 of all subsets of $X$, or equivalently the set of all binary
 functions on $X$. Let $m$ and $n$ be positive integers. Given two
@@ -131,7 +131,7 @@ LCP (Linear Convex Program)
     \underset{(y,p) \in \mathbb{R}^{n_2} \times
      \mathbb{R}^{l_1}}{\text{minimize }}\langle e_1,
     p\rangle \hspace{.5em}\text{
-       subject to: } y \ge 0, E_2y = e_2, -Ay + E_1^Tp \geq 0.
+       subject to: } y \ge 0, E_2y = e_2, -Ay + E_1^Tp \geq 0,
   \end{aligned}
   \label{eq:primal_pb}
 \end{equation}
@@ -173,9 +173,9 @@ polyhedron)
 \end{equation}
 is identified with the strategy profile of player $k$ in the
 sequence-form representation. At a feasible point $(y, p, x, q)$ for
-the LCPs, the \textit{primal-dual gap} $\tilde{G}(y, p, x, q)$ of
-these primal-dual pair is given by\footnote{The inequality being due
-  to \textit{weak duality}.}
+the LCPs, the \textit{primal-dual gap} $\tilde{G}(y, p, x, q)$ is
+given by\footnote{The first inequality being due to \textit{weak
+    duality}.}
 \begin{eqnarray}
   \begin{split}
   0 &\le \tilde{G}(y, p, x, q) := \langle e_1, p\rangle - (-\langle
@@ -190,7 +190,7 @@ these primal-dual pair is given by\footnote{The inequality being due
 \end{minipage}
 \hspace{.5em}
 \begin{minipage}{.4\linewidth}
-  \includegraphics[width=1\linewidth]{grain4.png}
+  \includegraphics[width=1\linewidth]{polytope.png}
   \caption{A convex polytope}
   \label{fig:roi}
 \end{minipage}
@@ -856,7 +856,7 @@ A(8,2) = A(11,4) = A(11,8) = A(12,2) = A(12,6) = {0.333333}$,
 $A(4,5) = A(4,9) = A(5,3) = A(8,1) = A(8,9) = A(9,3) = A(9,7) =
 A(12,1) = A(12,5) = {0.166667}$.\\
 
-The pair of vectors $(x^*, y^*) \in \mathbb{R}^{13 + 13}$ plans given by
+The pair of vectors $(x^*, y^*) \in \mathbb{R}^{13 + 13}$ given by
 \begin{eqnarray*}
   \begin{split}
     x^* &= [1, 0.759, 0.759, 0, 0.241, 1, 0.425, 0.575, 0, 0.275, 0,
@@ -932,7 +932,7 @@ shown in Figure \ref{Tab:dgap_curve}\textit{(a)}.
   \label{Tab:dgap_curve}
 \end{figure}
 
-\section{Concluding remarks}
+\section{Concluding remarks and future work}
 Making use of the sequence-form representation
 \cite{koller1992complexity,von1996efficient,vonequilibrium}, we have
 deviced a simple and efficient primal-dual algorithm for computing
