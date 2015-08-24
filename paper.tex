@@ -1,7 +1,7 @@
 \documentclass{article} % For LaTeX2e
 \usepackage{nips14submit_e}
 \usepackage{url}
-\usepackage{sans}
+\usepackage{times}
 \usepackage{amsmath,amsfonts, amsthm}
 \usepackage{bbm}
 \usepackage{algorithm,algorithmicx}
@@ -563,7 +563,7 @@ etc.). For example, we will write $i_{z \ge 0}$ for
 $i_{\mathbb{R}^n_+}(z)$, etc. Let $f : \mathbb{R}^n \rightarrow
 (-\infty, +\infty]$ be a
   convex function. The \textit{orthogonal projector} onto $C$, is the
-  ``closes-point function''
+  ``closest-point function''
 
   \begin{eqnarray}
     \proj_C: \mathbb{R}^n \rightarrow C, x \mapsto \underset{z \in
@@ -581,13 +581,14 @@ The \textit{effective domain} of $f$, denoted
 %% The \textit{Fenchel-Legendre transform} of $f$ is the function $f^*:
 %% \mathbb{R}^n \rightarrow (-\infty, +\infty]$ defined by $f^*(x) \equiv
 %%   \underset{z \in \mathbb{R}^n}{\text{max}}\text{}z^Tx - f(z)$.
-The \textit{subgradient} of $f$ is the set-valued function
+The \textit{subdifferential} of $f$ at a point $x \in \mathbb{R}^n$ is
+defined by
 \begin{eqnarray}
-\partial f: \mathbb{R}^n \rightarrow 2^{\mathbb{R}^n}, \hspace{.5em} x \mapsto
-\{s\in \mathbb{R}^n | f(z)  \ge f(x) + \langle s, z - x\rangle, \forall
-z \in \mathbb{R}^n\}.
+\partial f(x) := \{s\in \mathbb{R}^n | f(z)  \ge f(x) + \langle s, z -
+x\rangle, \forall z \in \mathbb{R}^n\}.
 \end{eqnarray}
-Of course $\partial f(x)$ reduces to the singleton $\{\nabla f(x)\}$
+Each element of $\partial f(x)$ is called a \textit{subgradient} of $f$
+at $x$. Of course $\partial f(x)$ reduces to the singleton $\{\nabla f(x)\}$
 in case $f$ is differentiable at $x$. If $f$ is convex, its
 \textit{proximal operator} is the function $\prox_f: \mathbb{R}^n
 \rightarrow \mathbb{R}^n$ defined by
@@ -614,8 +615,8 @@ proximal calculus and its use in modern convex-optimization.
 \subsection{A more comfortable notion of approximate Nash equilibrium}
 \begin{definition}
   Given a scalar $\epsilon > 0$ and a function $f:\mathbb{R}^n
-  \rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged subgradient (or
-  $\epsilon$-subgradient, for short) of $f$ is the set-valued function
+  \rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged subdifferential (or
+  $\epsilon$-subdifferential, for short) of $f$ is the set-valued function
   \begin{eqnarray}
 \partial_\epsilon f: \mathbb{R}^n \rightarrow
 2^{\mathbb{R}^n}, \hspace{.5em} x \mapsto \{s \in \mathbb{R}^n | f(z)
@@ -623,7 +624,7 @@ proximal calculus and its use in modern convex-optimization.
 \mathbb{R}^n\}.
 \end{eqnarray}
 \end{definition}
-The idea behind $\epsilon$-subgradients is the following. Say we wish
+The idea behind $\epsilon$-subdifferentials is the following. Say we wish
 to minimize the function $f$. Replace the usual necessary
 condition ``$0 \in \partial f(x)$'' for the optimality of $x$ with the
 weaker condition ``$\partial_\epsilon f(x)$ contains a sufficiently
@@ -631,7 +632,7 @@ small vector $v$''. In fact, it is easy to see that, for each
 point $x \in \mathbb{R}^n$, we have $\underset{\epsilon \rightarrow
   0^+}{\text{lim }}\partial_\epsilon f(x) = \partial f(x)$.
 
-This approximation concept for subgradients yields the following
+This approximation concept for subdifferentials yields the following
 concept of approximate Nash equlibria (adapted from
 \cite{he2013accelerating}).
 
