@@ -108,12 +108,12 @@ We present a simple primal-dual algorithm for
   including simultaneous games and sequential games with incomplete
   information and perfect recall. The applicability to the latter kind
   of games is thanks to the sequence-form representation
-  \cite{koller1992complexity} which allows us to encode any such game
+  which allows us to encode any such game
   as a matrix game with convex polytopial profiles. We prove that
   the number of iterations needed to produce a Nash-equilibrium with a
   given precision is inversely proportional to the
-  precision. We also present experimental results on simulated and
-  real games (Kuhn poker).
+  precision. By way of demonstration, we also present experimental
+  results on simulated and real games (Kuhn poker).
 \end{abstract}
 
 \begin{keywords} algorithmic-game theory, sequential games,
@@ -136,9 +136,7 @@ proposes a simple and efficient algorithm for solving for such
 equilibria approximately, in a sense which will be made clear shortly.
 
 \subsection{Notation and terminology}
-Given a set $X$, $2^X$ denotes the \emph{powerset} of $X$, i.e the set
-of all subsets of $X$, or equivalently the set of all binary
-functions on $X$. Let $m$ and $n$ be positive integers. Given two
+Let $m$ and $n$ be positive integers. Given two
 vectors $z, w \in \mathbb{R}^n$, their inner product will be denoted
 $\langle z, w\rangle := \sum_{j}z_jw_j$. The components of $z$ will be
 denoted $z_0$, $z_1$, ..., $z_{n-1}$ (indexing begins from $0$,
@@ -206,7 +204,7 @@ If $f$ is convex, its
 
 The interested reader should refer to \cite{combettes2011proximal} and
 the references therein, for a more elaborate exposition on
-proximal calculus and its use in modern convex-optimization.
+proximal calculus. % and its use in modern convex-optimization.
 
 \subsection{Statement of the problem}
 
@@ -405,7 +403,7 @@ The authors reported a $\mathcal{O}(1/\epsilon)$ convergence rate
 iteration loop.
 \cite{gilpinfirst} proposed a modified version of the techniques in
 \cite{hoda2010smoothing} and  proved a $\mathcal{O}\left(\left(\|A\| /
-\delta\right) ln\left(1 / \epsilon\right)\right)$ convergence rate in
+\delta\right) \log \left(1 / \epsilon\right)\right)$ convergence rate in
 terms of the number of calls made to a first-order oracle. Here
 $\delta = \delta(A, E_1, E_2, e_1, e_2) > 0$ is a certain
 \textit{condition number} for the game. The crux of their technique was to
@@ -430,7 +428,7 @@ should be noted however that
 \begin{itemize}
 \item[--] The constant $\delta > 0$ can be arbitrarily small, and so
   the factor $\|A\| / \delta$ in the $\mathcal{O}\left(\left(\|A\| /
-\delta\right) ln\left(1 / \epsilon\right)\right)$ convergence rate can
+\delta\right) \log\left(1 / \epsilon\right)\right)$ convergence rate can
 be arbitrarily large for ill-conditioned games.
 \item[--] The reported linear convergence rate is not in terms of
   basic operations (addition, multiplication, matvec, clipping, etc.),
@@ -474,9 +472,9 @@ particularly useful in many-player games, since convex-analytical
 methods cannot help much in such games.
 
 
-\section{Methods}
+\section{Our contributions}
 \label{sec:gsp}
-\subsection{The Generalized Saddle-point Problem (GSP) connection}
+\subsection{Preliminaries}
 In the next theorem, we show that the LCPs \eqref{eq:primal_pb}
 and \eqref{eq:dual_pb} can be
 conveniently written as a \textit{Generalized Saddle-point Problem
@@ -644,7 +642,7 @@ paper will be devoted to developing an algorithm for solving the latter.
 % \subsection{The proposed algorithm and its $\mathcal{O}(1/\epsilon)$
 % convergence}
 
-\subsection{A more comfortable notion of approximate Nash-equilibrium}
+\subsection{Yet another notion of approximate Nash-equilibrium}
 \begin{definition}
   Given a scalar $\epsilon > 0$ and a function $f:\mathbb{R}^n
   \rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged
@@ -771,7 +769,7 @@ b - \lambda e_j)$. With all these ingredients in place, Algorithm
 \end{proof}
 
 \subsection{Practical considerations}
-\paragraph*{\textbf{\textit(a) Efficient computation of $Ay$ and $A^Tx$.}}
+\paragraph*{Efficient computation of $Ay$ and $A^Tx$.}
 In Algorithms \ref{Tab:algo}, most of the time is spent
 pre-multiplying vectors by $A$ and $A^T$ (precisely 3 such operations
 are done per iteration). For \textit{flop-type} poker
@@ -849,17 +847,16 @@ exploited, as was done in \cite{hoda2010smoothing}.%%  For the purpose of
 %% form similary to \eqref{eq:factor_A} by applying appropriate
 %% permutations to the enumeration of the players's sequences.
 
-\paragraph*{\textit(b) Computing $\|K\|$.}
+\paragraph*{Computing $\|K\|$.}
 Also the 2-norm $\|K\|$ of the linear operator $K$, can be efficiently
-computed using the power iteration (Perron-Frobenius).
+computed using the power iteration.
 
 \section{Experimental results}
 \label{sec:results}
 To assess the practical quality of the proposed algorithm, we
 tested it on simulated and real games.
-\paragraph*{Experiments on sequential games with incomplete
-  information: Kuhn 3-card
-  poker.} This game is a simplified form of poker
+\paragraph*{Sequential games with incomplete
+  information: Kuhn poker.} This game is a simplified form of poker
 developed by Harold W. Kuhn. It is a two-person zero-sum game which is
 simple enough to serve as a proof-of-concept example but contains all
 the complexity traits of a incomplete information sequential game. The
@@ -941,7 +938,7 @@ shown in Figure \ref{Tab:dgap_curve}\textit{(a)}.
   \subfigure[Kuhn 3-card poker]{
     \includegraphics[width=.5\linewidth]{Kuhn3112_dgap.pdf}
   }
-  \vspace{-1em}
+  %\vspace{-1em}
   \hspace{-.5em}
   \includegraphics[width=.5\linewidth]{1.pdf}
   %% \hspace{-1em}
@@ -960,7 +957,8 @@ shown in Figure \ref{Tab:dgap_curve}\textit{(a)}.
     near solutions. On the other hand, our proposed
     algorithm beats both of the aforementioned algorithms, and
   its proven $\mathcal{O}(1/\epsilon)$ convergence rate is clearly
-  verified empirically.}
+  verified empirically. \textit{(b)}: Kuhn poker. In both cases we see
+  that the proved convergence rate for our algorithm is observed.}
   \label{Tab:dgap_curve}
 \end{figure}
 
@@ -975,7 +973,6 @@ enjoys a rigorous convergence theory with a proven
 $\mathcal{O}(1/\epsilon)$ convergence in terms of basic operations
 (matvec products, clipping, etc.), to a Nash
 $(\epsilon,0)$-equilibrium of the game.
-
 Equilibrium problems are saddle-point convex-concave problems, and as
 such a natural choice for algorithms for solving them would be in the
 family of primal-dual algorithms. %%  We believe such primal-dual
@@ -991,10 +988,6 @@ family of primal-dual algorithms. %%  We believe such primal-dual
 %% diffeomorphisms), and other structured manifolds, the aim being to
 %% obtain better algorithms for nonlinear registration of fMRI brain
 %% images and enhance the charting of human functional connectomes.
-
-%\pagebreak
-\bibliographystyle{llcns2e/splncs03}
-\bibliography{bib}
 
 
 %\paragraph{\textbf{Toy Poker game...}}
@@ -1013,6 +1006,8 @@ family of primal-dual algorithms. %%  We believe such primal-dual
 %% A(4,0) = {-0.5}$, $A(1,3) = {1}$, $A(3,1) =
 %% {-1}$, $A(1,2) = A(1,4) = A(3,2) = A(3,4) = {0.25}$.
 
-
+\pagebreak
+\bibliographystyle{IEEEbib}
+\bibliography{bib}
 
 \end{document}
