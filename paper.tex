@@ -31,9 +31,8 @@
 
 % Title.
 % ------
-\title{ A simple and efficient algorithm for computing approximate
-  Nash equilibria in sequential games with incomplete
-  information}
+\title{A SIMPLE AND EFFICIENT ALGORITHM FOR COMPUTING APPROXIMATE
+  NASH-EQUAILIBRIA IN SEQUENTIAL GAMES WITH INCOMPLETE INFORMATION}
 
 %
 % Single address.
@@ -98,8 +97,9 @@
 \begin{document}
 
 \maketitle
-\begin{abstract}We present a simple primal-dual algorithm for
-  computing approximate Nash equilibria in two-person zero-sum
+\begin{abstract}
+We present a simple primal-dual algorithm for
+  computing approximate Nash-equilibria in two-person zero-sum
   sequential games with  incomplete information and perfect recall
   (like Texas Hold'em poker). Our algorithm only performs basic
   iterations (i.e matvec multiplications, clipping, etc., and no calls
@@ -110,15 +110,15 @@
   of games is thanks to the sequence-form representation
   \cite{koller1992complexity} which allows us to encode any such game
   as a matrix game with convex polytopial profiles. We prove that
-  the number of iterations needed to produce a Nash equilibrium with a
+  the number of iterations needed to produce a Nash-equilibrium with a
   given precision is inversely proportional to the
   precision. We also present experimental results on simulated and
   real games (Kuhn poker).
 \end{abstract}
 
-\textbf{keywords}: algorithmic-game theory; sequential game;
-incomplete information; perfect recall; approximate Nash equilibrium;
-primal-dual algorithm; convex-optimization
+\begin{keywords} algorithmic-game theory, sequential games,
+incomplete information, perfect recall, approximate Nash-equilibrium
+\end{keywords}
 
 \section{Introduction}
 \label{sec:intro}
@@ -219,7 +219,7 @@ $A \in \mathbb{R}^{n_1 \times n_2}$, $E_1 \in \mathbb{R}^{l_1 \times
   n_1}$, $E_2 \in \mathbb{R}^{l_2 \times n_2}$, and vectors $e_1 \in
 \mathbb{R}^{l_1}, e_2 \in \mathbb{R}^{l_2}$ such that $n_1$, $n_2$,
 $l_1$, and $l_2$ are all linear in the size of the game tree (number
-of states in the game) and such that Nash equilibria correspond to
+of states in the game) and such that Nash-equilibria correspond to
 pairs $(x, y)$ of \textit{realization plans} which solve the primal
 LCP (Linear Convex Program)
 \begin{equation}
@@ -307,7 +307,7 @@ Solving the LCPs \eqref{eq:primal_pb} and \eqref{eq:dual_pb} exactly
 is impossible in practice (indeed, this system of problems is NP-hard
 \cite{koller1992complexity}) and such a precision doesn't have any
 fundamental practical advantage. Instead, it is customary compute
-``approximate'' Nash equilibria. A popular notion of approximate
+``approximate'' Nash-equilibria. A popular notion of approximate
 equilibria is the following:
 
 \begin{definition}[\textbf{Nash $\epsilon$-equilibria}]
@@ -372,7 +372,7 @@ Developing on an alternative notion of approximate equilibria (see
 Definition \ref{thm:cool_notion})
 homologous to that presented in Definition \ref{thm:approx_nash}, we
 device a primal-dual algorithm that (Algorithm \ref{Tab:algo}) for
-computing approximate Nash equilibria in sequential two-person
+computing approximate Nash-equilibria in sequential two-person
 zero-sum games with incomplete information and perfect recall, and
 which satisfies the above crucial requirements (1)--(2). We also
 prove (Theorem \ref{thm:pd}) that --in an ergodic / Ces\`ario sense-- the number of
@@ -553,11 +553,11 @@ S_1 \times S_2$ such that $\forall (y,p, x, q) \in S_1
 \label{thm:pd}
 
 Then GSP($\Psi_1$,
-  $\Psi_2$, $g_1$, $g_2$) is equivalent to the Nash equilibrium LCPs
+  $\Psi_2$, $g_1$, $g_2$) is equivalent to the Nash-equilibrium LCPs
   \eqref{eq:primal_pb} and \eqref{eq:dual_pb}, i.e
 a quadruplet $(y^*,p^*, x^*, q^*) \in \mathbb{R}^{n_2}
   \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
-  \mathbb{R}^{l_2}$ solves the Nash equilibrium LCPs
+  \mathbb{R}^{l_2}$ solves the Nash-equilibrium LCPs
   \eqref{eq:primal_pb} and \eqref{eq:dual_pb} iff it solves
   GSP($\Psi_1$, $\Psi_2$, $g_1$, $g_2$). 
   \label{thm:pd}
@@ -633,7 +633,7 @@ where the second equality follows from the zero-sum condition $\Psi_1
 \end{proof}
 
 
-By Theorem \ref{thm:pd}, solving for a Nash equilibrium for
+By Theorem \ref{thm:pd}, solving for a Nash-equilibrium for
 the game is equivalent to solving the GSP
 \eqref{eq:unconstrained_pb}, which as it turns out, is simpler
 conceptually (for example, we no longer need to compute the
@@ -644,7 +644,7 @@ paper will be devoted to developing an algorithm for solving the latter.
 % \subsection{The proposed algorithm and its $\mathcal{O}(1/\epsilon)$
 % convergence}
 
-\subsection{A more comfortable notion of approximate Nash equilibrium}
+\subsection{A more comfortable notion of approximate Nash-equilibrium}
 \begin{definition}
   Given a scalar $\epsilon > 0$ and a function $f:\mathbb{R}^n
   \rightarrow [-\infty,+\infty]$, the $\epsilon$-enlarged
@@ -666,7 +666,7 @@ point $x \in \mathbb{R}^n$, we have $\underset{\epsilon \rightarrow
   0^+}{\text{lim }}\partial_\epsilon f(x) = \partial f(x)$.
 
 This approximation concept for subdifferentials yields the following
-concept of approximate Nash equlibria (adapted from
+concept of approximate Nash-equlibria (adapted from
 \cite{he2013accelerating}).
 
 \begin{definition}[\textbf{Nash $(\epsilon_1,\epsilon_2)$-equilibria}]
@@ -688,7 +688,7 @@ y^*, x^*, q^*)$.
 The above definition is a generalization of the notion of Nash
 equilibria since:
 \begin{itemize}
-\item Exact Nash equilibria correspond to Nash $(0,0)$-equilibria.
+\item Exact Nash-equilibria correspond to Nash $(0,0)$-equilibria.
 \item Nash $\epsilon$-equilibria (in the sense of Definition
   \ref{thm:approx_nash}) correspond to Nash $(0,\epsilon)$-equilibria.
 \end{itemize}
@@ -968,7 +968,7 @@ shown in Figure \ref{Tab:dgap_curve}\textit{(a)}.
 Making use of the sequence-form representation
 \cite{koller1992complexity,von1996efficient,vonequilibrium}, we have
 devised a simple and efficient primal-dual algorithm for computing
-Nash equilibria in two-person zero-sum sequential games with
+Nash-equilibria in two-person zero-sum sequential games with
 incomplete information (like Texas Hold'em, etc.). Our algorithm is
 simple to implement, with a low constant cost per iteration, and
 enjoys a rigorous convergence theory with a proven
