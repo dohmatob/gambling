@@ -22,7 +22,8 @@ def _check_subgradient(f, x, g, n=10):
     for z in rng.randn(n, p):
         z += x
         print f(z), f(x) + np.dot(g, z - x)
-        if f(z) < f(x) + np.dot(g, z - x): return False
+        if f(z) < f(x) + np.dot(g, z - x):
+            return False
     return True
 
 
@@ -54,7 +55,8 @@ class _GSPEnergy(object):
         x, q = xq[:self.n1_], xq[self.n1_:]
         x = np.maximum(0., x)
         xq = np.concatenate((x, q))
-        if not np.all(y >= 0.) or not np.all(x >= 0.): return np.inf
+        if not np.all(y >= 0.) or not np.all(x >= 0.):
+            return np.inf
         a = self.xq_.dot(self.K.dot(yp)) + self.e1.dot(p)
         b = -xq.dot(self.K.dot(self.yp_)) + self.e2.dot(q)
         return a + b
@@ -82,11 +84,13 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     -------
     """
     # misc
-    if init is None: init = {}
+    if init is None:
+        init = {}
     n1, n2 = A.shape
     l1, l2 = E1.shape[0], E2.shape[0]
     zeros = np.zeros((l2, l1))
-    if "norm_K" in init: norm_K = init["norm_K"]
+    if "norm_K" in init:
+        norm_K = init["norm_K"]
     else:
         # XXX use power iteration to compute ||K||^2
         K = np.vstack((np.hstack((A, -E1.T)), np.hstack((E2, zeros))))
@@ -113,7 +117,8 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     deltas_q = []
     for k in range(max_iter):
         # invoke callback
-        if callback and callback(locals()): break
+        if callback and callback(locals()):
+            break
 
         # save previous iterates
         old_y = y.copy()
@@ -131,22 +136,26 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         x += lambd * (A.dot(y) - E1.T.dot(p))
         x = proj_C1(x)
         delta_x = x - old_x
-        if check_ergodic: deltas_x.append(delta_x)
+        if check_ergodic:
+            deltas_x.append(delta_x)
 
         # q update
         delta_q = lambd * (E2.dot(y) - e2)
         q += delta_q
-        if check_ergodic: deltas_q.append(delta_q)
+        if check_ergodic:
+            deltas_q.append(delta_q)
 
         # u update (again)
         y -= lambd * (A.T.dot(delta_x) + E2.T.dot(delta_q))
         delta_y = y - old_y
-        if check_ergodic: deltas_y.append(delta_y)
+        if check_ergodic:
+            deltas_y.append(delta_y)
 
         # p update (again)
         p += lambd * E1.dot(delta_x)
         delta_p = p - old_p
-        if check_ergodic: deltas_p.append(delta_p)
+        if check_ergodic:
+            deltas_p.append(delta_p)
 
         # compute game value and primal-dual gap at current iterates
         value = x.dot(A.dot(y))
@@ -167,6 +176,8 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
             break
 
     # misc
+    y = proj_C2(y)
+    x = proj_C1(x)
     init["norm_K"] = norm_K
     init["sigma"] = sigma
     init["lambd"] = lambd
@@ -194,28 +205,30 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
 
 
 def primal_dual_sg_ne(A, epsilon=1e-4, strict=True, **kwargs):
+    # misc
     n1, n2 = A.shape
     E1 = np.ones((1, n1))
     E2 = np.ones((1, n2))
     e1 = 1.
     e2 = 1.
-
     init = kwargs.pop("init") if "init" in kwargs else {}
-    if not "x" in init: init["x"] = (1. / n1) * np.ones(n1)
-    if not "y" in init: init["y"] = (1. / n2) * np.ones(n2)
+    if not "x" in init:
+        init["x"] = (1. / n1) * np.ones(n1)
+    if not "y" in init:
+        init["y"] = (1. / n2) * np.ones(n2)
     kwargs["init"] = init
-
     gaps = []
 
     def cb(variables):
         gap = A.dot(variables["y"]).max() - A.T.dot(variables["x"]).min()
         gap = abs(gap)  # maybe gap < 0 in case we aren't on the feasible set
-        print gap
         gaps.append(gap)
         return strict and gap < epsilon
 
     x, y, p, q, init, values, gaps_ = primal_dual_ne(
         A, E1, E2, e1, e2, callback=cb, epsilon=epsilon, **kwargs)
 
-    if strict: return x, y, values, gaps
-    else: return x, y, p, q, init, values, gaps_
+    if strict:
+        return x, y, values, gaps
+    else:
+        return x, y, p, q, init, values, gaps_
