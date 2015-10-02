@@ -353,7 +353,8 @@ G(x, y) &=
 %% iteratively\footnote{An ``exception to the rule'' is the case where
 %%   the $Q_k's$ are simplexes, so that the projections can be computed
 %%   exactly using \cite{duchi2008efficient}.}.
-
+We now give a brief overview of our contributions, which will be made
+more elaborate in section \ref{sec:gsp}.
 Developing on an alternative notion of approximate equilibria (see
 Definition \ref{thm:cool_notion})
 homologous to that presented in Definition \ref{thm:approx_nash}, we
@@ -366,7 +367,7 @@ $(x)_+$. We also prove (Theorem \ref{thm:pd}) that --in an ergodic /
 Ces\`ario sense-- the number of iterations required by the algorithm
 to produce an approximation equilibrium to a precision $\epsilon$ is
 $\mathcal{O}(1/\epsilon)$, with explicit values for the constants
-involved this worst-case cost.
+involved.
 %% The source of approximation in our scheme
 %% is that we explicitly control how close we are to the feasible set
 %% $Q_1 \times Q_2$.
@@ -375,7 +376,7 @@ involved this worst-case cost.
 
 \section{Relation to prior work}
 \label{sec:related_work}
-We now present a selection of algorithms that is representative of the
+Here, we present a selection of algorithms that is representative of the
 efforts that have been made in the literature to compute Nash
 $\epsilon$-equilibria for two-person zero-sum games with incomplete
 information like Texas Hold'em Poker, etc.
@@ -393,7 +394,7 @@ definitive state-of-the-art, and are particularly useful in
 many-player games, since convex-analytical methods cannot help much in
 such games. Also, they can be shown to converge to a Nash-equilibrium
 provided each player uses a CFR scheme to play the game
-\cite{zinkevich2008regret}, but generally enjoy a much weaker
+\cite{zinkevich2008regret}, but have a much weaker
 convergence theory. For example, \cite{lanctot2009monte} showed that
 such scheme have a running time of $\mathcal{O}(1/\epsilon^2)$ to
 produce a Nash $\epsilon$-equilibrium.
@@ -542,7 +543,8 @@ and define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
 Finally, define the sets $S_1 := \mathbb{R}^{n_2}_+ \times
 \mathbb{R}^{l_1}$ and $S_2 := \mathbb{R}^{n_1}_+ \times
 \mathbb{R}^{l_2}$, and consider the GSP($\Psi_1$, $\Psi_2$, $g_1$,
-$g_2$): Find a quadruplet $(y^*,p^*, x^*, q^*) \in S_1 \times S_2$,
+$g_2$): Find a quadruplet $(y^*,p^*, x^*, q^*) \in S_1 \times S_2$
+such that
 \begin{eqnarray}
   \begin{split}
     &\hat{\Psi}_1(y^*, p^*, x^*, q^*) \le \hat{\Psi}_1(y, p, x^*,
@@ -782,12 +784,12 @@ solver.
 
 \paragraph*{Computing $\|K\|$.}
 Also the 2-norm $\|K\|$ of the linear operator $K$, can be efficiently
-computed using the power iteration. Results are presented and
-commented in Figure \ref{Tab:dgap_curve}.
+computed using the power iteration.
 
 \section{Numerical experiments results}
 \label{sec:results}
 We now present some proof-of-concept for the algorithm proposed.
+Results are presented and commented in Figure \ref{Tab:dgap_curve}.
 \subsection{Basic test-bed: Matrix games on simplexes}
 As in \cite{nesterov2005a,chambolle2014ergodic}, we generate a $1000
 \times 1000$ random matrix whose entries are uniformly identically
