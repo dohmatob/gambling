@@ -131,6 +131,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
 
         # p update
         p -= lambd * (e1 - E1.dot(x))
+        print e1 - E1.dot(x)
 
         # x updata
         x += lambd * (A.dot(y) - E1.T.dot(p))
