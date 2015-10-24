@@ -555,14 +555,13 @@ Finally, define the sets $S_1 := \mathbb{R}^{n_2}_+ \times
 \mathbb{R}^{l_1}$ and $S_2 := \mathbb{R}^{n_1}_+ \times
 \mathbb{R}^{l_2}$, and consider the GSP($\Psi_1$, $\Psi_2$, $g_1$,
 $g_2$): Find a quadruplet $(y^*,p^*, x^*, q^*) \in S_1 \times S_2$
-such that
+s.t $\forall (y,p, x, q) \in S_1 \times S_2$, we have
 \begin{eqnarray}
   \begin{split}
     &\hat{\Psi}_1(y^*, p^*, x^*, q^*) \le \hat{\Psi}_1(y, p, x^*,
     q^*),\hspace{1em}and\\
     &\hat{\Psi}_2(y^*, p^*, x^*, q^*)
-    \le \hat{\Psi}_2(y^*, p^*, x, q),\hspace{.21em} \forall (y,p, x, q)
-    \in S_1 \times S_2.
+    \le \hat{\Psi}_2(y^*, p^*, x, q).
   \label{eq:unconstrained_pb}
 \end{split}
 \end{eqnarray}
