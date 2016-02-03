@@ -5,13 +5,16 @@ import numpy as np
 
 
 def _matrix2texstr(A, name="A", exclude=None):
-    if exclude is None: exclude = []
+    if exclude is None:
+        exclude = []
     vals = dict((val, []) for val in np.unique(A))
-    for val in exclude: del vals[val]
+    for val in exclude:
+        del vals[val]
     for v, u in vals.items():
         for i in range(A.shape[0]):
             for j in range(A.shape[1]):
-                if A[i, j] == v: u.append((i, j))
+                if A[i, j] == v:
+                    u.append((i, j))
     out = []
     for v, u in vals.items():
         out.append("$" + " = ".join(["%s(%i,%i)" % (name, i, j)
@@ -19,132 +22,15 @@ def _matrix2texstr(A, name="A", exclude=None):
     return ", ".join(out)
 
 
-
 class Game(object):
-    """Sequence-form representaion of two-person zero-sum games with perfect
-    recall and imcomplete information (like Poker, love, war, diplomacy, etc.)
 
-    Terminology
-    -----------
-
-    Game Tree (normal-form definition)
-    ==================================
-    There are 3 players, namely: the "chance" player (player 0, aka nature),
-    Alice (player 0), and Bob (player 2), and the "mute" (player 3) all four
-    treated symmetrically. Each player p has a set of moves (aka, choices,
-    actions, etc.) denoted by an alphabet A_p. For clarity of the discussion,
-    we assume that the set of moves of any two distinct players are disjoint.
-    Furthermore, player 3 (mute) has no moves, i.e A_3 = {}, hence her name.
-
-    The game tree T (from Alice's perspective) is defined as follows.
-    T has a set V(T) of nodes (aka vertices) and a set E(T) of edges.
-    Each node v belongs to a single player, p(v), called "the player to act
-    at v"; p(v) := 3 if v is a leaf node. At node v, the player p(v) has a set
-    C(v) \subset A_p of possible moves. For each player p \in [0, 1, 2],
-    the set of all nodes at which p acts is called the nodes of p,
-    denoted V_p(T). Thus v(0), v(1), and v(2) form a partition of V(T).
-
-    There are two kinds of nodes: the leafs L(T), at which the game must
-    end and decision nodes D(T), at which the player to act must make a move.
-    L(T) and D(T) are a partition of the node V(T). For example in Poker,
-    a leaf node is reached at countdown, or when a player folds, or when the
-    player runs out of money.
-
-    There is a special node root(T) defined by
-
-        root(T) := (c_0, p_0),
-
-    where c_0 := / (/ is  a special symbol) and p_0 \in [0, 1, 2] is the player
-    who begins the game, also known as the player to act at root(T).
-    Typically, p_0 = 0 (i.e the game begins with chance).
-
-    In accordance with the rules of the game, every other node
-    y \in V(T)\{root(T)} is of the form
-
-         y = v.(c, p(v))
-
-    Where v \in D is another node and c \in C(v). The point "." between v and
-    (c, p(v)) is a special marker. Thanks to the "perfect recall" assumption,
-    exactly one v \in D satisfies the above equation and so
-
-        ant(y) = v
-
-    defines a single-valued function from V(T)\{root} to D(T). Thus each
-    not-root node y is of the form
-
-        y = ant(y).(c, p(ant(y)),
-
-    with c \in C(ant(y)).
-
-    We put a directed edge e(y) from ant(y) to y, and label it with the move c.
-    The set of edges E(T) is simply the set of all such edges e(y).
-
-    Thus a general non-root node is of the (unique!) form
-
-        y = (c_0, p_0).(c_1, p_1).(c_2, p_2)...(c_l(y), p_l(y)),
-
-    where l(y) > 0 is length of the path from root(T) to y, p_j is defined
-    recursively (on l(y)) to equal p(y), the player to act at y. Thus each node
-    y encodes the history of a play (ongoing or terminated). Also y is the the
-    root of a unique subgame which begins at y.
-
-    It is clear that T = (V(T), E(T)) as defined, is indeed a tree.
-
-    Payoffs and Rationailty
-    =======================
-    Associated with T is a payoff function phi such that at each leaf node
-    v \in L(T), player Alice (player 1) gets phi(v)$ and Bob (player 2)
-    gets -phi(v)$; at v Alice losses, draws, or wins acording as phi(v) < 0,
-    phi(v) = 0, or phi(v) > 0 respectively. The function phi uniquely
-    determined by the sequence of moves made by the chance player. For
-    example in Poker, phi simply scores each player's hand at countdown
-    (assuming nobody has folded yet, etc.).
-
-    A player is said to be rational if their aimed "goal" is to constraint
-    the game to land on a leaf node at which their reward is as big as
-    possible; otherwise they're considered irrational. We'll assume Alice
-    and Bob are both rational. In particular, this assumption implies that
-    Bob and Alice play non-cooperatively!
-
-    The "chance" player (0), Imcomplete Information, and Information Sets
-    =====================================================================
-    Each time the "chance" player (aka player 0, aka nature) plays, she does so
-    by generating a signal s from a fixed (and publicly known) probability
-    distribution gamma_0 on A_0; two quantities zeta1(s) and zeta2(s) are
-    computed from s and revealed exclusively to Alice and Bob respectively.
-    This marks the begining of a round. It is assumed that both Alice and Bob
-    know a public procedure which can be used to recover s from its parts
-    zeta1(s) and zeta2(s). As an example (Kuhn's Poker), take
-
-        A_0 := {'12', '13', '21', '23', '31', '32'},
-        zeta1(s) := s[0], and
-        zeta2(s) := s[1], for all s \in A_0.
-
-    The 'projectors' zeta1 and zeta2 may change from round, as is the case
-    in games like Poker. Usually in Poker, zeta1(s) = zeta2(s) = s for
-    community cards; for non-community cards zeta1(s) are the cards given to
-    Alice face-down and zeta2(s) are the cards given to Bob face-down, and
-    it is practically impossible to recover s from only zeta1(s) or zeta2(s),
-    behond guessing.
-
-    Because Alice (respective Bob) cannot always determine a move s \in A_0
-    made by the chance player (as she may only know part of s, not all of
-    it), she can't always tell on which node she is on the game tree. This
-    indeterminacy is referred to as imcomplete information, and calls for
-    strategic speculation by both players. For each player p \in [1, 2],
-    the is a partitioning I_p \subset \powerset(V_p(T)) V_p(T) of p into
-    equivalence classes known as information sets. Each information set of p
-    (i.e each element of I_p) contains a subset elements of V_p(T), which are
-    all mutually indistinguishable to p. Of course if each element of each
-    I_p is a singleton, then the game reduces to a game with complete
-    information.
-
-    """
     PLAYER_CHOICES = None
     BOOK = None
     PLAYER_COLORS = "gbr"
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
         self.tree = nx.DiGraph()
         self.edge_labels = {}
         self.infosets = {}
@@ -156,8 +42,12 @@ class Game(object):
         self.build_constraints()
         self.build_payoff_matrix()
 
+    def player_choices(self):
+        return self.player_choices()
+
     def init_misc(self):
         """Miscellaneous initializations."""
+        self.PLAYER_CHOICES = self.player_choices()
         self.last_node_played_patterns = {}
         for player, choices in self.PLAYER_CHOICES.iteritems():
             choices = "|".join(choices)
@@ -166,7 +56,7 @@ class Game(object):
 
     def is_leaf(self, node):
         """Checks whether given node is leaf / terminal."""
-        return not "info" in self.tree.node[node]
+        return "info" not in self.tree.node[node]
 
     def is_root(self, node):
         """checks whether given node is root."""
@@ -177,7 +67,7 @@ class Game(object):
         return int(re.match("^.*?(\d)\\)$", node).group(1))
 
     def previous_player(self, node):
-        """Returns player who plays play leads to given node."""
+        """Returns player whose move leads to given node."""
         pred = self.tree.pred[node]
         return self.player_to_play(pred.keys()[0]) if pred else None
 
@@ -246,7 +136,7 @@ class Game(object):
         """Computes info at a node given node, and stores it in the tree
         structure for the game."""
         # create node if inexsitent
-        if not node in self.tree.node:
+        if node not in self.tree.node:
             self.tree.add_node(node)
         self.tree.node[node]["player"] = player
 
@@ -256,9 +146,9 @@ class Game(object):
 
         # create and store node info (i.e information set to which it belongs)
         info = self.compute_info_at_node(node, choices)
-        if not player in self.infosets:
+        if player not in self.infosets:
             self.infosets[player] = {}
-        if not info in self.infosets[player]:
+        if info not in self.infosets[player]:
             self.infosets[player][info] = []
         self.infosets[player][info].append(node)
         self.tree.node[node]["info"] = dict(chance=info[0], sigma=info[1],
@@ -297,7 +187,7 @@ class Game(object):
             Additional data to store at destination node.
         """
         choice_ = "(%s,%i)" % (choice, next_player)
-        if not choice_ in self.tree.node[src]["info"]["choices"]:
+        if choice_ not in self.tree.node[src]["info"]["choices"]:
             raise RuntimeError("%s is not a choice at %s" % (choice_, src))
         dst = "%s.%s" % (src, choice_)
         assert 0. < proba <= 1.
@@ -314,8 +204,11 @@ class Game(object):
     def level_first_traversal(self, player=None):
         """Level-first traversal of the game tree."""
         root = "(/,0)"
-        _skip = lambda node: False if player is None else (
-            self.previous_player(node) != player)
+
+        def _skip(node):
+            return False if player is None else (
+                self.previous_player(node) != player)
+
         if not _skip(root):
             yield root
         visited = set()
@@ -482,5 +375,3 @@ class Game(object):
             _matrix2texstr(self.constraints[1][0], exclude=[0.], name="E_1"),
             _matrix2texstr(self.constraints[1][0], exclude=[0.], name="E_2"),
             _matrix2texstr(self.payoff_matrix, exclude=[0.], name="A")]
-
-
