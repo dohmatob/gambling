@@ -14,6 +14,25 @@ from scipy import linalg
 _norm = lambda *args: sqrt(np.sum(np.concatenate(args) ** 2))
 
 
+class K(object):
+    def __init__(self, A, E1, E2, L=None):
+        self.A = A
+        self.E1 = E1
+        self.E2 = E2
+        self.n1, self.n2 = A.shape
+        self.l1, self.l2 = E1.shape[0], E2.shape[0]
+        zeros = np.zeros((self.l2, self.l1))
+        self.mat = np.vstack((np.hstack((A, -E1.T)), np.hstack((E2, zeros))))
+        self.L = linalg.norm(self.mat, 2) if L is None else L
+
+    def __call__(self, yp):
+        return self.mat.dot(yp)
+
+    @property
+    def T(self):
+        return K(self.A.T, -self.E2, -self.E1, L=self.L)
+
+
 def _check_subgradient(f, x, g, n=10):
     """Checks that g is a sub-gradient of f at x."""
     from sklearn.utils import check_random_state
@@ -115,6 +134,9 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
     deltas_p = []
     deltas_x = []
     deltas_q = []
+    y_avg = np.zeros_like(y)
+    x_avg = np.zeros_like(x)
+    k = 1
     for k in range(max_iter):
         # invoke callback
         if callback and callback(locals()):
@@ -137,6 +159,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         x += lambd * (A.dot(y) - E1.T.dot(p))
         x = proj_C1(x)
         delta_x = x - old_x
+        x_avg += x
         if check_ergodic:
             deltas_x.append(delta_x)
 
@@ -149,6 +172,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
         # u update (again)
         y -= lambd * (A.T.dot(delta_x) + E2.T.dot(delta_q))
         delta_y = y - old_y
+        y_avg += y
         if check_ergodic:
             deltas_y.append(delta_y)
 
@@ -177,6 +201,8 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
             break
 
     # misc
+    y = y_avg / float(k)
+    x = x_avg / float(k)
     y = proj_C2(y)
     x = proj_C1(x)
     init["norm_K"] = norm_K
@@ -200,7 +226,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
                 print "OK (k = %i)." % k
                 break
         else:
-            print "Failed."
+            print "Ergodicity check failed."
 
     return x, y, p, q, init, values, gaps
 
@@ -213,9 +239,9 @@ def primal_dual_sg_ne(A, epsilon=1e-4, strict=True, **kwargs):
     e1 = 1.
     e2 = 1.
     init = kwargs.pop("init") if "init" in kwargs else {}
-    if not "x" in init:
+    if "x" not in init:
         init["x"] = (1. / n1) * np.ones(n1)
-    if not "y" in init:
+    if "y" not in init:
         init["y"] = (1. / n2) * np.ones(n2)
     kwargs["init"] = init
     gaps = []

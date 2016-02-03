@@ -72,6 +72,23 @@ def chambolle_pock(K, KT, prox_G, prox_Fstar, x0, y0, max_iter=100,
 
     return x, y
 
+
+def cp(A, E1, E2, e1, e2, **kwargs):
+    from chambolle_pock import chambolle_pock
+    n1, n2 = A.shape
+    l1 = len(e1)
+    l2 = len(e2)
+    k = K(A, E1, E2)
+    kt = k.T
+    yp0 = np.zeros(n2 + l1)
+    xq0 = np.zeros(n1 + l2)
+    prox_G = lambda yp, lambd: np.concatenate((np.maximum(yp[:n2], 0.),
+                                               yp[n2:] - lambd * e1))
+    prox_Fstar = lambda xq, lambd: np.concatenate((np.maximum(xq[:n1], 0.),
+                                                   xq[n1:] - lambd * e2))
+    return chambolle_pock(k, kt, prox_G, prox_Fstar, yp0, xq0, **kwargs)
+
+
 if __name__ == "__main__":
 
     """

@@ -9,7 +9,10 @@ from sklearn.utils import check_random_state
 from sequence_form import Game
 from primal_dual import primal_dual_ne, primal_dual_sg_ne
 
-RNG = np.random.choice
+
+def _bin(x, n=None):
+    x = map(int, bin(x)[2:])
+    return tuple(((n - len(x)) * [0]) + x)
 
 
 class Kuhn3112(Game):
@@ -137,6 +140,66 @@ class SimplifiedPoker(Game):
                         self.add_labelled_edge(a, y, 3, payoff=payoff)
 
 
+class LogicGatePredictionGame(Game):
+    N_INPUTS = 10
+    BOOK = ["0"]
+
+    def player_choices(self):
+        return {0: "0", 2: "01",
+                1: "".join([str(x) for x in range(2 ** self.N_INPUTS)])}
+
+    def blur(self, choice, *args):
+        return "0"
+
+    def unblur(self, part, player):
+        return "0"
+
+    def call_gate(self, *args):
+        raise NotImplementedError
+
+    def build_tree(self):
+        samples = range(2 ** self.N_INPUTS)
+        self.set_node_info(0, "(/,0)", ["(%s,1)" % choice
+                                        for choice in self.PLAYER_CHOICES[0]])
+        child = self.add_labelled_edge(
+            "(/,0)", "0", 1, choices=["(%s,2)" % c for c in samples])
+        for x in samples:
+            y_true = self.call_gate(*_bin(x, n=self.N_INPUTS)) % 2
+            u = self.add_labelled_edge(child, str(x), 2,
+                                       choices=["(0,3)", "(1,3)"])
+            for y_pred in range(2):
+                self.add_labelled_edge(u, str(y_pred), 3,
+                                       payoff=-1. if y_pred == y_true else 1.)
+
+
+class XorGame(LogicGatePredictionGame):
+    def call_gate(self, *args):
+        return np.sum(args) % 2
+
+
+class AndGame(LogicGatePredictionGame):
+    def call_gate(self, *args):
+        return np.prod(np.array(args) % 2)
+
+
+class OrGame(LogicGatePredictionGame):
+    def call_gate(self, *args):
+        return np.max(args) > 0.
+
+
+class EvilGame(LogicGatePredictionGame):
+
+    def call_gate(self, *args):
+        return np.array(args)[::2].sum().max() > 0.
+
+
+class NotGame(LogicGatePredictionGame):
+    N_INPUTS = 1
+
+    def call_gate(self, a):
+        return (1 - a) % 2
+
+
 class Player(object):
     """Generic player
 
@@ -154,10 +217,12 @@ class Player(object):
         Current node / state of game tree, from player's perspective
         (Note that there is uncertainty due to imcomplete information.)
     """
-    def __init__(self, name, player, game):
+    def __init__(self, name, player, game, random_state=None):
         self.name = name
         self.player = player
         self.game = game
+        self.random_state = random_state
+        self.rng = check_random_state(random_state)
         self.location = "(/,0)"
 
     def __str__(self):
@@ -182,7 +247,7 @@ class Player(object):
         c : string
             The made choice.
         """
-        return RNG.choice(choices)
+        return choices[self.rng.choice(range(len(choices)))]
 
     def observe(self, player, choice):
         """Observe given player make a move, and memorize it."""
@@ -206,23 +271,25 @@ class NashPlayer(Player):
 
        See Benhard von Stengel 1995, etc.
     """
-    def __init__(self, name, player, game):
-        super(NashPlayer, self).__init__(name, player, game)
-        self.game = game
+    def __init__(self, *args, **kwargs):
+        super(NashPlayer, self).__init__(*args, **kwargs)
         self.sequences = self.game.sequences[self.player]
         self.compute_optimal_rplan()
-        self.location = "(/,0)"
 
     def compute_optimal_rplan(self):
         """Compute optimal realization plan, which is our own part of
         the Nash-Equlibrium for the sequence-form representation of the
         game. This computation is done offline.
         """
-
+        # from lcp import ne
         E, e = self.game.constraints[1]
         F, f = self.game.constraints[2]
         A = self.game.payoff_matrix
-        x, y, _, _, _, _, _ = primal_dual_ne(A, E, F, e, f)
+        x, y, _, _, _, _, _ = primal_dual_ne(
+            A, E, F, e, f,
+            check_ergodic=False  # xXX re-activate!
+        )
+        # x, y, _, _ = ne(A, E, F, e, f)
         self.rplan = np.array([x, y][self.player - 1])
 
     def choice(self, choices):
@@ -242,15 +309,16 @@ class NashPlayer(Player):
         c : string
             The made choice.
         """
-        # get all nodes possible "next" nodes (in sequence-form)
+        # get all possible successor nodes, w.r.t the game's sequence-form rep
         menu = map(self.game.node2seq, ['.'.join([self.location, choice])
                                         for choice in choices])
 
         # get the probabilities with which these nodes are played next
         weights = self.rplan[map(self.sequences.index, menu)]
+        print weights
 
         # ... and then make the next move according to this distribution
-        choice = choices[np.random.choice(
+        choice = choices[self.rng.choice(
                 range(len(menu)), p=weights / weights.sum(), size=1)[0]]
         self.observe(self.player, choice)
         return choice

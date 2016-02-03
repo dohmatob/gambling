@@ -1,11 +1,50 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% ICML 2016 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Template for ISBI-2013 paper; to be used with:
-%          spconf.sty  - ICASSP/ICIP LaTeX style file, and
-%          IEEEbib.bst - IEEE bibliography style file.
-% --------------------------------------------------------------------------
-\documentclass[a4paper,9pt]{extarticle}
-\usepackage{spconf,amsmath,amsfonts,amsthm,amssymb,graphicx}
+% Use the following line _only_ if you're still using LaTeX 2.09.
+%\documentstyle[icml2016,epsf,natbib]{article}
+% If you rely on Latex2e packages, like most moden people use this:
+\documentclass{article}
+
+% use Times
+\usepackage{times}
+% For figures
+\usepackage{graphicx} % more modern
+%\usepackage{epsfig} % less modern
+\usepackage{subfigure} 
+
+% For citations
+\usepackage{natbib}
+
+
+% As of 2011, we use the hyperref package to produce hyperlinks in the
+% resulting PDF.  If this breaks your system, please commend out the
+% following usepackage line and replace \usepackage{icml2016} with
+% \usepackage[nohyperref]{icml2016} above.
+\usepackage{hyperref}
+
+% Packages hyperref and algorithmic misbehave sometimes.  We can fix
+% this with the following command.
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+% Employ the following version of the ``usepackage'' statement for
+% submitting the draft version of the paper for review.  This will set
+% the note in the first column to ``Under review.  Do not distribute.''
+\usepackage[accepted]{icml2016} 
+
+% Employ this version of the ``usepackage'' statement after the paper has
+% been accepted, when creating the final version.  This will set the
+% note in the first column to ``Proceedings of the...''
+%\usepackage[accepted]{icml2016}
+
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+
+\usepackage{amsmath,amsfonts,amsthm,amssymb,graphicx}
 \usepackage{algorithm,algorithmicx,algpseudocode}
+\usepackage{amsmath,amsfonts,amsthm,amssymb,graphicx}
 \usepackage{times}
 \usepackage[font={small}]{caption}
 \usepackage{subfigure}
@@ -15,57 +54,12 @@
 \usepackage{xcolor,colortbl}
 \usepackage{dcolumn}
 
-%% squeezing
-\linespread{0.845}
-\usepackage[compact]{titlesec}
-%\titlespacing{\section}{0pt}{2ex}{1ex}
-\titlespacing{\subsection}{0pt}{1ex}{0ex}
-\titlespacing{\subsubsection}{0pt}{0.5ex}{0ex}
- 
-%\def\baselinestretch{0.98}
-
-% Example definitions.
-% --------------------
-\def\x{{\mathbf x}}
-\def\L{{\cal L}}
-
-% Title.
-% ------
-\title{A SIMPLE NUMERICALLY STABLE PRIMAL-DUAL ALGORITHM FOR COMPUTING
-  NASH-EQUILIBRIA IN SEQUENTIAL GAMES WITH INCOMPLETE INFORMATION}
-
-%
-% Single address.
-% ---------------
-\name{Elvis Dohmatob}
-\address{Parietal Team, INRIA / CEA, Universit\'e Paris-Saclay}
-%
-% For example:
-% ------------
-%\address{School\\
-%	Department\\
-%	Address}
-%
-% Two addresses (uncomment and modify for two-address case).
-% ----------------------------------------------------------
-%\twoauthors
- %% {A. Author-one, B. Author-two\sthanks{Thanks to XYZ agency for funding.}}
- %%        {School A-B\\
- %%        Department A-B\\
- %%        Address A-B}
- %% {C. Author-three, D. Author-four\sthanks{The fourth author performed the work
- %%        while at ...}}
- %%        {School C-D\\
- %%        Department C-D\\
- %%        Address C-D}
-%
-% More than two addresses
-% -----------------------
-% \name{Author Name$^{\star \dagger}$ \qquad Author Name$^{\star}$ \qquad Author Name$^{\dagger}$}
-%
-% \address{$^{\star}$ Affiliation Number One \\
-%     $^{\dagger}$}Affiliation Number Two
-%
+%% %% squeezing
+%% \linespread{0.845}
+%% \usepackage[compact]{titlesec}
+%% %\titlespacing{\section}{0pt}{2ex}{1ex}
+%% \titlespacing{\subsection}{0pt}{1ex}{0ex}
+%% \titlespacing{\subsubsection}{0pt}{0.5ex}{0ex}
 
 \newcommand{\fix}{\marginpar{FIX}}
 \newcommand{\new}{\marginpar{NEW}}
@@ -76,6 +70,7 @@
 \DeclareMathOperator{\im}{im}
 \DeclareMathOperator{\rank}{rank}
 \DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\dom}{dom}
 
 % macros from michael's .tex
 \DeclareMathOperator{\dist}{dist} % The distance.
@@ -92,11 +87,39 @@
 \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
 \newtheorem{remark}{Remark}
+ 
+%\def\baselinestretch{0.98}
 
+% Example definitions.
+% --------------------
+\def\x{{\mathbf x}}
+\def\L{{\cal L}}
 
-\begin{document}
+\icmltitlerunning{A primal-dual algorithm for Nash-equilibria in
+  incomplete information games}
 
-\maketitle
+\begin{document} 
+
+\twocolumn[
+\icmltitle{A primal-dual algorithm for Nash-equilibria in incomplete
+  information games}
+
+% It is OKAY to include author information, even for blind
+% submissions: the style file will automatically remove it for you
+% unless you've provided the [accepted] option to the icml2016
+% package.
+\icmlauthor{Elvis Dohmatob}{elvis.dohmatob@inria.fr}
+\icmladdress{Parietal Team, INRIA / CEA, Universit\'e de Paris-Saclay}
+
+% You may provide any keywords that you 
+% find helpful for describing your paper; these are used to populate 
+% the "keywords" metadata in the PDF but will not be shown in the document
+\icmlkeywords{Nash-equilibrium, sequential games,
+  incomplete information, perfect recall, convex optimization}
+
+\vskip 0.3in
+]
+
 \begin{abstract}
 We present a simple primal-dual algorithm for computing approximate
 Nash-equilibria in two-person zero-sum sequential games with
@@ -113,19 +136,15 @@ profiles. We prove that the number of iterations needed to produce a
 Nash-equilibrium with a given precision is inversely proportional to
 the precision. As proof-of-concept, we present experimental results on
 matrix games on simplexes and Kuhn Poker.
-\end{abstract}
+\end{abstract} 
 
-\begin{keywords} Nash-equilibrium, sequential games,
-  incomplete information, perfect recall, convex optimization
-\end{keywords}
-%\tableofcontents
 \section{Introduction}
 \label{sec:intro}
 A game-theoretic approach to playing games strategically optimally
 consists of computing Nash-equilibria (in fact, approximations thereof)
-offline, and playing one's part (an optimal \textit{behavioral}
-strategy) of the equilibrium online. This
-technique is the driving-force behind solution concepts like CFR
+offline, and playing one's part of the equilibrium --an optimal
+\textit{behavioral strategy}-- oneline. This technique is the
+driving-force behind solution concepts like CFR
 \cite{zinkevich2008regret,lanctot2009monte,Bowling09012015},
 $\text{CFR}^{+}$ \cite{tammelin14} and other variants, which
 have recently had profound success in Poker. However, solving games
@@ -152,11 +171,10 @@ pairs $(x, y)$ of \textit{realization plans} which solve the primal
 LCP (Linear Convex Program)
 \begin{equation}
   \begin{aligned}
-    \underset{(y,p) \in \mathbb{R}^{n_2} \times
-     \mathbb{R}^{l_1}}{\text{minimize }}\langle e_1,
-    p\rangle \hspace{.5em}\text{
-       subject to: } &y \ge 0, E_2y = e_2,\\
-    &-Ay + E_1^Tp \geq 0,
+    &\underset{(y,p) \in \mathbb{R}^{n_2} \times
+     \mathbb{R}^{l_1}}{\text{minimize }}e_1^Tp\\
+    &\text{subject to: } y \ge 0, E_2y = e_2,
+    -Ay + E_1^Tp \geq 0,
   \end{aligned}
   \label{eq:primal_pb}
 \end{equation}
@@ -164,12 +182,10 @@ LCP (Linear Convex Program)
 and the dual LCP
 \begin{equation}
   \begin{aligned}
-    \underset{(x,q) \in \mathbb{R}^{n_1} \times
-      \mathbb{R}^{l_2}}{\text{maximize }}-\langle e_2,
-    q\rangle\hspace{.5em}\text{subject
-      to: } &x \ge
-    0, E_1x = e_1,\\
-    &A^Tx + E_2^Tq \geq 0.
+    &\underset{(x,q) \in \mathbb{R}^{n_1} \times
+      \mathbb{R}^{l_2}}{\text{maximize }}-e_2^Tq\\
+    &\text{subject to: } x \ge
+    0, E_1x = e_1, A^Tx + E_2^Tq \geq 0.
   \end{aligned}
   \label{eq:dual_pb}
 \end{equation}
@@ -179,12 +195,13 @@ variables.
 $A$ is the \textit{payoff matrix} and each $E_k$ is a matrix whose
 entries are $-1$, $0$ or $1$, with exactly 1 entry per row which
 equals $-1$ except for the first whose whose first entry is $1$ and all
-the others are $0$. Each of the vectors $e_k$ is of the form $(1, 0, ..., 0)$.
+the others are $0$. Each of the vectors $e_k$ is of the form $(1, 0,
+..., 0)$.
 
 The LCPs above have the equivalent saddle-point formulation
 \begin{equation}
   \underset{y \in Q_2}{\text{minimize}}\text{ }\underset{x \in
-    Q_1}{\text{maximize}}\text{ }\langle x, Ay\rangle,
+    Q_1}{\text{maximize}}\text{ }x^TAy,
   \label{eq:gilpin}
 \end{equation}
 where the compact convex polytope
@@ -194,17 +211,16 @@ where the compact convex polytope
 \label{eq:polytope}
 \end{equation}
 is identified with the strategy profile of player $k$ in the
-sequence-form representation. At a feasible point $(y, p, x, q)$ for
+sequence-form representation
+\cite{koller1992complexity,koller1994fast,von1996efficient,vonequilibrium}. At
+a feasible point $(y, p, x, q)$ for
 the LCPs, the \textit{duality gap} $\tilde{G}(y, p, x, q)$ is
-given by\footnote{The first inequality being due to \textit{weak
-    duality}.}
+given by\footnote{The inequality being due to \textit{weak duality}.}
 \begin{eqnarray}
   \begin{split}
-  0 &\le \tilde{G}(y, p, x, q) := \langle e_1, p\rangle - (-\langle
-  e_2, q\rangle) = \langle e_1, p\rangle + \langle
-  e_2, q\rangle\\
-  &= G(x, y) := \mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle |
-(u,v) \in Q_1 \times Q_2\}.
+  \tilde{G}(y, p, x, q) &:= e_1^Tp - (-e_2^Tq) = e_1^Tp + e_2^Tq\\
+  &= \mathrm{max}\{u^TAy - x^TAv| (u,v) \in Q_1 \times Q_2\}\\
+  &=:G(x, y) \ge 0.
 \end{split}
   \label{eq:dgap}
 \end{eqnarray}
@@ -219,8 +235,8 @@ and $q$ such that
 \begin{equation}
 \begin{split}
 \hspace{.25em} -Ay + E_1^Tp \ge 0, &\hspace{.5em}A^Tx + E_2^Tq \ge
-0, \hspace{.25em} \langle x, -Ay + E_1^Tp\rangle = 0,\\
-&\langle y, A^Tx  + E_2^Tq\rangle = 0.
+0, \hspace{.25em} x^T(-Ay + E_1^Tp) = 0,\\
+&y^T(A^Tx  + E_2^Tq) = 0.
 \end{split}
 \label{eq:feasibility}
 \end{equation}
@@ -254,7 +270,7 @@ It should be noted that any matrix $A \in \mathbb{R}^{n_1 \times n_2}$
 specifies a matrix game with payoff matrix $A$, for which player $k$'s
 strategy profile is a simplex
 \begin{eqnarray}
-\Delta_{n_k} := \left\{z \in \mathbb{R}^{n_k}|z \ge 0,\sum_j
+\Delta_{n_k} := \left\{z \in \mathbb{R}^{n_k}|z \ge 0,\sum_{j=1}^{n_k}
 z_j = 1\right\}.
 \end{eqnarray}
 This simplex can be written as a compact convex polytope in
@@ -267,7 +283,7 @@ the duality gap function $G(x,y)$ writes
 \begin{eqnarray}
 \begin{split}
 G(x, y) &=
-\mathrm{max}\{\langle u, Ay\rangle - \langle x, Av\rangle | (u,v) \in
+\mathrm{max}\{u^TAy - x^TAv | (u,v) \in
 \Delta_{n_1} \times \Delta_{n_2}\}\\
 &= \underset{0 \le i <
   n_1}{\text{max }}(Ay)_i - \underset{0 \le j < n_2}{\text{min
@@ -308,29 +324,25 @@ values for the constants involved.
 % These contributions will be elaborated in section \ref{sec:gsp}.
 
 \subsection{Notation and terminology}
-\paragraph*{General.} Let $m$ and $n$ be positive integers.
+\paragraph{General.} Let $m$ and $n$ be positive integers.
 The components of a vector $z \in \mathbb{R}^n$ will be
 denoted $z_0$, $z_1$, ..., $z_{n-1}$ (indexing begins from $0$,
 not $1$). $\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ }
 z \geq 0\}$ is the nonnegative $n$th \textit{orthant}.
 $\|z\|$ denotes the $2$-\textit{norm} of $z$ defined by $\|z\| :=
-\sqrt{\langle z, z\rangle}$. %%  $(z)_+:=\text{max}(0, z) \in
-%% \mathbb{R}^{n}_+$ is the point-wise maximum of $z$ with $0$. For
-%% example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The
-%% operator $(.)_+$ is the well-known (multi-dimensional) \textit{ramp}
-%% function.
+\sqrt{z^Tz}$.  $(z)_+:=\text{max}(0, z) \in
+\mathbb{R}^{n}_+$ is the point-wise maximum of $z$ with $0$. For
+example, $((-2, \pi))_+ = (max(-2, 0), max(\pi, 0)) = (0, \pi)$. The
+operator $(.)_+$ is the well-known (multi-dimensional) \textit{ramp}
+function.
 Given a matrix $A \in \mathbb{R}^{m \times n}$, its \textit{spectral
   norm}, denoted $\|A\|$, is
  defined to be the largest \textit{singular value} of $A$, i.e the
  largest \textit{eigenvalue} of $A^TA$ (or equivalently, of $AA^T$).
 
-\paragraph*{Convex analysis.} %% For our purposes, it will suffice to
-%% know the following basic but powerful modern convex-analytical
-%% concepts. The interested reader should refer to
-%% \cite{combettes2011proximal} and the references therein for a more
-%% elaborate and scholastic exposition on the subject. % and its use in
-%%                                 % modern
-%%                                 % convex-optimization.
+\paragraph{Convex analysis.} In the sequel, we will use the following
+basic but powerful modern convex-analytical
+concepts.
 Given a subset $C \subseteq \mathbb{R}^n$, $i_C$ denotes the
 \textit{indicator function} of $C$ defined by $i_C(x) = 0 \text{ if }
 x \in C\text{ and }+\infty\text{ otherwise}$.
@@ -341,9 +353,9 @@ $C$, is the ``closest-point'' map $\proj_C: \mathbb{R}^n \rightarrow
 C, x \mapsto \underset{z \in C}{\text{argmin }}\frac{1}{2}\|z-x\|^2$.
 Let $f : \mathbb{R}^n \rightarrow (-\infty, +\infty]$ be a
   convex function. The \textit{effective domain} of $f$, denoted
-  $dom(f)$, is defined as
-$dom(f) := \{x \in \mathbb{R}^n | f(x) < +\infty\}$.
- If $dom(f) \ne \emptyset$ then we say $f$ is \textit{proper}.
+  $\dom f$, is defined as
+$\dom f := \{x \in \mathbb{R}^n | f(x) < +\infty\}$.
+ If $\dom f \ne \emptyset$ then we say $f$ is \textit{proper}.
 %% \textit{proper convex lower semi-continous function}
 %% (\textit{p.c.l.s.c} for short).
 %% The \textit{Fenchel-Legendre transform} of $f$ is the function $f^*:
@@ -351,33 +363,36 @@ $dom(f) := \{x \in \mathbb{R}^n | f(x) < +\infty\}$.
 %%   \underset{z \in \mathbb{R}^n}{\text{max}}\text{}z^Tx - f(z)$.
 The \textit{subdifferential} of $f$ at a point $x \in \mathbb{R}^n$ is
 defined by
-$\partial f(x) := \{v \in \mathbb{R}^n | f(z)  \ge f(x) + \langle v, z -
-x\rangle, \forall z \in \mathbb{R}^n\}$.
+$\partial f(x) := \{v \in \mathbb{R}^n | f(z)  \ge f(x) + v^T(z -
+x), \forall z \in \mathbb{R}^n\}$.
 %% Each element of $\partial f(x)$ is called a \textit{subgradient} of $f$
 %% at $x$. Of course $\partial f(x)$ reduces to the singleton $\{\nabla f(x)\}$
 %% in case $f$ is differentiable at $x$.
 If $f$ is convex, its
 \textit{proximal operator} is the function $\prox_f: \mathbb{R}^n
-\rightarrow \mathbb{R}^n$ defined by $\prox_f(x): = \underset{z \in
+\rightarrow \mathbb{R}^n$ defined by
+\begin{equation}
+ \prox_f(x): = \underset{z \in
   \mathbb{R}^n}{\text{argmin }}\frac{1}{2}\|z
-  - x\|^2 + f(z)$.
-%% For example, if $C$ is a closed convex subset of $\mathbb{R}^n$, then
-%% $\prox_C = \proj_C$, the orthogonal projector onto $C$. Thus proximal
-%% operators generalize orthogonal projectors. For example
-%% $\prox_{i_{\mathbb{R}^n_+}}(z) \equiv \proj_{\mathbb{R}^n_+}(z) \equiv
-%% (z)_+$. One also has the useful characterization
-%% \begin{eqnarray}
-%%   p = \prox_f(x)\text{ iff } x - p \in \partial f(p).
-%% \end{eqnarray}
-%% Thus given $\gamma > 0$, the operator $\prox_{\gamma f}$ can (and
-%% should) be thought of as performing an \textit{implicit} gradient step
-%% of size $\gamma$.
+  - x\|^2 + f(z).
+\end{equation}
+For example, if $C$ is a closed convex subset of $\mathbb{R}^n$, then
+$\prox_C = \proj_C$, the orthogonal projector onto $C$. Thus proximal
+operators generalize orthogonal projectors. For example
+$\prox_{i_{\mathbb{R}^n_+}}(z) \equiv \proj_{\mathbb{R}^n_+}(z) \equiv
+(z)_+$. One also has the useful characterization
+\begin{eqnarray}
+  p = \prox_f(x)\text{ iff } x - p \in \partial f(p).
+\end{eqnarray}
+Thus given $\gamma > 0$, the operator $\prox_{\gamma f}$ can (and
+should) be thought of as performing an \textit{implicit} gradient step
+of size $\gamma$.
 
-We recommend \cite{rockafellar1997convex,combettes2011proximal} for a
-more detailed exposition on convex analysis and its use in
-modern optimization theory and practice.
+A more detailed exposition on convex analysis and its use in
+modern optimization theory and practice can be found in
+\cite{rockafellar1997convex,combettes2011proximal}.
 
-\section{Relation to prior work}
+\section{Prior work}
 \label{sec:related_work}
 Here, we present a selection of algorithms that is representative of the
 efforts that have been made in the literature to compute Nash
@@ -426,10 +441,10 @@ for the game\footnote{The minimizers of $G$ are precisely the
 \end{eqnarray}
 and then show there exists a scalar
 $\delta > 0$ such that for any pair of realization plans $(x, y) \in Q_1 \times Q_2$,
-\begin{eqnarray}
+\begin{eqnarray*}
 \text{``distance between }(x, y)\text{ and set of
 equilibria'' } \le G(x, y)/\delta.
-\end{eqnarray}
+\end{eqnarray*}
 Their
 algorithm is then derived by iteratively applying Nesterov smoothing
 \cite{nesterov2005a}
@@ -487,16 +502,15 @@ the duality gap might explode even at points arbitrarily
 %% we are from the set of equilibria and avoid infinite (and thus
 %% non-informative) duality gaps. Amongst other amendments, this
 %% issue was addressed in \cite{he2013accelerating}.
-
+ 
 \section{Our contributions}
 \label{sec:gsp}
-\subsection{A Generalized Saddle-point Problem (GSP) equivalent of
-  the Nash-equilibrium LCPs \eqref{eq:primal_pb} and
-  \eqref{eq:dual_pb}}
+\subsection{Generalized Saddle-point Problem (GSP) for
+  Nash-equilibrium}
 In the next theorem, we show that the LCPs \eqref{eq:primal_pb}
 and \eqref{eq:dual_pb} can be
 conveniently written as a GSP in the sense of
-\cite{he2013accelerating}. The crux of idea is to remove the linear
+\cite{he2013accelerating}. The crux of idea is to ``dualize'' the linear
 constraints in the definitions of the strategy polytopes $Q_k$, by
 augmenting the payoff matrix to yield an equivalent saddle-point
 problem. The result is an equivalent game with unbounded strategy
@@ -504,23 +518,19 @@ profiles (nonnegative orthants) with much simpler geometry.
 We elaborate the construction in the following theorem.
 \begin{theorem}
 Define two proper closed convex functions
-  \begin{eqnarray}
-    \left.
-    \begin{aligned}
+  \begin{eqnarray*}
       g_1: \mathbb{R}^{n_2} &\times \mathbb{R}^{l_1} \rightarrow
       (-\infty, +\infty], \hspace{1em} g_1(y, p) :=
-        i_{y \ge 0} + \langle e_1,p\rangle\\
+        i_{y \ge 0} + e_1^Tp\\
         g_2: \mathbb{R}^{n_1} &\times \mathbb{R}^{l_2} \rightarrow
         (-\infty, +\infty],\hspace{1em} g_2(x, q) :=
-          i_{x \ge 0} + \langle e_2, q\rangle
-    \end{aligned}
-    \right\}
+          i_{x \ge 0} + e_2^Tq
     \label{eq:things}
-  \end{eqnarray}
+  \end{eqnarray*}
 Also define two bilinear forms $\Psi_1$, $\Psi_2: \mathbb{R}^{n_2}
 \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1} \times
-\mathbb{R}^{l_2} \rightarrow \mathbb{R}$ with $\Psi_2 = -\Psi_1$ by letting
-\begin{equation}
+\mathbb{R}^{l_2} \rightarrow \mathbb{R}$ by letting
+\begin{eqnarray*}
   \begin{split}  
     K :=
     \left[
@@ -530,27 +540,26 @@ Also define two bilinear forms $\Psi_1$, $\Psi_2: \mathbb{R}^{n_2}
       \end{array}
       \right],\hspace{.2em}
     \Psi_1(y, p, x, q)
-    := \left\langle \begin{bmatrix}x\\q\end{bmatrix},
-      K\begin{bmatrix}y\\p\end{bmatrix}\right\rangle, %% \\
+    := \begin{bmatrix}x\\q\end{bmatrix}^T
+      K\begin{bmatrix}y\\p\end{bmatrix}, %% \\
       %% &= \langle x,
       %% Ay\rangle -\langle x, E_1^Tp\rangle + \langle q, E_2y\rangle,
 \end{split}
-\end{equation}
-and define the functions $\hat{\Psi}_1$, $\hat{\Psi}_2:
+\end{eqnarray*}
+with $\Psi_2 = -\Psi_1$, and define the functions $\hat{\Psi}_1$,
+$\hat{\Psi}_2
 \mathbb{R}^{n_2} \times \mathbb{R}^{l_1} \times \mathbb{R}^{n_1}
 \times \mathbb{R}^{l_2} \rightarrow (-\infty, +\infty]$ by
-\begin{eqnarray}
-  \begin{aligned}
+\begin{eqnarray*}
     \hat{\Psi}_1(y, p, x, q) :=\begin{cases}
     \Psi_1(y, p, x, q)+ g_1(y, p), &\mbox{ if }y \ge 0,\\
-    +\infty, &\mbox{ otherwise}\end{cases}\\
+    +\infty, &\mbox{ otherwise,}\end{cases}\\
     %% &\hat{\Psi}_2(y, p, x, q) &:= \Psi_2(y, p, x, q)+ g_2(x, q) \text{ if
     %% }x \ge 0, \hat{\Psi}_2(y,p, x, q) := \infty \text{ otherwise}.
     \hat{\Psi}_2(y, p, x, q) :=\begin{cases}
     \Psi_2(y, p, x, q)+ g_2(x, q), &\mbox{ if }x \ge 0,\\
     +\infty, &\mbox{ otherwise.}\end{cases}
-  \end{aligned}
-\end{eqnarray}
+\end{eqnarray*}
 Finally, define the sets $S_1 := \mathbb{R}^{n_2}_+ \times
 \mathbb{R}^{l_1}$ and $S_2 := \mathbb{R}^{n_1}_+ \times
 \mathbb{R}^{l_2}$, and consider the GSP($\Psi_1$, $\Psi_2$, $g_1$,
@@ -586,16 +595,16 @@ Indeed, the unconstrained objective in \eqref{eq:primal_pb}, say
 $a(x,y)$, can be computed as
 \begin{eqnarray*}
   \begin{aligned}
-    &a(y,p) = \langle e_1,p\rangle + i_{y\ge 0} + i_{-Ay + E_1^Tp \ge 0} +
+    &a(y,p) = e_1^Tp + i_{y\ge 0} + i_{-Ay + E_1^Tp \ge 0} +
     i_{E_2y = e_2}\\
     &= g_1(y,p) + \underset{x' \geq
-      0}{\text{max}}\text{ }\langle x',Ay - E_1^Tp\rangle +
-    \underset{q'}{\text{max}}\text{ }\langle q',E_2y - e_2\rangle\\
+      0}{\text{max}}\text{ }x'^T(Ay - E_1^Tp) +
+    \underset{q'}{\text{max}}\text{ }q'^T(E_2y - e_2)\\
     &= g_1(y,p) + \underset{x',
-      q'}{\text{max}}\text{ }\langle x',Ay\rangle - \langle x',
-    E_1^Tp\rangle + \langle q',E_2y\rangle\\
+      q'}{\text{max}}\text{ }x'^TAy - x'^T
+    E_1^Tp + q'^TE_2y\\
     &\hspace{10em}-
-    (i_{x' \ge 0} + \langle e_2,q\rangle)\\
+    (i_{x' \ge 0} + e_2^Tq)\\
     &= g_1(y,p)
       - \underset{x',q'}{\text{min}}\text{ }\Psi_2(y, p, x', q') + g_2(x',
       q')\\
@@ -611,11 +620,11 @@ $b(x, q)$, in the dual LCP \eqref{eq:dual_pb} writes
 \begin{eqnarray*}
   \begin{aligned}
 &b(x, q) = 
--\langle q, e_2\rangle -i_{x \ge 0} - i_{A^Tx+E_2^Tq \ge 0} -
+-q^Te_2 -i_{x \ge 0} - i_{A^Tx+E_2^Tq \ge 0} -
  i_{E_1x = e_1}\\
  &= -g_2(x, q) + \underset{y' \geq
-   0}{\text{min}}\text{ }\langle y', A^Tx + E_2^Tq\rangle +
- \underset{p'}{\text{min}}\text{ }\langle p', e_1-E_1x\rangle\\
+   0}{\text{min}}\text{ }y'^T(A^Tx + E_2^Tq) +
+ \underset{p'}{\text{min}}\text{ }p'^T(e_1-E_1x)\\
     &= -g_2(x, q)
  +\underset{y',p'}{\text{min}}\text{ }\Psi_1(y', p', x, q) +
  g_1(y', p')\\
@@ -667,25 +676,28 @@ multiplications, clipping, etc., and no calls to external first-order
 oracles, no matrix inversions, etc.).
 \label{sec:algo}
 \begin{definition}
-  Given $\epsilon > 0$ and a function $f:\mathbb{R}^n
+  Given $\epsilon \ge 0$ and a function $f:\mathbb{R}^n
   \rightarrow (-\infty,+\infty]$, the $\epsilon$-enlarged
   subdifferential (or
   $\epsilon$-subdifferential, for short) of $f$ is the set-valued
   function defined by
   \begin{eqnarray}
-\partial_\epsilon f(x):= \{v \in \mathbb{R}^n | f(z)
-\ge f(x) + \langle v, z - x\rangle - \epsilon,\forall z \in
-\mathbb{R}^n\}.
+    \begin{split}
+    \partial_\epsilon f(x):= \{v \in \mathbb{R}^n | f(z)
+    \ge f(x) + &v^T(z - x) - \epsilon,\\
+    &\forall z \in \mathbb{R}^n\}.
+    \end{split}
 \end{eqnarray}
 \end{definition}
-The idea behind $\epsilon$-subdifferentials is the following. Say we wish
-to minimize a convex function $f$. Replace the usual
+Of course, $\partial_0f = \partial f$, the usual notion of
+subdifferential. The idea behind $\epsilon$-subdifferentials is the
+following. Say we wish to minimize a convex function $f$. Replace the usual
 necessary and sufficient condition ``$0 \in \partial f(x)$'' for the
 optimality of $x$ with the weaker condition ``$\partial_\epsilon f(x)$
-contains a sufficiently small vector $v$''. %%  In fact, it is easy to
-%%  see that, for each
-%% point $x \in \mathbb{R}^n$, we have $\underset{\epsilon \rightarrow
-%%   0^+}{\text{lim }}\partial_\epsilon f(x) = \partial f(x)$.
+contains a sufficiently small vector $v$''.  In fact, it is easy to
+ see that, for each
+point $x \in \mathbb{R}^n$, we have $\underset{\epsilon \rightarrow
+  0^+}{\text{lim }}\partial_\epsilon f(x) = \partial f(x)$.
 This approximation concept for subdifferentials yields yet another notion
 of approximate Nash-equilibrium.
 the following concept of approximate Nash-equilibria (refer to
@@ -774,19 +786,19 @@ satisfies assumptions B.1, B.2, B.3, B.5, and B.6 of
 L_{yx} = \|K\|$. Now, one easily computes the proximal operator of
 $g_j$ in closed-form as $\prox_{\lambda g_j}(a, b) \equiv ((a)_+,
 b - \lambda e_j)$. With all these ingredients in place, Algorithm
-\ref{Tab:algo} is then obtained from \cite[Algorithm
-  T-BD]{he2013accelerating} applied on the GSP
+\ref{Tab:algo} is then obtained from Algorithm
+  T-BD of \cite{he2013accelerating} applied on the GSP
 \eqref{eq:unconstrained_pb} with the choice of parameters: $\sigma = 1
 \in (0, 1]$, $\sigma_x = \sigma_y = 0 \in [0, \sigma)$,
     $\lambda_{xy} := \frac{1}{\sigma L_{xy}}\sqrt{(\sigma^2 -
         \sigma_x^2)(\sigma^2 - \sigma_y^2)} = \sigma / \|K\| =
       1/\|K\|$, and $\lambda = \lambda_{xy} \in (0,
       \lambda_{xy}]$. The convergence result then follows immediately
-  from \cite[Theorem 4.2]{he2013accelerating}.
+  from Theorem 4.2 of \cite{he2013accelerating}.
 \end{proof}
 
 \subsection{Practical considerations}
-\paragraph*{Efficient computation of $Ay$ and $A^Tx$.}
+\paragraph{Efficient computation of $Ay$ and $A^Tx$.}
 In Algorithms \ref{Tab:algo}, most of the time is spent
 pre-multiplying vectors by $A$ and $A^T$. For \textit{flop-type} Poker
 games like Texas Hold'em and  Rhode Island Hold'em,
@@ -799,7 +811,7 @@ for generating unbiased estimates of $Ay$ and $A^Tx$ would readily
 convert Algorithm \ref{Tab:algo} into an online and much scalable
 solver.
 
-\paragraph*{Computing $\|K\|$.}
+\paragraph{Computing $\|K\|$.}
 A major ingredient in the proposed algorithm is $\|K\|$, the $2$-norm
 of the huge matrix $K$. This  can be efficiently computed using the
 power iteration. Also since $\|K\|$ is only used in defining the
@@ -807,7 +819,7 @@ step-size $\lambda := 1/\|K\|$, it may be possible to avoid computing
 $\|K\|$ altogether, and instead use a line-search / backtrack strategy
 (see \cite{o2013adaptive}, e.g) for setting $\lambda$.
 
-\paragraph*{Game abstraction.} For many variants of Poker, there has
+\paragraph{Game abstraction.} For many variants of Poker, there has
 been extensive research in lossy / lossless abstraction techniques (for
 example \cite{gilpin2007} and more recently,
 \cite{sandholm2015abstraction,brown2015hierarchical}), wherein
@@ -829,7 +841,7 @@ implementing them from scratch for such games would require us to
 compute the complicated projections $\prox_{Q_k}$. We recall that
 avoiding these projections was one of the goals of the manuscript.
 \end{remark}
-\subsection{Basic test-bed: Matrix games on simplexes}
+\paragraph{\textit{(a)} Basic test-bed: Matrix games on simplexes.}
 As in \cite{nesterov2005a,chambolle2014ergodic}, we generate a $1000
 \times 1000$ random matrix whose entries are uniformly identically
 distributed in the closed interval $[-1, 1]$. %%  We compare our proposed
@@ -838,8 +850,8 @@ distributed in the closed interval $[-1, 1]$. %%  We compare our proposed
 The results of the experiments are shown in Figure
 \ref{Tab:dgap_curve}\textit{(a)}.
 
-\subsection{Kuhn Poker, a ``toy'' sequential game} This game is a
-simplified form of Poker
+\paragraph{\textit{(b)} Kuhn Poker, a ``toy'' incomplete-information
+  sequential game.} This game is a simplified form of Poker
 developed by Harold W. Kuhn in \cite{kuhn}. It already contains all
 the complexities (sequentiality, imperfection of information, etc.) of
 a full-blown Poker game like Texas Hold'em, but is simple enough to
@@ -899,7 +911,7 @@ The results of the experiments are shown in Figure
 
 \begin{figure}[!htpb]
   \subfigure[$10^3 \times 10^3$ matrix game on simplexes]{
-    \includegraphics[width=.5\linewidth]{0.pdf}
+    \includegraphics[width=.5\linewidth]{../0.pdf}
   }
   %% \hspace{-2em}
   %% \subfigure[Toy Poker]{
@@ -907,15 +919,15 @@ The results of the experiments are shown in Figure
   %% }
   \hspace{-2em}
   \subfigure[Kuhn 3-card Poker]{
-    \includegraphics[width=.5\linewidth]{Kuhn3112_dgap.pdf}
+    \includegraphics[width=.5\linewidth]{../Kuhn3112_dgap.pdf}
   }
   %\vspace{-1em}
   \hspace{-.5em}
-  \includegraphics[width=.5\linewidth]{1.pdf}
+  \includegraphics[width=.5\linewidth]{../1.pdf}
   %% \hspace{-1em}
   %% \includegraphics[width=.5\linewidth]{SimplifiedPoker_NE.pdf}
   %\hspace{.5em}
-  \includegraphics[width=.49\linewidth]{Kuhn3112_NE.pdf}
+  \includegraphics[width=.49\linewidth]{../Kuhn3112_NE.pdf}
   \caption{Convergence curves of Algorithm
     \ref{Tab:algo}.  We stress that the algorithms of Nesterov
     \cite{nesterov2005a} and Gilpin \cite{gilpinfirst} are included in
@@ -930,10 +942,10 @@ The results of the experiments are shown in Figure
     algorithm labelled ``Nesterov'' \cite{nesterov2005a} jitters
     around as the iterations go on because even the smoothed problem
     becomes heavily ill-conditioned
-    near solutions. %% On the other hand, our proposed
-  %%   algorithm beats both of the aforementioned algorithms, and
-  %% its proven $\mathcal{O}(1/\epsilon)$ convergence rate is clearly
-  %% verified empirically.
+    near solutions. On the other hand, our proposed
+    algorithm beats both of the aforementioned algorithms, and
+  its proven $\mathcal{O}(1/\epsilon)$ convergence rate is clearly
+  verified empirically.
   \textit{(b)}: Kuhn Poker. In the top-right plot, we show the
   modified duality gap defined in \eqref{eq:v_a} In both cases, we see
   that the proved convergence rate for our algorithm is empirically
@@ -941,29 +953,32 @@ The results of the experiments are shown in Figure
   \label{Tab:dgap_curve}
 \end{figure}
 
-\section{Concluding remarks and future work}
+\section{Concluding remarks}
 Making use of the sequence-form representation
 \cite{koller1992complexity,von1996efficient,vonequilibrium}, we have
-devised a simple numerically stable primal-dual algorithm for computing
-Nash-equilibria in two-person zero-sum sequential games with
-incomplete information (like Texas Hold'em, etc.). Our algorithm is
-simple to implement, with a low constant cost per iteration, and
-enjoys a rigorous convergence theory with a proven
-$\mathcal{O}(1/\epsilon)$ convergence in terms of basic operations
-(matvec products, clipping, etc.), to a Nash
-$(\epsilon,0)$-equilibrium of the game. In future, we plan to run more
-experiments on real Poker games to measure the practical power of the
-proposed algorithm compared to other competed schemes like CFR and
+proposed an equivalent Generalized Saddle-Point (GSP) formulation to
+the Nash-equilibrium problem for sequential games with incomplete
+information and perfect recall (e.g Texas Hold'em, etc.). Then, we
+have devised a simple numerically stable primal-dual algorithm for
+solving the GSP, and so by equivalence, compute (approximate)
+Nash-equilibria for such games. Our algorithm is simple to implement,
+with a low constant cost per iteration, and enjoys a rigorous
+convergence theory with a proven $\mathcal{O}(1/\epsilon)$ convergence
+in terms of basic operations (matvec products, clipping, etc.), to a
+Nash $(\epsilon,0)$-equilibrium of the game. In future, we plan to run
+more experiments on real Poker games to measure the practical power of
+the proposed algorithm compared to other competed schemes like CFR and
 EGT.
 
 In conclusion, Nash-equilibrium problems are saddle-point
 convex-concave problems, and as such, a natural tool
 for tackling them would be proximal primal-dual / operator-splitting
-algorithms, and we believe such methods will receive more attention
+algorithms applied, for example, to the GSP formulation we have
+proposed. We believe such methods will receive more attention
 in the algorithmic game theory community in future.
 
-%% \paragraph{Software.} The authors' implementation of the proposed
-%% algorithm is available upon request.
+\paragraph{Software.} The author's implementation of the proposed
+algorithm is available upon request.
 
 %% \paragraph{About the author:} The first author is first-year PhD
 %% student in Computer Science at Universit\'e de Parix XI. My thesis
@@ -989,8 +1004,23 @@ in the algorithmic game theory community in future.
 %% A(4,0) = {-0.5}$, $A(1,3) = {1}$, $A(3,1) =
 %% {-1}$, $A(1,2) = A(1,4) = A(3,2) = A(3,4) = {0.25}$.
 
-\pagebreak
-\bibliographystyle{IEEEbib}
-\bibliography{bib}
+% In the unusual situation where you want a paper to appear in the
+% references without citing it in the main text, use \nocite
+%\nocite{langley00}
 
-\end{document}
+\bibliography{../bib}
+\bibliographystyle{icml2016}
+
+\end{document} 
+
+
+% This document was modified from the file originally made available by
+% Pat Langley and Andrea Danyluk for ICML-2K. This version was
+% created by Lise Getoor and Tobias Scheffer, it was slightly modified  
+% from the 2010 version by Thorsten Joachims & Johannes Fuernkranz, 
+% slightly modified from the 2009 version by Kiri Wagstaff and 
+% Sam Roweis's 2008 version, which is slightly modified from 
+% Prasad Tadepalli's 2007 version which is a lightly 
+% changed version of the previous year's version by Andrew Moore, 
+% which was in turn edited from those of Kristian Kersting and 
+% Codrina Lauth. Alex Smola contributed to the algorithmic style files.  
