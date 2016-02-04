@@ -31,7 +31,7 @@
 % Employ the following version of the ``usepackage'' statement for
 % submitting the draft version of the paper for review.  This will set
 % the note in the first column to ``Under review.  Do not distribute.''
-\usepackage[accepted]{icml2016} 
+\usepackage{icml2016} 
 
 % Employ this version of the ``usepackage'' statement after the paper has
 % been accepted, when creating the final version.  This will set the
@@ -189,14 +189,14 @@ and the dual LCP
   \end{aligned}
   \label{eq:dual_pb}
 \end{equation}
-The vectors $p = (p_0, p_1, ..., p_{l_2 - 1}) \in \mathbb{R}^{l_2}$
-and $q = (q_0, q_1, ..., q_{l_1 - 1}) \in \mathbb{R}^{l_1}$ are dual
+The vectors $p = (p_0, p_1, \ldots, p_{l_2 - 1}) \in \mathbb{R}^{l_2}$
+and $q = (q_0, q_1, \ldots, q_{l_1 - 1}) \in \mathbb{R}^{l_1}$ are dual
 variables. 
 $A$ is the \textit{payoff matrix} and each $E_k$ is a matrix whose
 entries are $-1$, $0$ or $1$, with exactly 1 entry per row which
 equals $-1$ except for the first whose whose first entry is $1$ and all
 the others are $0$. Each of the vectors $e_k$ is of the form $(1, 0,
-..., 0)$.
+\ldots, 0) \in \mathbb R^{l_k}$.
 
 The LCPs above have the equivalent saddle-point formulation
 \begin{equation}
@@ -215,7 +215,7 @@ sequence-form representation
 \cite{koller1992complexity,koller1994fast,von1996efficient,vonequilibrium}. At
 a feasible point $(y, p, x, q)$ for
 the LCPs, the \textit{duality gap} $\tilde{G}(y, p, x, q)$ is
-given by\footnote{The inequality being due to \textit{weak duality}.}
+given by\footnote{The inequality is referred to as \textit{weak duality}.}
 \begin{eqnarray}
   \begin{split}
   \tilde{G}(y, p, x, q) &:= e_1^Tp - (-e_2^Tq) = e_1^Tp + e_2^Tq\\
@@ -270,11 +270,11 @@ It should be noted that any matrix $A \in \mathbb{R}^{n_1 \times n_2}$
 specifies a matrix game with payoff matrix $A$, for which player $k$'s
 strategy profile is a simplex
 \begin{eqnarray}
-\Delta_{n_k} := \left\{z \in \mathbb{R}^{n_k}|z \ge 0,\sum_{j=1}^{n_k}
+\Delta_{n_k} := \left\{z \in \mathbb{R}^{n_k}|z \ge 0,\sum_j
 z_j = 1\right\}.
 \end{eqnarray}
 This simplex can be written as a compact convex polytope in
-the form \eqref{eq:polytope} by taking $E_k := (1, 1, ..., 1) \in
+the form \eqref{eq:polytope} by taking $E_k := (1, 1, \ldots, 1) \in
 \mathbb{R}^{1 \times n_k}$ and $e_k = 1 \in \mathbb{R}^1$. Thus every
 matrix game on simplexes can be seen as a sequential game, and so the
 results presented in this manuscript can be trivially applied such
@@ -326,7 +326,7 @@ values for the constants involved.
 \subsection{Notation and terminology}
 \paragraph{General.} Let $m$ and $n$ be positive integers.
 The components of a vector $z \in \mathbb{R}^n$ will be
-denoted $z_0$, $z_1$, ..., $z_{n-1}$ (indexing begins from $0$,
+denoted $z_0$, $z_1$, \ldots, $z_{n-1}$ (indexing begins from $0$,
 not $1$). $\mathbb{R}^{n}_+ := \{z \in \mathbb{R}^{n}\text{ }|\text{ }
 z \geq 0\}$ is the nonnegative $n$th \textit{orthant}.
 $\|z\|$ denotes the $2$-\textit{norm} of $z$ defined by $\|z\| :=
