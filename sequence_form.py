@@ -43,7 +43,7 @@ class Game(object):
         self.build_payoff_matrix()
 
     def player_choices(self):
-        return self.player_choices()
+        return self.PLAYER_CHOICES
 
     def init_misc(self):
         """Miscellaneous initializations."""
@@ -350,7 +350,10 @@ class Game(object):
     def draw(self, figsize=None):
         """Draw game tree."""
         plt.figure(figsize=figsize)
-        pos = nx.graphviz_layout(self.tree, prog='dot')
+        try:
+            pos = nx.graphviz_layout(self.tree, prog='dot')
+        except AttributeError:
+            pos = nx.nx_pydot.graphviz_layout(self.tree, prog='dot')
 
         # leaf (terminal) nodes
         leaf_nodes = [node for node in self.tree.nodes() if self.is_leaf(node)]

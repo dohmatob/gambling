@@ -523,7 +523,7 @@ if __name__ == "__main__":
 
     rng = check_random_state(42)
     max_iter = 10000
-    game_clses = ["simplex", SimplifiedPoker, Kuhn3112][2:]
+    game_clses = ["simplex", SimplifiedPoker, Kuhn3112]
     for cnt, game_cls in enumerate(game_clses):
         if game_cls == "simplex":
             game = None
@@ -584,7 +584,7 @@ if __name__ == "__main__":
         plt.savefig("%s_dgap.pdf" % name)
 
         # draw game tree
-        if not game is None:
+        if game is not None:
             game.draw(figsize=(13.5, 7))
             plt.savefig("%s_gt.pdf" % name)
 

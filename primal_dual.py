@@ -1,6 +1,8 @@
 """
-Primal-Dual algorithm for computing Nash equilibria in two-person
-zero-sum games.
+A simple algorithm for computing Nash-equilibria in incomplete
+information games.
+
+NIPS OPT2016 workshop.
 
 """
 # author: Elvis Dohmatob <gmdopp@gmail.com>
@@ -85,8 +87,8 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
                    proj_C2=lambda y: np.maximum(y, 0.), init=None,
                    epsilon=1e-4, max_iter=10000, check_ergodic=True,
                    callback=None):
-    """Primal-Dual algorithm for computing Nash equlibrium for two-person
-    zero-sum game with payoff matrix A and contraint sets
+    """Projection-free primal-Dual algorithm for computing Nash equlibrium
+    for two-person zero-sum game with payoff matrix A and contraint sets
 
         Qj := {z in Cj | Ejz = ej}
 
@@ -232,6 +234,7 @@ def primal_dual_ne(A, E1, E2, e1, e2, proj_C1=lambda x: np.maximum(x, 0.),
 
 
 def primal_dual_sg_ne(A, epsilon=1e-4, strict=True, **kwargs):
+    """Specialization on classical matrix games on simplexes."""
     # misc
     n1, n2 = A.shape
     E1 = np.ones((1, n1))
